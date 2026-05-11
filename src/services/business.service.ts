@@ -1,0 +1,57 @@
+// Business service — business logic for managing businesses within an organization.
+import repo from "../repositories/business.repository";
+import { generateCode } from "../utils/codeGenerator";
+import { validateBusiness } from "../utils/validator";
+
+class BusinessService {
+
+    async create(data: any, actor: any) {
+        const { organizationCode, name, email, phone, address, timezone } = data;
+
+        validateBusiness(data);
+
+        const businessCode = generateCode();
+
+        return await repo.create({
+            businessCode,
+            organizationCode,
+            name: name.trim(),
+            email: email || null,
+            phone,
+            address: address || null,
+            timezone: timezone || null,
+            userCode: data.userCode || null,
+        });
+    }
+
+    async getAll(filters: any = {}) {
+        return await repo.findAll(filters);
+    }
+
+    async getByCode(businessCode: string) {
+        const business = await repo.findByCode(businessCode);
+        if (!business) throw new Error("Business not found");
+        return business;
+    }
+
+    async update(businessCode: string, data: any, actor: any) {
+        const business = await repo.findByCode(businessCode);
+        if (!business) throw new Error("Business not found");
+
+        const allowed: any = {};
+        const fields = ["name", "email", "phone", "address", "timezone", "userCode"];
+        for (const f of fields) {
+            if (data[f] !== undefined) allowed[f] = data[f];
+        }
+
+        return await repo.update(businessCode, allowed);
+    }
+
+    async delete(businessCode: string, actor: any) {
+        const business = await repo.findByCode(businessCode);
+        if (!business) throw new Error("Business not found");
+        return await repo.delete(businessCode);
+    }
+}
+
+export default new BusinessService();
