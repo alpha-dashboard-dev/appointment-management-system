@@ -1,4 +1,3 @@
-// UserAbility service — manages fine-grained permission abilities per user.
 import repo from "../repositories/userAbility.repository";
 import { validateUserAbility } from "../utils/validator";
 

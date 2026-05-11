@@ -71,7 +71,7 @@ class Client extends Model {
     }
 
     static associate(models) {
-        // Business
+
         Client.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",
@@ -79,7 +79,7 @@ class Client extends Model {
             constraints: false,
         });
 
-        // User
+
         Client.belongsTo(models.User, {
             foreignKey: "user_code",
             targetKey: "user_code",

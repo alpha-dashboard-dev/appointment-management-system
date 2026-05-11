@@ -1,5 +1,3 @@
-// User controller — HTTP handlers for staff/owner user management.
-// Delegates all business logic to user.service.
 import { Request, Response } from "express";
 import service from "../services/user.service";
 

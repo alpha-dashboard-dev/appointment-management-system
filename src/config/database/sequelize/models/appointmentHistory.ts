@@ -74,7 +74,7 @@ class AppointmentHistory extends Model {
     }
 
     static associate(models) {
-        // Appointment
+
         AppointmentHistory.belongsTo(models.Appointment, {
             foreignKey: "appointment_code",
             targetKey: "appointment_code",
@@ -82,7 +82,7 @@ class AppointmentHistory extends Model {
             constraints: false,
         });
 
-        // User (who made the change)
+        // user (who made the change)
         AppointmentHistory.belongsTo(models.User, {
             foreignKey: "changed_by",
             targetKey: "id",
@@ -90,7 +90,6 @@ class AppointmentHistory extends Model {
             constraints: false,
         });
 
-        // Business
         AppointmentHistory.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",

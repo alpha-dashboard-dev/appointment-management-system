@@ -90,7 +90,7 @@ class Service extends Model {
     }
 
     static associate(models) {
-        // Business
+
         Service.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",
@@ -98,7 +98,6 @@ class Service extends Model {
             constraints: false,
         });
 
-        // Location Services
         Service.hasMany(models.LocationService, {
             foreignKey: "service_code",
             sourceKey: "service_code",
@@ -106,7 +105,6 @@ class Service extends Model {
             constraints: false,
         });
 
-        // Appointment Services
         Service.hasMany(models.AppointmentService, {
             foreignKey: "service_code",
             sourceKey: "service_code",
@@ -114,7 +112,7 @@ class Service extends Model {
             constraints: false,
         });
 
-        // Appointment Discounts
+
         Service.hasMany(models.AppointmentDiscount, {
             foreignKey: "service_code",
             sourceKey: "service_code",
@@ -122,7 +120,6 @@ class Service extends Model {
             constraints: false,
         });
 
-        // Appointment Recurrence
         Service.hasMany(models.AppointmentRecurrence, {
             foreignKey: "service_code",
             sourceKey: "service_code",

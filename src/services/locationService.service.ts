@@ -1,4 +1,3 @@
-// LocationService service — manages the availability of services at specific locations.
 import repo from "../repositories/locationService.repository";
 import locationRepo from "../repositories/location.repository";
 import serviceRepo from "../repositories/service.repository";

@@ -65,7 +65,7 @@ class LocationService extends Model {
     }
 
     static associate(models) {
-        // Business
+
         LocationService.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",
@@ -73,7 +73,6 @@ class LocationService extends Model {
             constraints: false,
         });
 
-        // Service
         LocationService.belongsTo(models.Service, {
             foreignKey: "service_code",
             targetKey: "service_code",
@@ -81,7 +80,7 @@ class LocationService extends Model {
             constraints: false,
         });
 
-        // Location
+
         LocationService.belongsTo(models.Location, {
             foreignKey: "location_code",
             targetKey: "location_code",

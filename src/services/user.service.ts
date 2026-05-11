@@ -1,7 +1,6 @@
 import repo from "../repositories/user.repository";
 import { validateUser } from "../utils/validator";
 import { hashPassword } from "../utils/hashPassword";
-import {generateCode} from "../utils/codeGenerator";
 
 class UserService {
 

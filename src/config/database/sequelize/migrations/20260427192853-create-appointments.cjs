@@ -42,8 +42,8 @@ module.exports = {
         allowNull: false,
       },
 
-      location_id: {
-        type: Sequelize.INTEGER,
+      location_code: {
+        type: Sequelize.STRING(8),
         allowNull: true,
       },
 

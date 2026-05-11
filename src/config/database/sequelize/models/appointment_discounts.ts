@@ -66,7 +66,7 @@ class AppointmentDiscount extends Model {
     }
 
     static associate(models) {
-        // Appointment
+
         AppointmentDiscount.belongsTo(models.Appointment, {
             foreignKey: "appointment_code",
             targetKey: "appointment_code",
@@ -74,7 +74,6 @@ class AppointmentDiscount extends Model {
             constraints: false,
         });
 
-        // Service
         AppointmentDiscount.belongsTo(models.Service, {
             foreignKey: "service_code",
             targetKey: "service_code",
@@ -82,7 +81,6 @@ class AppointmentDiscount extends Model {
             constraints: false,
         });
 
-        // Business
         AppointmentDiscount.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",

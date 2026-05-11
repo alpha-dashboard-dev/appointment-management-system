@@ -88,7 +88,6 @@ class UserShiftSchedule extends Model {
     }
 
     static associate(models) {
-        // Business
         UserShiftSchedule.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",
@@ -96,15 +95,12 @@ class UserShiftSchedule extends Model {
             constraints: false,
         });
 
-        // User
         UserShiftSchedule.belongsTo(models.User, {
             foreignKey: "user_code",
             targetKey: "user_code",
             as: "user",
             constraints: false,
         });
-
-        // Location
         UserShiftSchedule.belongsTo(models.Location, {
             foreignKey: "location_code",
             targetKey: "location_code",

@@ -1,4 +1,3 @@
-// Client service — manages client profiles (customers) within a business.
 import repo from "../repositories/client.repository";
 import userRepo from "../repositories/user.repository";
 import { validateClient } from "../utils/validator";

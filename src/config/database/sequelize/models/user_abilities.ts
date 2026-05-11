@@ -88,7 +88,6 @@ class UserAbility extends Model {
     }
 
     static associate(models) {
-        // Business
         UserAbility.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",
@@ -96,7 +95,7 @@ class UserAbility extends Model {
             constraints: false,
         });
 
-        // User
+
         UserAbility.belongsTo(models.User, {
             foreignKey: "user_code",
             targetKey: "user_code",
@@ -104,7 +103,7 @@ class UserAbility extends Model {
             constraints: false,
         });
 
-        // Added By User
+
         UserAbility.belongsTo(models.User, {
             foreignKey: "added_by",
             targetKey: "user_code",
@@ -112,7 +111,6 @@ class UserAbility extends Model {
             constraints: false,
         });
 
-        // Updated By User
         UserAbility.belongsTo(models.User, {
             foreignKey: "updated_by",
             targetKey: "user_code",

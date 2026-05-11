@@ -47,7 +47,7 @@ class Invoice extends Model {
             },
 
             date: {
-                type: DataTypes.DATEONLY,
+                type: DataTypes.DATE,
                 allowNull: true,
             },
 
@@ -79,7 +79,6 @@ class Invoice extends Model {
     }
 
     static associate(models) {
-        // Appointment
         Invoice.belongsTo(models.Appointment, {
             foreignKey: "appointment_code",
             targetKey: "appointment_code",
@@ -87,7 +86,6 @@ class Invoice extends Model {
             constraints: false,
         });
 
-        // Business
         Invoice.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",
@@ -95,7 +93,6 @@ class Invoice extends Model {
             constraints: false,
         });
 
-        // Updated By User
         Invoice.belongsTo(models.User, {
             foreignKey: "updated_by",
             targetKey: "user_code",

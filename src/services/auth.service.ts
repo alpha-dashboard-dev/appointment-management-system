@@ -1,4 +1,3 @@
-// Authentication service — register, login, token refresh, and logout.
 import crypto from "crypto";
 import repo from "../repositories/user.repository";
 import sessionRepo from "../repositories/session.repository";
@@ -20,7 +19,6 @@ class AuthService {
             throw new Error("Email is already registered");
         }
 
-        // Hash password before storing — never persist plain text
         payload.password = await hashPassword(payload.password);
 
         return await repo.create(payload);

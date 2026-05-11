@@ -1,5 +1,3 @@
-// Organization service — business logic for creating and managing organizations.
-// Organizations are the root-level tenant that groups one or more businesses.
 import repo from "../repositories/organization.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateOrganization } from "../utils/validator";

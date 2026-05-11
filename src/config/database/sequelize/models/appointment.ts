@@ -27,12 +27,12 @@ class Appointment extends Model {
             },
 
             appointment_start_date: {
-                type: DataTypes.DATEONLY,
+                type: DataTypes.DATE,
                 allowNull: false,
             },
 
             appointment_end_date: {
-                type: DataTypes.DATEONLY,
+                type: DataTypes.DATE,
                 allowNull: false,
             },
 
@@ -46,9 +46,12 @@ class Appointment extends Model {
                 allowNull: false,
             },
 
-            location_id: {
-                type: DataTypes.INTEGER,
+            location_code: {
+                type: DataTypes.STRING(8),
                 allowNull: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
             },
 
             status: {
@@ -113,7 +116,6 @@ class Appointment extends Model {
     }
 
     static associate(models) {
-        // Business
         Appointment.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",
@@ -121,7 +123,6 @@ class Appointment extends Model {
             constraints: false,
         });
 
-        // Creator / Approver / Canceller
         Appointment.belongsTo(models.User, {
             foreignKey: "created_by",
             as: "creator",
@@ -146,7 +147,6 @@ class Appointment extends Model {
             constraints: false,
         });
 
-        // Relations
         Appointment.hasMany(models.AppointmentHistory, {
             foreignKey: "appointment_code",
             sourceKey: "appointment_code",

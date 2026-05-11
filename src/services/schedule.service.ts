@@ -1,4 +1,4 @@
-// Schedule service — manages staff shift schedules (working days, hours, location).
+
 import repo from "../repositories/schedule.repository";
 import { validateSchedule } from "../utils/validator";
 

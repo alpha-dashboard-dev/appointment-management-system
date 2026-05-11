@@ -92,7 +92,7 @@ class Location extends Model {
     }
 
     static associate(models) {
-        // Business
+
         Location.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",
@@ -100,7 +100,6 @@ class Location extends Model {
             constraints: false,
         });
 
-        // Location Services
         Location.hasMany(models.LocationService, {
             foreignKey: "location_code",
             sourceKey: "location_code",

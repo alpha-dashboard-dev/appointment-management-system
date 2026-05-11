@@ -81,7 +81,7 @@ class AppointmentRecurrence extends Model {
     }
 
     static associate(models) {
-        // Service relation
+
         AppointmentRecurrence.belongsTo(models.Service, {
             foreignKey: "service_code",
             targetKey: "service_code",
@@ -89,7 +89,6 @@ class AppointmentRecurrence extends Model {
             constraints: false,
         });
 
-        // Business relation
         AppointmentRecurrence.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",

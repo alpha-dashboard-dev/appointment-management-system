@@ -97,9 +97,6 @@ class User extends Model {
     }
 
     static associate(models) {
-        // =========================
-        // Organization
-        // =========================
         User.belongsTo(models.Organization, {
             foreignKey: "organization_code",
             targetKey: "organization_code",
@@ -107,9 +104,6 @@ class User extends Model {
             constraints: false,
         });
 
-        // =========================
-        // Business
-        // =========================
         User.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",
@@ -117,9 +111,6 @@ class User extends Model {
             constraints: false,
         });
 
-        // =========================
-        // Shift Schedules
-        // =========================
         User.hasMany(models.UserShiftSchedule, {
             foreignKey: "user_code",
             sourceKey: "user_code",
@@ -127,9 +118,6 @@ class User extends Model {
             constraints: false,
         });
 
-        // =========================
-        // Abilities
-        // =========================
         User.hasMany(models.UserAbility, {
             foreignKey: "user_code",
             sourceKey: "user_code",
@@ -137,9 +125,6 @@ class User extends Model {
             constraints: false,
         });
 
-        // =========================
-        // Sessions
-        // =========================
         User.hasMany(models.Session, {
             foreignKey: "user_code",
             sourceKey: "user_code",

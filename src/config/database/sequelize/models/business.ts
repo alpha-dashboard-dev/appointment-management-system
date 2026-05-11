@@ -84,7 +84,6 @@ class Business extends Model {
     }
 
     static associate(models) {
-        // Organization → Business
         Business.belongsTo(models.Organization, {
             foreignKey: "organization_code",
             targetKey: "organization_code",
@@ -92,7 +91,6 @@ class Business extends Model {
             constraints: false,
         });
 
-        // Business → Users
         Business.hasMany(models.User, {
             foreignKey: "business_code",
             sourceKey: "business_code",
@@ -100,7 +98,6 @@ class Business extends Model {
             constraints: false,
         });
 
-        // Business → Clients
         Business.hasMany(models.Client, {
             foreignKey: "business_code",
             sourceKey: "business_code",
@@ -108,7 +105,6 @@ class Business extends Model {
             constraints: false,
         });
 
-        // Business → Services
         Business.hasMany(models.Service, {
             foreignKey: "business_code",
             sourceKey: "business_code",
@@ -116,7 +112,6 @@ class Business extends Model {
             constraints: false,
         });
 
-        // Business → Locations
         Business.hasMany(models.Location, {
             foreignKey: "business_code",
             sourceKey: "business_code",
@@ -124,15 +119,12 @@ class Business extends Model {
             constraints: false,
         });
 
-        // Business → Appointments
         Business.hasMany(models.Appointment, {
             foreignKey: "business_id",
             sourceKey: "business_code",
             as: "appointments",
             constraints: false,
         });
-
-        // Business → Charges
         Business.hasMany(models.Charge, {
             foreignKey: "business_code",
             sourceKey: "business_code",

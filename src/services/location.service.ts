@@ -1,4 +1,4 @@
-// Location service — manages physical or virtual locations linked to a business.
+
 import repo from "../repositories/location.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateLocation } from "../utils/validator";

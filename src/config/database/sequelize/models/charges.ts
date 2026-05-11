@@ -69,7 +69,6 @@ class Charge extends Model {
     }
 
     static associate(models) {
-        // Business
         Charge.belongsTo(models.Business, {
             foreignKey: "business_code",
             targetKey: "business_code",

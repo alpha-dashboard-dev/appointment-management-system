@@ -1,4 +1,3 @@
-// Charge service — manages reusable fee definitions (e.g. GST, platform fee) for a business.
 import repo from "../repositories/charge.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateCharge } from "../utils/validator";

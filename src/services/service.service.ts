@@ -1,4 +1,3 @@
-// Service service — manages the catalogue of bookable services offered by a business.
 import repo from "../repositories/service.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateService } from "../utils/validator";
