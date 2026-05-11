@@ -52,6 +52,7 @@ class Organization extends Model {
     }
 
     static associate(models) {
+        // Organization -> Users
         Organization.hasMany(models.User, {
             foreignKey: "organization_code",
             sourceKey: "organization_code",
@@ -59,6 +60,7 @@ class Organization extends Model {
             constraints: false,
         });
 
+        // Organization -> Businesses
         Organization.hasMany(models.Business, {
             foreignKey: "organization_code",
             sourceKey: "organization_code",
@@ -66,7 +68,6 @@ class Organization extends Model {
             constraints: false,
         })
     }
-
 }
 
 module.exports = Organization;
