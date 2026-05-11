@@ -60,12 +60,6 @@ module.exports = {
         allowNull: false,
         defaultValue: 'PENDING',
       },
-
-      quotation_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-      },
-
       created_by: {
         type: Sequelize.INTEGER,
         allowNull: false,

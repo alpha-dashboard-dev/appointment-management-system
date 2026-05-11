@@ -1,6 +1,3 @@
-// Appointment service — the core of the system.
-// Handles the full appointment lifecycle: creation, status changes, rescheduling,
-// participant management, linked services/charges/discounts, and recurrence rules.
 import repo from "../repositories/appointment.repository";
 import historyRepo from "../repositories/appointmentHistory.repository";
 import participantRepo from "../repositories/appointmentParticipant.repository";
@@ -22,7 +19,6 @@ import {
 
 class AppointmentService {
 
-    // ─── Appointment CRUD ────────────────────────────────────────────────────
 
     async create(data: any, actor: any) {
         const {
@@ -47,7 +43,7 @@ class AppointmentService {
             notes: notes || null,
         });
 
-        // Record creation history
+
         await historyRepo.create({
             businessCode,
             appointmentCode,
@@ -57,7 +53,6 @@ class AppointmentService {
             newValue: { appointmentCode, status: "PENDING" },
         });
 
-        // Add creator as participant (OWNER)
         if (actor?.userCode) {
             await participantRepo.create({
                 businessCode,
@@ -169,7 +164,6 @@ class AppointmentService {
             notes: notes || null,
         });
 
-        // Mark original as rescheduled
         await repo.update(appointmentCode, { status: "RESCHEDULED" });
 
         await historyRepo.create({
@@ -184,7 +178,6 @@ class AppointmentService {
         return newAppointment;
     }
 
-    // ─── Participants ────────────────────────────────────────────────────────
 
     async addParticipant(appointmentCode: string, data: any, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
@@ -223,7 +216,6 @@ class AppointmentService {
         return await participantRepo.delete(participantId);
     }
 
-    // ─── Services ───────────────────────────────────────────────────────────
 
     async addService(appointmentCode: string, data: any, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
@@ -254,7 +246,6 @@ class AppointmentService {
         return await appointmentServiceRepo.delete(serviceId);
     }
 
-    // ─── Charges ────────────────────────────────────────────────────────────
 
     async addCharge(appointmentCode: string, data: any, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
@@ -287,7 +278,6 @@ class AppointmentService {
         return await appointmentChargeRepo.delete(chargeId);
     }
 
-    // ─── Discounts ──────────────────────────────────────────────────────────
 
     async addDiscount(appointmentCode: string, data: any, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
@@ -323,7 +313,6 @@ class AppointmentService {
         return await appointmentDiscountRepo.delete(discountId);
     }
 
-    // ─── History ────────────────────────────────────────────────────────────
 
     async getHistory(appointmentCode: string) {
         const appointment = await repo.findByCode(appointmentCode);
@@ -331,7 +320,6 @@ class AppointmentService {
         return await historyRepo.findByAppointment(appointmentCode);
     }
 
-    // ─── Recurrence ─────────────────────────────────────────────────────────
 
     async createRecurrence(data: any, actor: any) {
         const { businessCode, serviceCode, recurrenceUom, recurrenceValue, autoCancelAfterDays, rescheduleAfterDays } = data;

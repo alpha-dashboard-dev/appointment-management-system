@@ -1,4 +1,4 @@
-// LocationService controller — HTTP handlers for linking services to locations.
+
 import { Request, Response } from "express";
 import service from "../services/locationService.service";
 

@@ -1,4 +1,3 @@
-// Business service — business logic for managing businesses within an organization.
 import repo from "../repositories/business.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateBusiness } from "../utils/validator";

@@ -1,4 +1,3 @@
-// Charge controller — HTTP handlers for managing reusable fee/charge definitions.
 import { Request, Response } from "express";
 import service from "../services/charge.service";
 

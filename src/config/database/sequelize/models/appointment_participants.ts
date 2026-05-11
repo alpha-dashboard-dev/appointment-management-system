@@ -1,74 +1,101 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "AppointmentParticipant",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class AppointmentParticipant extends Model {
+    static initModel(sequelize) {
+        AppointmentParticipant.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        appointmentCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "appointment_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        userId: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "user_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            appointment_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        userType: {
-          type: DataTypes.ENUM("OWNER", "STAFF", "CLIENT"),
-          allowNull: false,
-          field: "user_type",
-        },
+            user_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        userRole: {
-          type: DataTypes.STRING(100),
-          allowNull: true,
-          field: "user_role",
-        },
+            user_type: {
+                type: DataTypes.ENUM("OWNER", "STAFF", "CLIENT"),
+                allowNull: false,
+            },
 
-        status: {
-          type: DataTypes.ENUM("ACTIVE", "INACTIVE"),
-          allowNull: false,
-          defaultValue: "ACTIVE",
-        },
+            user_role: {
+                type: DataTypes.STRING(100),
+                allowNull: true,
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            status: {
+                type: DataTypes.ENUM("ACTIVE", "INACTIVE"),
+                allowNull: false,
+                defaultValue: "ACTIVE",
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "appointment_participants",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'AppointmentParticipant',
+            tableName: 'appointment_participants',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return AppointmentParticipant;
+    }
+
+    static associate(models) {
+        // Appointment
+        AppointmentParticipant.belongsTo(models.Appointment, {
+            foreignKey: "appointment_code",
+            targetKey: "appointment_code",
+            as: "appointment",
+            constraints: false,
+        });
+
+        // User
+        AppointmentParticipant.belongsTo(models.User, {
+            foreignKey: "user_code",
+            targetKey: "user_code",
+            as: "user",
+            constraints: false,
+        });
+
+        // Business
+        AppointmentParticipant.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = AppointmentParticipant;

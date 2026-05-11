@@ -1,5 +1,3 @@
-// Central route registry — mounts all module routers under /api.
-// Import this file in app.ts and mount it at "/api".
 import { Router } from "express";
 
 import authRoutes from "./auth.routes";

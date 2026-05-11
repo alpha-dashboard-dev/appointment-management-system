@@ -1,32 +1,31 @@
-export default (sequelize: any, DataTypes: any) => {
-    return sequelize.define(
-        "UserShiftSchedule",
-        {
+const { Model, DataTypes } = require('sequelize');
+
+class UserShiftSchedule extends Model {
+    static initModel(sequelize) {
+        UserShiftSchedule.init({
             id: {
                 type: DataTypes.INTEGER,
                 autoIncrement: true,
                 primaryKey: true,
             },
 
-            businessCode: {
+            business_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
-                field: "business_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
             },
 
-            userCode: {
+            user_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
-                field: "user_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
             },
 
-            workingDays: {
+            working_days: {
                 type: DataTypes.ENUM(
                     "MONDAY",
                     "TUESDAY",
@@ -37,50 +36,82 @@ export default (sequelize: any, DataTypes: any) => {
                     "SUNDAY"
                 ),
                 allowNull: false,
-                field: "working_days",
             },
-            employeeType: {
-                type: DataTypes.ENUM("visiting", "permanent", "remote"),
+
+            employee_type: {
+                type: DataTypes.ENUM(
+                    "visiting",
+                    "permanent",
+                    "remote"
+                ),
                 allowNull: false,
-                field: "employee_type"
             },
-            locationCode: {
+
+            location_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
-                field: "location_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
             },
 
-            startTime: {
+            start_time: {
                 type: DataTypes.TIME,
                 allowNull: false,
-                field: "start_time",
             },
 
-            endTime: {
+            end_time: {
                 type: DataTypes.TIME,
                 allowNull: false,
-                field: "end_time",
             },
 
-            createdAt: {
+            created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "created_at",
             },
 
-            updatedAt: {
+            updated_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "updated_at",
             },
-        },
-        {
-            tableName: "user_shift_schedules",
+        }, {
+            sequelize,
+            modelName: 'UserShiftSchedule',
+            tableName: 'user_shift_schedules',
             timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
             underscored: true,
-        }
-    );
-};
+        });
+
+        return UserShiftSchedule;
+    }
+
+    static associate(models) {
+        // Business
+        UserShiftSchedule.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+
+        // User
+        UserShiftSchedule.belongsTo(models.User, {
+            foreignKey: "user_code",
+            targetKey: "user_code",
+            as: "user",
+            constraints: false,
+        });
+
+        // Location
+        UserShiftSchedule.belongsTo(models.Location, {
+            foreignKey: "location_code",
+            targetKey: "location_code",
+            as: "location",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = UserShiftSchedule;

@@ -1,8 +1,7 @@
-// User service — CRUD operations for system users (staff, owners, etc.).
-// Only admins can create or manage users.
 import repo from "../repositories/user.repository";
 import { validateUser } from "../utils/validator";
 import { hashPassword } from "../utils/hashPassword";
+import {generateCode} from "../utils/codeGenerator";
 
 class UserService {
 
@@ -10,8 +9,6 @@ class UserService {
         if (!adminUser || adminUser.userType !== "ADMIN") {
             throw new Error("Only admin can create users");
         }
-
-        // console.log(data);
 
         validateUser(data);
 
@@ -42,7 +39,6 @@ class UserService {
         if (!user) throw new Error("User not found");
 
         if (data.password) {
-            // Re-hash when password is being changed
             data.password = await hashPassword(data.password);
         }
 

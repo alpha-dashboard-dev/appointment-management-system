@@ -1,4 +1,4 @@
-// Organization controller — HTTP handlers for creating and managing organizations.
+
 import { Request, Response } from "express";
 import service from "../services/organization.service";
 

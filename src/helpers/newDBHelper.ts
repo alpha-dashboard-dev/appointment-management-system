@@ -1,6 +1,3 @@
-// ORM abstraction helper (primary).
-// All repository methods call this helper instead of touching Sequelize or Drizzle directly.
-// The active ORM is selected via the ORM environment variable ("sequelize" or "drizzle").
 import { db as drizzleDb } from "../config/database/drizzle/client";
 import { eq } from "drizzle-orm";
 

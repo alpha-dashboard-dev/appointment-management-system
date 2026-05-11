@@ -7,6 +7,8 @@ class UserController {
 
     async create(req: Request, res: Response) {
         try {
+            console.log(req.body);
+
             const data = await service.create(req.body, req.user);
 
             return res.status(201).json({

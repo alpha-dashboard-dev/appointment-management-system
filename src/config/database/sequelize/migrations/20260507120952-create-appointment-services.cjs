@@ -21,10 +21,10 @@ module.exports = {
         allowNull: false,
       },
 
-      // quotation_id: {
-      //   type: Sequelize.INTEGER,
-      //   allowNull: false,
-      // },
+      appointment_code: {
+        type: Sequelize.STRING(8),
+        allowNull: true,
+      },
 
       created_at: {
         allowNull: false,

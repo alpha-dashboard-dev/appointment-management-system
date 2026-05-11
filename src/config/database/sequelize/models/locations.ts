@@ -1,90 +1,113 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "Location",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: true,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class Location extends Model {
+    static initModel(sequelize) {
+        Location.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        locationCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          unique: true,
-          field: "location_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        locationType: {
-          type: DataTypes.ENUM("BUSINESS", "CLIENT"),
-          allowNull: false,
-          field: "location_type",
-        },
+            location_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                unique: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        address: {
-          type: DataTypes.TEXT,
-          allowNull: true,
-        },
+            location_type: {
+                type: DataTypes.ENUM(
+                    "BUSINESS",
+                    "CLIENT"
+                ),
+                allowNull: false,
+            },
 
-        street: {
-          type: DataTypes.STRING(255),
-          allowNull: true,
-        },
+            address: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
 
-        apartment: {
-          type: DataTypes.STRING(255),
-          allowNull: true,
-        },
+            street: {
+                type: DataTypes.STRING(255),
+                allowNull: true,
+            },
 
-        city: {
-          type: DataTypes.STRING(200),
-          allowNull: true,
-        },
+            apartment: {
+                type: DataTypes.STRING(255),
+                allowNull: true,
+            },
 
-        postalCode: {
-          type: DataTypes.STRING(200),
-          allowNull: true,
-          field: "postal_code",
-        },
+            city: {
+                type: DataTypes.STRING(200),
+                allowNull: true,
+            },
 
-        province: {
-          type: DataTypes.STRING(200),
-          allowNull: true,
-        },
+            postal_code: {
+                type: DataTypes.STRING(200),
+                allowNull: true,
+            },
 
-        country: {
-          type: DataTypes.STRING(200),
-          allowNull: true,
-        },
+            province: {
+                type: DataTypes.STRING(200),
+                allowNull: true,
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            country: {
+                type: DataTypes.STRING(200),
+                allowNull: true,
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "locations",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'Location',
+            tableName: 'locations',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return Location;
+    }
+
+    static associate(models) {
+        // Business
+        Location.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+
+        // Location Services
+        Location.hasMany(models.LocationService, {
+            foreignKey: "location_code",
+            sourceKey: "location_code",
+            as: "location_services",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = Location;

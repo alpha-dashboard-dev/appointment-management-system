@@ -1,4 +1,4 @@
-// ─── Constants ────────────────────────────────────────────────────────────────
+// Constants
 
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const CODE_REGEX = /^[A-Za-z0-9]{8}$/;
@@ -70,7 +70,7 @@ export const validateBusiness = (data: any) => {
     }
 };
 
-// ─── User ─────────────────────────────────────────────────────────────────────
+// User
 
 export const validateUser = (data: any) => {
     const { name, email, password, userType, businessCode, organizationCode, phone } = data;

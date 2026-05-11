@@ -1,4 +1,3 @@
-// Invoice controller — HTTP handlers for creating invoices and updating their status.
 import { Request, Response } from "express";
 import service from "../services/invoice.service";
 

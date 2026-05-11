@@ -1,4 +1,3 @@
-// Location controller — HTTP handlers for managing appointment locations.
 import { Request, Response } from "express";
 import service from "../services/location.service";
 

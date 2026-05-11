@@ -1,4 +1,3 @@
-// UserAbility controller — HTTP handlers for managing fine-grained user permissions.
 import { Request, Response } from "express";
 import service from "../services/userAbility.service";
 

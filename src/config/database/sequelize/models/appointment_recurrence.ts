@@ -1,84 +1,102 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "AppointmentRecurrence",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class AppointmentRecurrence extends Model {
+    static initModel(sequelize) {
+        AppointmentRecurrence.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        serviceCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "service_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        recurrenceUom: {
-          type: DataTypes.ENUM(
-              "MONTHLY",
-              "DAILY",
-              "WEEKLY",
-              "FORTNIGHTLY",
-              "QUARTERLY",
-              "FIXED"
-          ),
-          allowNull: false,
-          field: "recurrence_uom",
-        },
+            service_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        recurrenceValue: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          field: "recurrence_value",
-        },
+            recurrence_uom: {
+                type: DataTypes.ENUM(
+                    "MONTHLY",
+                    "DAILY",
+                    "WEEKLY",
+                    "FORTNIGHTLY",
+                    "QUARTERLY",
+                    "FIXED"
+                ),
+                allowNull: false,
+            },
 
-        status: {
-          type: DataTypes.ENUM("ACTIVE", "INACTIVE"),
-          allowNull: false,
-          defaultValue: "ACTIVE",
-        },
+            recurrence_value: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
 
-        autoCancelAfterDays: {
-          type: DataTypes.INTEGER,
-          allowNull: true,
-          field: "auto_cancel_after_days",
-        },
+            status: {
+                type: DataTypes.ENUM("ACTIVE", "INACTIVE"),
+                allowNull: false,
+                defaultValue: "ACTIVE",
+            },
 
-        rescheduleAfterDays: {
-          type: DataTypes.INTEGER,
-          allowNull: true,
-          field: "reschedule_after_days",
-        },
+            auto_cancel_after_days: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            reschedule_after_days: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "appointment_recurrence",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'AppointmentRecurrence',
+            tableName: 'appointment_recurrence',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return AppointmentRecurrence;
+    }
+
+    static associate(models) {
+        // Service relation
+        AppointmentRecurrence.belongsTo(models.Service, {
+            foreignKey: "service_code",
+            targetKey: "service_code",
+            as: "service",
+            constraints: false,
+        });
+
+        // Business relation
+        AppointmentRecurrence.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = AppointmentRecurrence;

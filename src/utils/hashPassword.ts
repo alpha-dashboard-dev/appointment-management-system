@@ -1,6 +1,3 @@
-// Secure password hashing using bcryptjs.
-// bcrypt automatically generates a unique salt per password, so two identical
-// passwords produce different hashes — making rainbow-table attacks infeasible.
 import bcrypt from "bcryptjs";
 
 const SALT_ROUNDS = 12; // Higher = slower hash (more brute-force resistant)

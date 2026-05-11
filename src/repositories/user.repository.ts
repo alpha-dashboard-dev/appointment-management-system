@@ -1,5 +1,3 @@
-// User repository — database access layer for the users table.
-// Users are staff, owners, or admins. Clients have a separate clients table.
 import db from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 

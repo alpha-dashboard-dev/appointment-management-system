@@ -1,45 +1,65 @@
-export default (sequelize: any, DataTypes: any) => {
-    return sequelize.define(
-        "Organization",
-        {
+const { Model, DataTypes } = require('sequelize');
+
+class Organization extends Model {
+    static initModel(sequelize) {
+        Organization.init({
             id: {
                 type: DataTypes.INTEGER,
                 autoIncrement: true,
                 primaryKey: true,
             },
-            organizationCode: {
+
+            organization_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
                 unique: true,
-                field: "organization_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
             },
+
             name: {
                 type: DataTypes.STRING(255),
                 allowNull: false,
             },
+
             status: {
                 type: DataTypes.ENUM("active", "in_active"),
                 allowNull: false,
                 defaultValue: "active",
             },
-            createdAt: {
+
+            created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "created_at",
             },
-            updatedAt: {
+
+            updated_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "updated_at",
             },
-        },
-        {
-            tableName: "organizations",
+        }, {
+            sequelize,
+            modelName: 'Organization',
+            tableName: 'organizations',
             timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
             underscored: true,
-        }
-    );
-};
+        });
+
+        return Organization;
+    }
+
+    static associate(models) {
+        // Organization → Users
+        Organization.hasMany(models.User, {
+            foreignKey: "organization_code",
+            sourceKey: "organization_code",
+            as: "users",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = Organization;

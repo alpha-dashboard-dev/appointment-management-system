@@ -1,86 +1,135 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "Service",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class Service extends Model {
+    static initModel(sequelize) {
+        Service.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        serviceCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          unique: true,
-          field: "service_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        name: {
-          type: DataTypes.STRING(255),
-          allowNull: false,
-        },
+            service_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                unique: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        description: {
-          type: DataTypes.TEXT,
-          allowNull: true,
-        },
+            name: {
+                type: DataTypes.STRING(255),
+                allowNull: false,
+            },
 
-        price: {
-          type: DataTypes.DECIMAL(10, 2),
-          allowNull: true,
-        },
+            description: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
 
-        cost: {
-          type: DataTypes.DECIMAL(10, 2),
-          allowNull: true,
-        },
+            price: {
+                type: DataTypes.DECIMAL(10, 2),
+                allowNull: true,
+            },
 
-        currency: {
-          type: DataTypes.STRING(10),
-          allowNull: true,
-          defaultValue: "USD",
-        },
+            cost: {
+                type: DataTypes.DECIMAL(10, 2),
+                allowNull: true,
+            },
 
-        durationUom: {
-          type: DataTypes.ENUM("week", "day", "hour", "minutes"),
-          allowNull: true,
-          field: "duration_uom",
-        },
+            currency: {
+                type: DataTypes.STRING(10),
+                allowNull: true,
+                defaultValue: "USD",
+            },
 
-        durationValue: {
-          type: DataTypes.INTEGER,
-          allowNull: true,
-          field: "duration_value",
-        },
+            duration_uom: {
+                type: DataTypes.ENUM(
+                    "week",
+                    "day",
+                    "hour",
+                    "minutes"
+                ),
+                allowNull: true,
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            duration_value: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "services",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'Service',
+            tableName: 'services',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return Service;
+    }
+
+    static associate(models) {
+        // Business
+        Service.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+
+        // Location Services
+        Service.hasMany(models.LocationService, {
+            foreignKey: "service_code",
+            sourceKey: "service_code",
+            as: "location_services",
+            constraints: false,
+        });
+
+        // Appointment Services
+        Service.hasMany(models.AppointmentService, {
+            foreignKey: "service_code",
+            sourceKey: "service_code",
+            as: "appointment_services",
+            constraints: false,
+        });
+
+        // Appointment Discounts
+        Service.hasMany(models.AppointmentDiscount, {
+            foreignKey: "service_code",
+            sourceKey: "service_code",
+            as: "appointment_discounts",
+            constraints: false,
+        });
+
+        // Appointment Recurrence
+        Service.hasMany(models.AppointmentRecurrence, {
+            foreignKey: "service_code",
+            sourceKey: "service_code",
+            as: "appointment_recurrences",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = Service;

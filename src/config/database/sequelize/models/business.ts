@@ -1,27 +1,26 @@
-export default (sequelize: any, DataTypes: any) => {
-    return sequelize.define(
-        "Business",
-        {
+const { Model, DataTypes } = require('sequelize');
+
+class Business extends Model {
+    static initModel(sequelize) {
+        Business.init({
             id: {
                 type: DataTypes.INTEGER,
                 autoIncrement: true,
                 primaryKey: true,
             },
 
-            businessCode: {
+            business_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
                 unique: true,
-                field: "business_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
             },
-            organizationCode: {
+
+            organization_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
-                unique: false,
-                field: "organization_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
@@ -51,11 +50,10 @@ export default (sequelize: any, DataTypes: any) => {
                 allowNull: true,
             },
 
-            userCode: {
+            user_code: {
                 type: DataTypes.STRING(8),
                 allowNull: true,
                 unique: true,
-                field: "user_code",
             },
 
             timezone: {
@@ -63,22 +61,85 @@ export default (sequelize: any, DataTypes: any) => {
                 allowNull: true,
             },
 
-            createdAt: {
+            created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "created_at",
             },
 
-            updatedAt: {
+            updated_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "updated_at",
             },
-        },
-        {
-            tableName: "businesses",
+        }, {
+            sequelize,
+            modelName: 'Business',
+            tableName: 'businesses',
             timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
             underscored: true,
-        }
-    );
-};
+        });
+
+        return Business;
+    }
+
+    static associate(models) {
+        // Organization → Business
+        Business.belongsTo(models.Organization, {
+            foreignKey: "organization_code",
+            targetKey: "organization_code",
+            as: "organization",
+            constraints: false,
+        });
+
+        // Business → Users
+        Business.hasMany(models.User, {
+            foreignKey: "business_code",
+            sourceKey: "business_code",
+            as: "users",
+            constraints: false,
+        });
+
+        // Business → Clients
+        Business.hasMany(models.Client, {
+            foreignKey: "business_code",
+            sourceKey: "business_code",
+            as: "clients",
+            constraints: false,
+        });
+
+        // Business → Services
+        Business.hasMany(models.Service, {
+            foreignKey: "business_code",
+            sourceKey: "business_code",
+            as: "services",
+            constraints: false,
+        });
+
+        // Business → Locations
+        Business.hasMany(models.Location, {
+            foreignKey: "business_code",
+            sourceKey: "business_code",
+            as: "locations",
+            constraints: false,
+        });
+
+        // Business → Appointments
+        Business.hasMany(models.Appointment, {
+            foreignKey: "business_id",
+            sourceKey: "business_code",
+            as: "appointments",
+            constraints: false,
+        });
+
+        // Business → Charges
+        Business.hasMany(models.Charge, {
+            foreignKey: "business_code",
+            sourceKey: "business_code",
+            as: "charges",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = Business;

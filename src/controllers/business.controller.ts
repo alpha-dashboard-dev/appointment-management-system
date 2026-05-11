@@ -1,4 +1,3 @@
-// Business controller — HTTP handlers for managing businesses within an organization.
 import { Request, Response } from "express";
 import service from "../services/business.service";
 
