@@ -1,11 +1,3 @@
-// User routes — CRUD for staff/owner user accounts.
-// POST /          create user (ADMIN, BUSINESS_OWNER)
-// GET /           list users
-// GET /:userCode  get single user
-// PUT /:userCode  full update
-// PATCH /:userCode/status   update status
-// PATCH /:userCode/business assign to business
-// DELETE /:userCode         remove user
 import { Router } from "express";
 import controller from "../controllers/user.controller";
 import { authenticate } from "../middlewares/auth.middleware";

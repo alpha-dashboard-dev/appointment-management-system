@@ -1,5 +1,3 @@
-// Session repository — stores refresh tokens so they can be validated and revoked.
-// Each login creates a session; logout deletes it; token refresh rotates it.
 import db from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 

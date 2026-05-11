@@ -1,4 +1,3 @@
-// Invoice routes — create invoices and update their payment status.
 import { Router } from "express";
 import controller from "../controllers/invoice.controller";
 import { authenticate } from "../middlewares/auth.middleware";

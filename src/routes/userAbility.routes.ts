@@ -1,4 +1,3 @@
-// User-ability routes — manage fine-grained permission abilities per user.
 import { Router } from "express";
 import controller from "../controllers/userAbility.controller";
 import { authenticate } from "../middlewares/auth.middleware";

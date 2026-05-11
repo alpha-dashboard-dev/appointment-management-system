@@ -1,5 +1,3 @@
-// Client repository — database access layer for the clients table.
-// A client is a customer profile linked to a user account within a specific business.
 import db from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 

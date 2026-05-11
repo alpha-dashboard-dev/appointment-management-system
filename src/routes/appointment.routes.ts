@@ -1,5 +1,3 @@
-// Appointment routes — full appointment lifecycle: booking, status, rescheduling,
-// participants, linked services/charges/discounts, recurrences, and history.
 import { Router } from "express";
 import controller from "../controllers/appointment.controller";
 import { authenticate } from "../middlewares/auth.middleware";
@@ -10,8 +8,6 @@ const router = Router();
 
 const ALL_STAFF = [ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF];
 const MANAGERS = [ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF];
-
-// ─── Core Appointment CRUD ───────────────────────────────────────────────────
 
 router.post(
     "/",
@@ -55,8 +51,6 @@ router.post(
     controller.reschedule
 );
 
-// ─── History ─────────────────────────────────────────────────────────────────
-
 router.get(
     "/:appointmentCode/history",
     authenticate,
@@ -64,7 +58,6 @@ router.get(
     controller.getHistory
 );
 
-// ─── Participants ─────────────────────────────────────────────────────────────
 
 router.post(
     "/:appointmentCode/participants",
@@ -87,7 +80,6 @@ router.delete(
     controller.removeParticipant
 );
 
-// ─── Services ─────────────────────────────────────────────────────────────────
 
 router.post(
     "/:appointmentCode/services",
@@ -110,7 +102,6 @@ router.delete(
     controller.removeService
 );
 
-// ─── Charges ─────────────────────────────────────────────────────────────────
 
 router.post(
     "/:appointmentCode/charges",
@@ -133,7 +124,6 @@ router.delete(
     controller.removeCharge
 );
 
-// ─── Discounts ───────────────────────────────────────────────────────────────
 
 router.post(
     "/:appointmentCode/discounts",
@@ -156,7 +146,6 @@ router.delete(
     controller.removeDiscount
 );
 
-// ─── Recurrence ───────────────────────────────────────────────────────────────
 
 router.post(
     "/recurrences",

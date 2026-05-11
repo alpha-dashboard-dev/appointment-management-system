@@ -1,4 +1,3 @@
-// Location-service routes — link which services are offered at which locations.
 import { Router } from "express";
 import controller from "../controllers/locationService.controller";
 import { authenticate } from "../middlewares/auth.middleware";

@@ -1,4 +1,3 @@
-// Location routes — manage physical or virtual appointment locations.
 import { Router } from "express";
 import controller from "../controllers/location.controller";
 import { authenticate } from "../middlewares/auth.middleware";

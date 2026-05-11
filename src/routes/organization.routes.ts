@@ -1,9 +1,3 @@
-// Organization routes — manage top-level tenant organizations.
-// POST /                       create organization (ADMIN)
-// GET /                        list organizations
-// GET /:organizationCode       get one organization
-// PUT /:organizationCode       update organization
-// PATCH /:organizationCode/status  change status
 import { Router } from "express";
 import controller from "../controllers/organization.controller";
 import { authenticate } from "../middlewares/auth.middleware";

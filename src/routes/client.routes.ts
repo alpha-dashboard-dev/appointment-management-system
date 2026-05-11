@@ -1,4 +1,3 @@
-// Client routes — manage customer profiles linked to a business.
 import { Router } from "express";
 import controller from "../controllers/client.controller";
 import { authenticate } from "../middlewares/auth.middleware";

@@ -1,5 +1,3 @@
-// Appointment-service repository — links which services are included in an appointment.
-// One appointment can include multiple services.
 import db from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 

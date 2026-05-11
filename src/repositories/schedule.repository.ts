@@ -1,5 +1,3 @@
-// Schedule repository — database access layer for the user_shift_schedules table.
-// Stores working-day and time-slot availability per staff member per location.
 import db from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 

@@ -1,5 +1,3 @@
-// Organization repository — database access layer for the organizations table.
-// Organizations are the top-level tenant in the hierarchy: Organization → Business → User.
 import db from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 

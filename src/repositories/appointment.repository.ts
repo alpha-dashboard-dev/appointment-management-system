@@ -1,4 +1,3 @@
-// Appointment repository — database access layer for the appointments table.
 import db from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 
