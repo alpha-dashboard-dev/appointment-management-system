@@ -22,6 +22,7 @@ class ServiceController {
         }
     }
 
+
     async getByCode(req: Request, res: Response) {
         try {
             const data = await service.getByCode(String(req.params.serviceCode));

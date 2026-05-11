@@ -1,4 +1,3 @@
-
 import { Request, Response } from "express";
 import service from "../services/locationService.service";
 
