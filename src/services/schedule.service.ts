@@ -1,4 +1,3 @@
-
 import repo from "../repositories/schedule.repository";
 import { validateSchedule } from "../utils/validator";
 

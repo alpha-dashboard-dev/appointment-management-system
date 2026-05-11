@@ -18,7 +18,7 @@ class ServiceService {
             description: description || null,
             price: price || null,
             cost: cost || null,
-            currency: currency || "USD",
+            currency: currency || "PKR",
             durationUom: durationUom || null,
             durationValue: durationValue || null,
             availability: availability || "onsite",
@@ -58,5 +58,4 @@ class ServiceService {
         return await repo.delete(serviceCode);
     }
 }
-
 export default new ServiceService();
