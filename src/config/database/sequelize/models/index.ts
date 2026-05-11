@@ -1,24 +1,24 @@
 const { sequelize } = require('../sequelize');
 
-const Organization = require('./Organization');
-const User = require('./User');
-const Business = require('./Business');
-const Client = require('./Client');
-const Service = require('./Service');
-const Appointment = require('./Appointment');
-const AppointmentHistory = require('./AppointmentHistory');
-const AppointmentService = require('./AppointmentService');
-const AppointmentParticipant = require('./AppointmentParticipant');
-const AppointmentDiscount = require('./AppointmentDiscount');
-const AppointmentCharge = require('./AppointmentCharge');
-const AppointmentRecurrence = require('./AppointmentRecurrence');
-const Invoice = require('./Invoice');
-const Session = require('./Session');
-const Location = require('./Location');
-const LocationService = require('./LocationService');
-const UserShiftSchedule = require('./UserShiftSchedule');
-const UserAbility = require('./UserAbility');
-const Charge = require('./Charge');
+const Organization = require('./organization');
+const User = require('./user');
+const Business = require('./business');
+const Client = require('./client');
+const Service = require('./services');
+const Appointment = require('./appointment');
+const AppointmentHistory = require('./appointmentHistory');
+const AppointmentService = require('./appointment_services');
+const AppointmentParticipant = require('./appointment_participants');
+const AppointmentDiscount = require('./appointment_discounts');
+const AppointmentCharge = require('./appointment_charges');
+const AppointmentRecurrence = require('./appointment_recurrence');
+const Invoice = require('./invoices');
+const Session = require('./session');
+const Location = require('./locations');
+const LocationService = require('./location_services');
+const UserShiftSchedule = require('./user_shift_schedule');
+const UserAbility = require('./user_abilities');
+const Charge = require('./charges');
 
 module.exports = () => {
     const models = {
