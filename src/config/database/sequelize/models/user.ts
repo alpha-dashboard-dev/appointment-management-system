@@ -9,30 +9,27 @@ class User extends Model {
                 primaryKey: true,
             },
 
-            organizationCode: {
+            organization_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
-                field: "organization_code",
             },
 
-            userCode: {
+            user_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
                 unique: true,
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
-                field: "user_code",
             },
 
-            businessCode: {
+            business_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
                 defaultValue: "0",
-                field: "business_code",
             },
 
             name: {
@@ -60,7 +57,7 @@ class User extends Model {
                 allowNull: true,
             },
 
-            userType: {
+            user_type: {
                 type: DataTypes.ENUM(
                     "ADMIN",
                     "BUSINESS_OWNER",
@@ -69,26 +66,22 @@ class User extends Model {
                     "CLIENT"
                 ),
                 allowNull: false,
-                field: "user_type",
             },
 
-            isActive: {
+            is_active: {
                 type: DataTypes.ENUM("active", "inactive"),
                 allowNull: false,
                 defaultValue: "active",
-                field: "is_active",
             },
 
-            createdAt: {
+            created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: 'created_at',
             },
 
-            updatedAt: {
+            updated_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: 'updated_at',
             },
         }, {
             sequelize,
@@ -105,36 +98,36 @@ class User extends Model {
 
     static associate(models) {
         User.belongsTo(models.Organization, {
-            foreignKey: "organizationCode",
-            targetKey: "organizationCode",
+            foreignKey: "organization_code",
+            targetKey: "organization_code",
             as: "organization",
             constraints: false,
         });
 
         User.belongsTo(models.Business, {
-            foreignKey: "businessCode",
-            targetKey: "businessCode",
+            foreignKey: "business_code",
+            targetKey: "business_code",
             as: "business",
             constraints: false,
         });
 
         User.hasMany(models.UserShiftSchedule, {
-            foreignKey: "userCode",
-            sourceKey: "userCode",
+            foreignKey: "user_code",
+            sourceKey: "user_code",
             as: "shift_schedules",
             constraints: false,
         });
 
         User.hasMany(models.UserAbility, {
-            foreignKey: "userCode",
-            sourceKey: "userCode",
+            foreignKey: "user_code",
+            sourceKey: "user_code",
             as: "abilities",
             constraints: false,
         });
 
         User.hasMany(models.Session, {
-            foreignKey: "userCode",
-            sourceKey: "userCode",
+            foreignKey: "user_code",
+            sourceKey: "user_code",
             as: "sessions",
             constraints: false,
         });

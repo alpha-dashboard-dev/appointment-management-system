@@ -9,32 +9,28 @@ class Session extends Model {
                 primaryKey: true,
             },
 
-            userCode: {
+            user_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
-                field: 'user_code',
             },
 
-            refreshToken: {
+            refresh_token: {
                 type: DataTypes.STRING(512),
                 allowNull: false,
                 unique: true,
-                field: 'refresh_token',
             },
 
-            expiresAt: {
+            expires_at: {
                 type: DataTypes.DATE,
                 allowNull: false,
-                field: 'expires_at',
             },
 
-            createdAt: {
+            created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: 'created_at',
             },
         }, {
             sequelize,
@@ -49,8 +45,8 @@ class Session extends Model {
 
     static associate(models) {
         Session.belongsTo(models.User, {
-            foreignKey: "userCode",
-            targetKey: "userCode",
+            foreignKey: "user_code",
+            targetKey: "user_code",
             as: "user",
             constraints: false,
         });
