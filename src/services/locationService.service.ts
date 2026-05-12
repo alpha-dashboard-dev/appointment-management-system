@@ -6,20 +6,20 @@ import { validateLocationService } from "../utils/validator";
 class LocationServiceService {
 
     async create(data: any, actor: any) {
-        const { businessCode, locationCode, serviceCode, availability } = data;
+        const { business_code, location_code, service_code, availability } = data;
 
         validateLocationService(data);
 
-        const location = await locationRepo.findByCode(locationCode);
+        const location = await locationRepo.findByCode(location_code);
         if (!location) throw new Error("Location not found");
 
-        const service = await serviceRepo.findByCode(serviceCode);
+        const service = await serviceRepo.findByCode(service_code);
         if (!service) throw new Error("Service not found");
 
         return await repo.create({
-            businessCode,
-            locationCode,
-            serviceCode,
+            business_code,
+            location_code,
+            service_code,
             availability: availability || "AVAILABLE",
         });
     }

@@ -37,8 +37,11 @@ class AppointmentHistory extends Model {
             },
 
             changed_by: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.STRING(8),
                 allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
             },
 
             old_value: {

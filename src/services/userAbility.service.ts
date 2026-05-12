@@ -4,17 +4,19 @@ import { validateUserAbility } from "../utils/validator";
 class UserAbilityService {
 
     async create(data: any, actor: any) {
-        const { businessCode, userCode, userType, ability, addedBy } = data;
+        const { business_code, user_code, user_type, ability, added_by } = data;
 
         validateUserAbility(data);
 
+        console.log(actor)
+
         return await repo.create({
-            businessCode,
-            userId: userCode,
-            userType,
+            business_code,
+            user_code,
+            user_type,
             ability: ability.trim(),
             status: data.status || "ACTIVE",
-            addedBy: addedBy || actor?.userCode || null,
+            added_by: added_by || actor?.userCode || null,
         });
     }
 

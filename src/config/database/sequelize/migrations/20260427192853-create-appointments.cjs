@@ -61,22 +61,22 @@ module.exports = {
         defaultValue: 'PENDING',
       },
       created_by: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(8),
         allowNull: false,
       },
 
       approved_by: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(8),
         allowNull: true,
       },
 
       cancelled_by: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(8),
         allowNull: true,
       },
 
       rescheduled_from: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(8),
         allowNull: true,
       },
 

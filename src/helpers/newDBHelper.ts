@@ -11,8 +11,6 @@ class DbHelper {
     }
 
     async create(table: any, data: any) {
-        console.log("TABLE =>", table);
-        console.log("MODEL =>", table.sequelize);
         if (this.orm === "sequelize") {
             return await table.sequelize.create(data);
         }

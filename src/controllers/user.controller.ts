@@ -5,8 +5,6 @@ class UserController {
 
     async create(req: Request, res: Response) {
         try {
-            console.log(req.body);
-
             const data = await service.create(req.body, req.user);
 
             return res.status(201).json({
@@ -16,7 +14,6 @@ class UserController {
             });
 
         } catch (err: any) {
-            console.log("Full Error: ", err);
             return res.status(400).json({
                 success: false,
                 message: err.message,

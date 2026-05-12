@@ -5,16 +5,16 @@ import { validateClient } from "../utils/validator";
 class ClientService {
 
     async create(data: any, actor: any) {
-        const { businessCode, userCode, name, email, phone, address } = data;
+        const { business_code, user_code, name, email, phone, address } = data;
 
         validateClient(data);
 
-        const existing = await repo.findByUserCode(userCode);
+        const existing = await repo.findByUserCode(user_code);
         if (existing) throw new Error("Client with this userCode already exists");
 
         return await repo.create({
-            businessCode,
-            userCode,
+            business_code,
+            user_code,
             name: name.trim(),
             email: email || null,
             phone,

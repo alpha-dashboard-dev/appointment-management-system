@@ -12,7 +12,7 @@ class OrganizationService {
         const organizationCode = generateCode();
 
         return await repo.create({
-            organizationCode,
+            organization_code: organizationCode,
             name: name.trim(),
             status: status || "active",
         });

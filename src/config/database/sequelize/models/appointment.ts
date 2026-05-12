@@ -69,23 +69,35 @@ class Appointment extends Model {
             },
 
             created_by: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.STRING(8),
                 allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
             },
 
             approved_by: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.STRING(8),
                 allowNull: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
             },
 
             cancelled_by: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.STRING(8),
                 allowNull: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
             },
 
             rescheduled_from: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.STRING(8),
                 allowNull: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
             },
 
             notes: {

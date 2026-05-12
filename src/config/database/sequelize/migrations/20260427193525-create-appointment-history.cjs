@@ -33,7 +33,7 @@ module.exports = {
       },
 
       changed_by: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(8),
         allowNull: false,
       },
 

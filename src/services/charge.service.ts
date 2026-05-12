@@ -5,17 +5,17 @@ import { validateCharge } from "../utils/validator";
 class ChargeService {
 
     async create(data: any, actor: any) {
-        const { businessCode, chargeUom, chargeValue, name, description } = data;
+        const { business_code, charge_uom, charge_value, name, description } = data;
 
         validateCharge(data);
 
         const chargeCode = generateCode();
 
         return await repo.create({
-            businessCode,
-            chargeCode,
-            chargeUom,
-            chargeValue,
+            business_code,
+            charge_code: chargeCode,
+            charge_uom,
+            charge_value,
             name: name.trim(),
             description: description || null,
         });
@@ -36,8 +36,8 @@ class ChargeService {
         if (!charge) throw new Error("Charge not found");
 
         const allowed: any = {};
-        if (data.chargeUom !== undefined) allowed.chargeUom = data.chargeUom;
-        if (data.chargeValue !== undefined) allowed.chargeValue = data.chargeValue;
+        if (data.charge_uom !== undefined) allowed.charge_uom = data.charge_uom;
+        if (data.charge_value !== undefined) allowed.charge_value = data.charge_value;
         if (data.name !== undefined) allowed.name = data.name;
         if (data.description !== undefined) allowed.description = data.description;
 

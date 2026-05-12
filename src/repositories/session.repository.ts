@@ -33,16 +33,16 @@ class SessionRepository {
         );
 
         return dbHelper.create(this.tables, {
-            userCode,
-            refreshToken,
-            expiresAt,
+            user_code: userCode,
+            refresh_token: refreshToken,
+            expires_at: expiresAt,
         });
     }
 
     async findByToken(refreshToken: string): Promise<any> {
         return dbHelper.findByField(
             this.tables,
-            "refreshToken",
+            "refresh_token",
             refreshToken
         );
     }
@@ -53,15 +53,15 @@ class SessionRepository {
         );
 
         return dbHelper.update(this.tables, id, {
-            refreshToken: newToken,
-            expiresAt,
+            refresh_token: newToken,
+            expires_at: expiresAt,
         });
     }
 
     async deleteByUserCode(userCode: string): Promise<void> {
         return dbHelper.deleteByField(
             this.tables,
-            "userCode",
+            "user_code",
             userCode
         );
     }

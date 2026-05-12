@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import repo from "../repositories/user.repository";
 import sessionRepo from "../repositories/session.repository";
 import {
@@ -8,6 +7,7 @@ import {
 } from "../utils/jwt";
 import { validateUser } from "../utils/validator";
 import { hashPassword, comparePassword } from "../utils/hashPassword";
+import {generateCode} from "../utils/codeGenerator";
 
 class AuthService {
 
@@ -18,10 +18,23 @@ class AuthService {
         if (existing) {
             throw new Error("Email is already registered");
         }
+        const user_code = generateCode();
 
-        payload.password = await hashPassword(payload.password);
+        const hashedPassword = await hashPassword(payload.password);
 
-        return await repo.create(payload);
+        const userData = {
+            user_code,
+            organization_code: payload.organization_code,
+            business_code: payload.business_code || null,
+            user_type: payload.user_type,
+            email: payload.email.trim().toLowerCase(),
+            password: hashedPassword,
+            is_active: payload.is_active,
+            name: payload.name || null,
+            phone: payload.phone || null,
+        };
+
+        return await repo.create(userData);
     }
 
     async login(email: string, password: string) {
@@ -32,24 +45,22 @@ class AuthService {
             throw new Error("Invalid email or password");
         }
 
-        console.log(password);
-        console.log(user.password)
         const passwordMatch = await comparePassword(password, user.password);
 
         if (!passwordMatch) {
             throw new Error("Invalid email or password");
         }
         const payload = {
-            user_code: user.userCode,
-            user_type: user.userType,
-            business_code: user.businessCode,
-            organization_code: user.organizationCode,
+            user_code: user.user_code,
+            user_type: user.user_type,
+            business_code: user.business_code,
+            organization_code: user.organization_code,
         };
 
         const accessToken = generateAccessToken(payload);
         const refreshToken = generateRefreshToken(payload);
 
-        await sessionRepo.create(user.userCode, refreshToken);
+        await sessionRepo.create(user.user_code, refreshToken);
 
         return {
             user: payload,
@@ -68,10 +79,10 @@ class AuthService {
         if (!user) throw new Error("User not found");
 
         const payload = {
-            user_code: user.userCode,
-            user_type: user.userType,
-            business_code: user.businessCode,
-            organization_code: user.organizationCode,
+            user_code: user.user_code,
+            user_type: user.user_type,
+            business_code: user.business_code,
+            organization_code: user.organization_code,
         };
 
         const newAccessToken = generateAccessToken(payload);
