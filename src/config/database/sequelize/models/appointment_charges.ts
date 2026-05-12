@@ -25,9 +25,12 @@ class AppointmentCharge extends Model {
                 },
             },
 
-            charge_id: {
-                type: DataTypes.INTEGER,
+            charge_code: {
+                type: DataTypes.STRING(8),
                 allowNull: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
             },
 
             charge_uom: {

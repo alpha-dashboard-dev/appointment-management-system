@@ -21,8 +21,8 @@ module.exports = {
         allowNull: false,
       },
 
-      charge_id: {
-        type: Sequelize.INTEGER,
+      charge_code: {
+        type: Sequelize.STRING(8),
         allowNull: true,
       },
 
