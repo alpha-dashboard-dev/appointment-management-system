@@ -1,4 +1,3 @@
-
 import { Request, Response } from "express";
 import service from "../services/auth.service";
 import {validateUser} from "../utils/validator";

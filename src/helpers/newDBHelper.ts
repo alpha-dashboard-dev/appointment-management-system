@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 
 class DbHelper {
 
-    // Returns the configured ORM name; throws if ORM env var is missing.
+
     get orm(): string {
         const active = process.env.ORM;
         if (!active) throw new Error("ORM is not configured. Set ORM env variable.");
