@@ -343,9 +343,9 @@ export const validateAppointmentStatus = (data: any) => {
 
 
 export const validateAppointmentParticipant = (data: any) => {
-    const { businessCode, userCode, userType } = data;
+    const { business_code, userCode, userType } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
@@ -360,99 +360,99 @@ export const validateAppointmentParticipant = (data: any) => {
 
 
 export const validateAppointmentService = (data: any) => {
-    const { businessCode, serviceCode } = data;
+    const { business_code, service_code } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!serviceCode || !isValidCode(serviceCode)) {
+    if (!service_code || !isValidCode(service_code)) {
         throw new Error("Valid 8-character serviceCode is required");
     }
 };
 
 
 export const validateAppointmentCharge = (data: any) => {
-    const { businessCode, appointmentCode } = data;
+    const { business_code, appointment_code } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!appointmentCode || !isValidCode(appointmentCode)) {
+    if (!appointment_code || !isValidCode(appointment_code)) {
         throw new Error("Valid 8-character appointmentCode is required");
     }
 };
 
 
 export const validateAppointmentDiscount = (data: any) => {
-    const { businessCode, serviceCode, appointmentCode, discountUom, discountValue } = data;
+    const { business_code, service_code, appointment_code, discount_uom, discount_value } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!serviceCode || !isValidCode(serviceCode)) {
+    if (!service_code || !isValidCode(service_code)) {
         throw new Error("Valid 8-character serviceCode is required");
     }
 
-    if (!appointmentCode || !isValidCode(appointmentCode)) {
+    if (!appointment_code || !isValidCode(appointment_code)) {
         throw new Error("Valid 8-character appointmentCode is required");
     }
 
-    if (!discountUom || !VALID_DISCOUNT_UOMS.includes(discountUom)) {
+    if (!discount_uom || !VALID_DISCOUNT_UOMS.includes(discount_uom)) {
         throw new Error("Invalid discountUom. Must be one of: " + VALID_DISCOUNT_UOMS.join(", "));
     }
 
-    if (discountValue === undefined || discountValue === null || isNaN(Number(discountValue)) || Number(discountValue) < 0) {
+    if (discount_value === undefined || discount_value === null || isNaN(Number(discount_value)) || Number(discount_value) < 0) {
         throw new Error("discountValue must be a non-negative number");
     }
 
-    if (discountUom === "PERCENTAGE" && Number(discountValue) > 100) {
+    if (discount_uom === "PERCENTAGE" && Number(discount_value) > 100) {
         throw new Error("discountValue cannot exceed 100 for PERCENTAGE type");
     }
 };
 
 
 export const validateAppointmentRecurrence = (data: any) => {
-    const { businessCode, serviceCode, recurrenceUom, recurrenceValue, autoCancelAfterDays, rescheduleAfterDays } = data;
+    const { business_code, service_code, recurrence_uom, recurrence_Value, auto_cancel_after_days, reschedule_after_days } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!serviceCode || !isValidCode(serviceCode)) {
+    if (!service_code || !isValidCode(service_code)) {
         throw new Error("Valid 8-character serviceCode is required");
     }
 
-    if (!recurrenceUom || !VALID_RECURRENCE_UOMS.includes(recurrenceUom)) {
+    if (!recurrence_uom || !VALID_RECURRENCE_UOMS.includes(recurrence_uom)) {
         throw new Error("Invalid recurrenceUom. Must be one of: " + VALID_RECURRENCE_UOMS.join(", "));
     }
 
-    if (!recurrenceValue || !Number.isInteger(Number(recurrenceValue)) || Number(recurrenceValue) < 1) {
+    if (!recurrence_Value || !Number.isInteger(Number(recurrence_Value)) || Number(recurrence_Value) < 1) {
         throw new Error("recurrenceValue must be a positive integer");
     }
 
-    if (autoCancelAfterDays !== undefined && autoCancelAfterDays !== null &&
-        (!Number.isInteger(Number(autoCancelAfterDays)) || Number(autoCancelAfterDays) < 0)) {
+    if (auto_cancel_after_days !== undefined && auto_cancel_after_days !== null &&
+        (!Number.isInteger(Number(auto_cancel_after_days)) || Number(auto_cancel_after_days) < 0)) {
         throw new Error("autoCancelAfterDays must be a non-negative integer");
     }
 
-    if (rescheduleAfterDays !== undefined && rescheduleAfterDays !== null &&
-        (!Number.isInteger(Number(rescheduleAfterDays)) || Number(rescheduleAfterDays) < 0)) {
+    if (reschedule_after_days !== undefined && reschedule_after_days !== null &&
+        (!Number.isInteger(Number(reschedule_after_days)) || Number(reschedule_after_days) < 0)) {
         throw new Error("rescheduleAfterDays must be a non-negative integer");
     }
 };
 
 
 export const validateAppointmentHistory = (data: any) => {
-    const { businessCode, appointmentCode, action } = data;
+    const { business_code, appointment_code, action } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!appointmentCode || !isValidCode(appointmentCode)) {
+    if (!appointment_code || !isValidCode(appointment_code)) {
         throw new Error("Valid 8-character appointmentCode is required");
     }
 
@@ -462,13 +462,13 @@ export const validateAppointmentHistory = (data: any) => {
 };
 
 export const validateInvoice = (data: any) => {
-    const { businessCode, appointmentCode, status, subtotal, total, date } = data;
+    const { business_code, appointment_code, status, subtotal, total, date } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!appointmentCode || !isValidCode(appointmentCode)) {
+    if (!appointment_code || !isValidCode(appointment_code)) {
         throw new Error("Valid 8-character appointmentCode is required");
     }
 
