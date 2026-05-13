@@ -37,13 +37,13 @@ class Invoice extends Model {
 
             invoice_status: {
                 type: DataTypes.ENUM(
-                    "DRAFT",
-                    "ISSUED",
-                    "PAID",
-                    "CANCELLED"
+                    "draft",
+                    "issued",
+                    "paid",
+                    "canceled",
                 ),
                 allowNull: false,
-                defaultValue: "DRAFT",
+                defaultValue: "draft",
             },
 
             date: {
