@@ -46,6 +46,16 @@ class BusinessService {
         return await repo.update(businessCode, allowed);
     }
 
+    async assignUser(businessCode: string, userCode: string, adminUser: any) {
+        const user = await repo.findByCode(businessCode);
+
+        if (!user) throw new Error("Business not found");
+
+        return await repo.update(businessCode, {
+            user_code: userCode,
+        });
+    }
+
     async delete(businessCode: string) {
         const business = await repo.findByCode(businessCode);
         if (!business) throw new Error("Business not found");
