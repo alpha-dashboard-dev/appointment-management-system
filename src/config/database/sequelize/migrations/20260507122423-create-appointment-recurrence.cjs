@@ -23,12 +23,12 @@ module.exports = {
 
       recurrence_uom: {
         type: Sequelize.ENUM(
-            'MONTHLY',
-            'DAILY',
-            'WEEKLY',
-            'FORTNIGHTLY',
-            'QUARTERLY',
-            'FIXED'
+            'monthly',
+            'daily',
+            'weekly',
+            'fortnightly',
+            'quarterly',
+            'fixed'
         ),
         allowNull: false,
       },
@@ -39,9 +39,9 @@ module.exports = {
       },
 
       status: {
-        type: Sequelize.ENUM('ACTIVE', 'INACTIVE'),
+        type: Sequelize.ENUM('active', 'inactive'),
         allowNull: false,
-        defaultValue: 'ACTIVE',
+        defaultValue: 'inactive',
       },
 
       auto_cancel_after_days: {

@@ -27,12 +27,12 @@ class AppointmentRecurrence extends Model {
 
             recurrence_uom: {
                 type: DataTypes.ENUM(
-                    "MONTHLY",
-                    "DAILY",
-                    "WEEKLY",
-                    "FORTNIGHTLY",
-                    "QUARTERLY",
-                    "FIXED"
+                    "monthly",
+                    "daily",
+                    "weekly",
+                    "fortnightly",
+                    "quarterly",
+                    "fixed"
                 ),
                 allowNull: false,
             },
@@ -43,9 +43,9 @@ class AppointmentRecurrence extends Model {
             },
 
             status: {
-                type: DataTypes.ENUM("ACTIVE", "INACTIVE"),
+                type: DataTypes.ENUM("active", "inactive"),
                 allowNull: false,
-                defaultValue: "ACTIVE",
+                defaultValue: "active",
             },
 
             auto_cancel_after_days: {
