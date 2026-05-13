@@ -64,7 +64,7 @@ export const validateBusiness = (data: any) => {
     if (!organization_code || !isValidCode(organization_code)) {
         throw new Error("Valid 8-character organizationCode is required");
     }
-    if (!user_code || !isValidCode(user_code)) {
+    if (user_code && !isValidCode(user_code)) {
         throw new Error("Valid 8-character userCode is required");
     }
 };
