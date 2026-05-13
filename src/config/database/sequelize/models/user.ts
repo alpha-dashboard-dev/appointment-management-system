@@ -59,11 +59,11 @@ class User extends Model {
 
             user_type: {
                 type: DataTypes.ENUM(
-                    "ADMIN",
-                    "BUSINESS_OWNER",
-                    "OPERATIONAL_STAFF",
-                    "SERVICE_STAFF",
-                    "CLIENT"
+                    "admin",
+                    "business_owner",
+                    "operational_staff",
+                    "service_staff",
+                    "client"
                 ),
                 allowNull: false,
             },
