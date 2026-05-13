@@ -36,12 +36,15 @@ module.exports = {
         type: Sequelize.STRING(255),
         allowNull: false,
       },
-
       description: {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-
+      status: {
+        type: Sequelize.ENUM('active', 'inactive'),
+        allowNull: false,
+        defaultValue: 'active',
+      },
       created_at: {
         allowNull: false,
         type: Sequelize.DATE,

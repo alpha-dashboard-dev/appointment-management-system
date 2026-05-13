@@ -45,7 +45,11 @@ class Charge extends Model {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
+            status: {
+                type: DataTypes.ENUM("active", "inactive"),
+                allowNull: false,
 
+            },
             created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
