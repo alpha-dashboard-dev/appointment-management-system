@@ -1,4 +1,3 @@
-// Schedule routes — manage staff working-day and hour schedules.
 import { Router } from "express";
 import controller from "../controllers/schedule.controller";
 import { authenticate } from "../middlewares/auth.middleware";

@@ -1,7 +1,7 @@
-// Appointment-history repository — append-only audit log for appointment state changes.
-// Every status transition, reschedule, or update creates a history record.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+const db = initModels();
+
 
 class AppointmentHistoryRepository {
     private tables: any;

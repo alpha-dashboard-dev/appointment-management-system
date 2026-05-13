@@ -1,75 +1,105 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "Invoice",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class Invoice extends Model {
+    static initModel(sequelize) {
+        Invoice.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        appointmentCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "appointment_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        subtotal: {
-          type: DataTypes.DECIMAL(10, 2),
-          allowNull: true,
-        },
+            appointment_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        total: {
-          type: DataTypes.DECIMAL(10, 2),
-          allowNull: true,
-        },
+            subtotal: {
+                type: DataTypes.DECIMAL(10, 2),
+                allowNull: true,
+            },
 
-        status: {
-          type: DataTypes.ENUM("DRAFT", "ISSUED", "PAID", "CANCELLED"),
-          allowNull: false,
-          defaultValue: "DRAFT",
-          field: "invoice_status",
-        },
+            total: {
+                type: DataTypes.DECIMAL(10, 2),
+                allowNull: true,
+            },
 
-        date: {
-          type: DataTypes.DATEONLY,
-          allowNull: true,
-        },
+            invoice_status: {
+                type: DataTypes.ENUM(
+                    "DRAFT",
+                    "ISSUED",
+                    "PAID",
+                    "CANCELLED"
+                ),
+                allowNull: false,
+                defaultValue: "DRAFT",
+            },
 
-        updatedBy: {
-          type: DataTypes.STRING(8),
-          allowNull: true,
-          field: "updated_by",
-        },
+            date: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            updated_by: {
+                type: DataTypes.STRING(8),
+                allowNull: true,
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "invoices",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'Invoice',
+            tableName: 'invoices',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return Invoice;
+    }
+
+    static associate(models) {
+        Invoice.belongsTo(models.Appointment, {
+            foreignKey: "appointment_code",
+            targetKey: "appointment_code",
+            as: "appointment",
+            constraints: false,
+        });
+
+        Invoice.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+
+        Invoice.belongsTo(models.User, {
+            foreignKey: "updated_by",
+            targetKey: "user_code",
+            as: "updatedByUser",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = Invoice;

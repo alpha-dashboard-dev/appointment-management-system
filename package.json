@@ -2,7 +2,6 @@
   "name": "appointment-system",
   "version": "1.0.0",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx src/server.ts",
     "start": "nodemon --exec tsx src/server.ts",

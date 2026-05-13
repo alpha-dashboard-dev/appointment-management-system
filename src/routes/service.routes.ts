@@ -1,4 +1,3 @@
-// Service routes — manage the catalogue of bookable services per business.
 import { Router } from "express";
 import controller from "../controllers/service.controller";
 import { authenticate } from "../middlewares/auth.middleware";

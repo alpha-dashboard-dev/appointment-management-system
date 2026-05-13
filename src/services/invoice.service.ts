@@ -1,4 +1,3 @@
-// Invoice service — creates and manages invoices linked to appointments.
 import repo from "../repositories/invoice.repository";
 import appointmentRepo from "../repositories/appointment.repository";
 import { validateInvoice, validateInvoiceStatus } from "../utils/validator";

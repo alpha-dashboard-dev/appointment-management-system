@@ -1,7 +1,8 @@
-// Appointment-participant repository — tracks who is involved in an appointment.
-// Participants include the booking owner, assigned staff, and the client.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
+
 
 class AppointmentParticipantRepository {
     private tables: any;

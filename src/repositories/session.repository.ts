@@ -1,7 +1,7 @@
-// Session repository — stores refresh tokens so they can be validated and revoked.
-// Each login creates a session; logout deletes it; token refresh rotates it.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
 
 function parseExpiry(expiry: string): Date {
     const unit = expiry.slice(-1);
@@ -33,16 +33,16 @@ class SessionRepository {
         );
 
         return dbHelper.create(this.tables, {
-            userCode,
-            refreshToken,
-            expiresAt,
+            user_code: userCode,
+            refresh_token: refreshToken,
+            expires_at: expiresAt,
         });
     }
 
     async findByToken(refreshToken: string): Promise<any> {
         return dbHelper.findByField(
             this.tables,
-            "refreshToken",
+            "refresh_token",
             refreshToken
         );
     }
@@ -53,15 +53,15 @@ class SessionRepository {
         );
 
         return dbHelper.update(this.tables, id, {
-            refreshToken: newToken,
-            expiresAt,
+            refresh_token: newToken,
+            expires_at: expiresAt,
         });
     }
 
     async deleteByUserCode(userCode: string): Promise<void> {
         return dbHelper.deleteByField(
             this.tables,
-            "userCode",
+            "user_code",
             userCode
         );
     }

@@ -1,7 +1,8 @@
-// User-ability repository — stores fine-grained permissions granted to users.
-// Abilities extend role-based access with per-user capability overrides.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
+
 
 class UserAbilityRepository {
     private tables: any;

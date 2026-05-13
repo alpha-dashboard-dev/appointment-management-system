@@ -1,7 +1,7 @@
-// Business repository — database access layer for the businesses table.
-// A business belongs to one organization and contains users, services, and appointments.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
 
 class BusinessRepository {
     private tables: any;

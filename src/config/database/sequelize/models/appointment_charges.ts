@@ -1,65 +1,86 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "AppointmentCharge",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class AppointmentCharge extends Model {
+    static initModel(sequelize) {
+        AppointmentCharge.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        appointmentCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "appointment_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        chargeId: {
-          type: DataTypes.INTEGER,
-          allowNull: true,
-          field: "charge_id",
-        },
+            appointment_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        chargeUom: {
-          type: DataTypes.INTEGER,
-          allowNull: true,
-          field: "charge_uom",
-        },
+            charge_code: {
+                type: DataTypes.STRING(8),
+                allowNull: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        chargeValue: {
-          type: DataTypes.ENUM("GST"),
-          allowNull: true,
-          field: "charge_value",
-        },
+            charge_uom: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            charge_value: {
+                type: DataTypes.ENUM("GST"),
+                allowNull: true,
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "appointment_charges",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'AppointmentCharge',
+            tableName: 'appointment_charges',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return AppointmentCharge;
+    }
+
+    static associate(models) {
+
+        AppointmentCharge.belongsTo(models.Appointment, {
+            foreignKey: "appointment_code",
+            targetKey: "appointment_code",
+            as: "appointment",
+            constraints: false,
+        });
+
+        AppointmentCharge.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = AppointmentCharge;

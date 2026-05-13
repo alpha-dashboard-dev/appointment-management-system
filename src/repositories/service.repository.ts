@@ -1,7 +1,7 @@
-// Service repository — database access layer for the services table.
-// Services are offerings (e.g. haircut, consultation) that belong to a business.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
 
 class ServiceRepository {
     private tables: any;

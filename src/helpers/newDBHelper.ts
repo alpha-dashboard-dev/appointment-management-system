@@ -1,12 +1,9 @@
-// ORM abstraction helper (primary).
-// All repository methods call this helper instead of touching Sequelize or Drizzle directly.
-// The active ORM is selected via the ORM environment variable ("sequelize" or "drizzle").
 import { db as drizzleDb } from "../config/database/drizzle/client";
 import { eq } from "drizzle-orm";
 
 class DbHelper {
 
-    // Returns the configured ORM name; throws if ORM env var is missing.
+
     get orm(): string {
         const active = process.env.ORM;
         if (!active) throw new Error("ORM is not configured. Set ORM env variable.");
@@ -46,6 +43,7 @@ class DbHelper {
     }
 
     async findOne(table: any, options: any) {
+        // console.log(table, options);
         if (this.orm === "sequelize") {
             return await table.sequelize.findOne(options);
         }

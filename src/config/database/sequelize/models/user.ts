@@ -1,94 +1,137 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "User",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        organizationCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "organization_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class User extends Model {
+    static initModel(sequelize) {
+        User.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        userCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          unique: true,
-          field: "user_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            organization_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        // "0" only for ADMIN
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          defaultValue: "0",
-          field: "business_code",
-        },
+            user_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                unique: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        name: {
-          type: DataTypes.STRING(255),
-          allowNull: false,
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                defaultValue: "0",
+            },
 
-        email: {
-          type: DataTypes.STRING(255),
-          allowNull: true,
-          unique: true,
-          validate: {
-            isEmail: true,
-          },
-        },
+            name: {
+                type: DataTypes.STRING(255),
+                allowNull: false,
+            },
 
-        phone: {
-          type: DataTypes.STRING(50),
-          allowNull: false,
-          unique: true,
-        },
+            email: {
+                type: DataTypes.STRING(255),
+                allowNull: true,
+                unique: true,
+                validate: {
+                    isEmail: true,
+                },
+            },
 
-        password: {
-          type: DataTypes.TEXT,
-          allowNull: true,
-        },
+            phone: {
+                type: DataTypes.STRING(50),
+                allowNull: false,
+                unique: true,
+            },
 
-        userType: {
-          type: DataTypes.ENUM("ADMIN", "BUSINESS_OWNER", "OPERATIONAL_STAFF", "SERVICE_STAFF", "CLIENT"),
-          allowNull: false,
-          field: "user_type",
-        },
+            password: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
 
-        isActive: {
-          type: DataTypes.ENUM("active", "inactive"),
-          allowNull: false,
-          defaultValue: "active",
-          field: "is_active",
-        },
+            user_type: {
+                type: DataTypes.ENUM(
+                    "ADMIN",
+                    "BUSINESS_OWNER",
+                    "OPERATIONAL_STAFF",
+                    "SERVICE_STAFF",
+                    "CLIENT"
+                ),
+                allowNull: false,
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            is_active: {
+                type: DataTypes.ENUM("active", "inactive"),
+                allowNull: false,
+                defaultValue: "active",
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "users",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'User',
+            tableName: 'users',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return User;
+    }
+
+    static associate(models) {
+        User.belongsTo(models.Organization, {
+            foreignKey: "organization_code",
+            targetKey: "organization_code",
+            as: "organization",
+            constraints: false,
+        });
+
+        User.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+
+        User.hasMany(models.UserShiftSchedule, {
+            foreignKey: "user_code",
+            sourceKey: "user_code",
+            as: "shift_schedules",
+            constraints: false,
+        });
+
+        User.hasMany(models.UserAbility, {
+            foreignKey: "user_code",
+            sourceKey: "user_code",
+            as: "abilities",
+            constraints: false,
+        });
+
+        User.hasMany(models.Session, {
+            foreignKey: "user_code",
+            sourceKey: "user_code",
+            as: "sessions",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = User;

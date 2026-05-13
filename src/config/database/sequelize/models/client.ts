@@ -1,26 +1,25 @@
-export default (sequelize: any, DataTypes: any) => {
-    return sequelize.define(
-        "Client",
-        {
+const { Model, DataTypes } = require('sequelize');
+
+class Client extends Model {
+    static initModel(sequelize) {
+        Client.init({
             id: {
                 type: DataTypes.INTEGER,
                 autoIncrement: true,
                 primaryKey: true,
             },
 
-            businessCode: {
+            business_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
-                field: "business_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
             },
 
-            userCode: {
+            user_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
-                field: "user_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
@@ -49,22 +48,45 @@ export default (sequelize: any, DataTypes: any) => {
                 allowNull: true,
             },
 
-            createdAt: {
+            created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "created_at",
             },
 
-            updatedAt: {
+            updated_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "updated_at",
             },
-        },
-        {
-            tableName: "clients",
+        }, {
+            sequelize,
+            modelName: 'Client',
+            tableName: 'clients',
             timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
             underscored: true,
-        }
-    );
-};
+        });
+
+        return Client;
+    }
+
+    static associate(models) {
+
+        Client.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+
+
+        Client.belongsTo(models.User, {
+            foreignKey: "user_code",
+            targetKey: "user_code",
+            as: "user",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = Client;

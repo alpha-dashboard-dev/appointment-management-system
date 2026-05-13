@@ -1,4 +1,3 @@
-// Location service — manages physical or virtual locations linked to a business.
 import repo from "../repositories/location.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateLocation } from "../utils/validator";
@@ -6,21 +5,22 @@ import { validateLocation } from "../utils/validator";
 class LocationService {
 
     async create(data: any, actor: any) {
-        const { businessCode, locationType, address, street, apartment, city, postalCode, province, country } = data;
+        const { business_code, location_type, address, street, apartment, city, postal_code, province, country } = data;
+        // console.log(location_type);
 
         validateLocation(data);
 
         const locationCode = generateCode();
 
         return await repo.create({
-            businessCode: businessCode || null,
-            locationCode,
-            locationType,
+            business_code: business_code || null,
+            location_code: locationCode,
+            location_type: location_type,
             address: address || null,
             street: street || null,
             apartment: apartment || null,
             city: city || null,
-            postalCode: postalCode || null,
+            postal_code: postal_code || null,
             province: province || null,
             country: country || null,
         });
@@ -41,7 +41,7 @@ class LocationService {
         if (!loc) throw new Error("Location not found");
 
         const allowed: any = {};
-        const fields = ["locationType", "address", "street", "apartment", "city", "postalCode", "province", "country"];
+        const fields = ["location_type", "address", "street", "apartment", "city", "postal_code", "province", "country"];
         for (const f of fields) {
             if (data[f] !== undefined) allowed[f] = data[f];
         }

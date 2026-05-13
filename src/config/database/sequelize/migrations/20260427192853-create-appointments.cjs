@@ -42,8 +42,8 @@ module.exports = {
         allowNull: false,
       },
 
-      location_id: {
-        type: Sequelize.INTEGER,
+      location_code: {
+        type: Sequelize.STRING(8),
         allowNull: true,
       },
 
@@ -60,29 +60,23 @@ module.exports = {
         allowNull: false,
         defaultValue: 'PENDING',
       },
-
-      quotation_id: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-      },
-
       created_by: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(8),
         allowNull: false,
       },
 
       approved_by: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(8),
         allowNull: true,
       },
 
       cancelled_by: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(8),
         allowNull: true,
       },
 
       rescheduled_from: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING(8),
         allowNull: true,
       },
 

@@ -1,56 +1,82 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "AppointmentService",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class AppointmentService extends Model {
+    static initModel(sequelize) {
+        AppointmentService.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        serviceCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "service_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        appointmentCode: {
-          type: DataTypes.STRING(8),
-          allowNull: true,
-          field: "appointment_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            service_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            appointment_code: {
+                type: DataTypes.STRING(8),
+                allowNull: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "appointment_services",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'AppointmentService',
+            tableName: 'appointment_services',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return AppointmentService;
+    }
+
+    static associate(models) {
+        AppointmentService.belongsTo(models.Appointment, {
+            foreignKey: "appointment_code",
+            targetKey: "appointment_code",
+            as: "appointment",
+            constraints: false,
+        });
+
+        AppointmentService.belongsTo(models.Service, {
+            foreignKey: "service_code",
+            targetKey: "service_code",
+            as: "service",
+            constraints: false,
+        });
+
+        AppointmentService.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = AppointmentService;

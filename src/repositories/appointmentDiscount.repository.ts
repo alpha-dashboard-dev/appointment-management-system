@@ -1,6 +1,8 @@
-// Appointment-discount repository — stores per-service discount records applied to an appointment.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
+
 
 class AppointmentDiscountRepository {
     private tables: any;

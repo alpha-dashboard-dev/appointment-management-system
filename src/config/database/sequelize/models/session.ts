@@ -1,45 +1,56 @@
-export default (sequelize: any, DataTypes: any) => {
-    return sequelize.define(
-        "Session",
-        {
+const { Model, DataTypes } = require('sequelize');
+
+class Session extends Model {
+    static initModel(sequelize) {
+        Session.init({
             id: {
                 type: DataTypes.INTEGER,
                 autoIncrement: true,
                 primaryKey: true,
             },
 
-            userCode: {
+            user_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
-                field: "user_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
             },
 
-            refreshToken: {
+            refresh_token: {
                 type: DataTypes.STRING(512),
                 allowNull: false,
                 unique: true,
-                field: "refresh_token",
             },
 
-            expiresAt: {
+            expires_at: {
                 type: DataTypes.DATE,
                 allowNull: false,
-                field: "expires_at",
             },
 
-            createdAt: {
+            created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "created_at",
             },
-        },
-        {
-            tableName: "sessions",
+        }, {
+            sequelize,
+            modelName: 'Session',
+            tableName: 'sessions',
             timestamps: false,
             underscored: true,
-        }
-    );
-};
+        });
+
+        return Session;
+    }
+
+    static associate(models) {
+        Session.belongsTo(models.User, {
+            foreignKey: "user_code",
+            targetKey: "user_code",
+            as: "user",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = Session;

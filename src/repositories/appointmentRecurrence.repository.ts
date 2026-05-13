@@ -1,7 +1,8 @@
-// Appointment-recurrence repository — stores recurring schedule rules for services.
-// A recurrence rule determines how often a service appointment auto-generates.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
+
 
 class AppointmentRecurrenceRepository {
     private tables: any;

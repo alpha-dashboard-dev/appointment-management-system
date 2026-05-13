@@ -1,7 +1,8 @@
-// Location repository — database access layer for the locations table.
-// Locations are physical or virtual places where appointments take place.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
+
 
 class LocationRepository {
     private tables: any;

@@ -1,4 +1,3 @@
-// Charge routes — manage reusable fee/charge definitions for a business.
 import { Router } from "express";
 import controller from "../controllers/charge.controller";
 import { authenticate } from "../middlewares/auth.middleware";

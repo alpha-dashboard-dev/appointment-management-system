@@ -1,70 +1,81 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "Charge",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class Charge extends Model {
+    static initModel(sequelize) {
+        Charge.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        chargeUom: {
-          type: DataTypes.ENUM("FIXED", "PERCENTAGE"),
-          allowNull: false,
-          field: "charge_uom",
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        chargeValue: {
-          type: DataTypes.DECIMAL(10, 2),
-          allowNull: false,
-          field: "charge_value",
-        },
+            charge_uom: {
+                type: DataTypes.ENUM("FIXED", "PERCENTAGE"),
+                allowNull: false,
+            },
 
-        chargeCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          unique: true,
-          field: "charge_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            charge_value: {
+                type: DataTypes.DECIMAL(10, 2),
+                allowNull: false,
+            },
 
-        name: {
-          type: DataTypes.STRING(255),
-          allowNull: false,
-        },
+            charge_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                unique: true,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        description: {
-          type: DataTypes.TEXT,
-          allowNull: true,
-        },
+            name: {
+                type: DataTypes.STRING(255),
+                allowNull: false,
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            description: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "charges",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'Charge',
+            tableName: 'charges',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return Charge;
+    }
+
+    static associate(models) {
+        Charge.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = Charge;

@@ -1,7 +1,7 @@
-// Charge repository — database access layer for the charges (fee types) table.
-// Charges are reusable fee definitions (e.g. GST, service fee) attached to appointments.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
 
 class ChargeRepository {
     private tables: any;

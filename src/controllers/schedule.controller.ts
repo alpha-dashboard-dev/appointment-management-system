@@ -1,4 +1,3 @@
-// Schedule controller — HTTP handlers for managing staff shift schedules.
 import { Request, Response } from "express";
 import service from "../services/schedule.service";
 

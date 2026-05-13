@@ -1,4 +1,3 @@
-// Service controller — HTTP handlers for managing the bookable services catalogue.
 import { Request, Response } from "express";
 import service from "../services/service.service";
 
@@ -22,6 +21,7 @@ class ServiceController {
             return res.status(500).json({ success: false, message: err.message });
         }
     }
+
 
     async getByCode(req: Request, res: Response) {
         try {

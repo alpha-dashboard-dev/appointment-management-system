@@ -1,6 +1,7 @@
-// Location-service repository — manages which services are available at which locations.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
 
 class LocationServiceRepository {
     private tables: any;

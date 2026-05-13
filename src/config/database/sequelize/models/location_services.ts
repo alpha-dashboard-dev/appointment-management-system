@@ -1,62 +1,93 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "LocationService",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class LocationService extends Model {
+    static initModel(sequelize) {
+        LocationService.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        serviceCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "service_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        locationCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "location_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            service_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        availability: {
-          type: DataTypes.ENUM("AVAILABLE", "NOT_AVAILABLE"),
-          allowNull: false,
-          defaultValue: "AVAILABLE",
-        },
+            location_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            availability: {
+                type: DataTypes.ENUM(
+                    "AVAILABLE",
+                    "NOT_AVAILABLE"
+                ),
+                allowNull: false,
+                defaultValue: "AVAILABLE",
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "location_services",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'LocationService',
+            tableName: 'location_services',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return LocationService;
+    }
+
+    static associate(models) {
+
+        LocationService.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+
+        LocationService.belongsTo(models.Service, {
+            foreignKey: "service_code",
+            targetKey: "service_code",
+            as: "service",
+            constraints: false,
+        });
+
+
+        LocationService.belongsTo(models.Location, {
+            foreignKey: "location_code",
+            targetKey: "location_code",
+            as: "location",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = LocationService;

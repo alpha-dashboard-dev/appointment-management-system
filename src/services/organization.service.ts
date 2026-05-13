@@ -1,5 +1,3 @@
-// Organization service — business logic for creating and managing organizations.
-// Organizations are the root-level tenant that groups one or more businesses.
 import repo from "../repositories/organization.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateOrganization } from "../utils/validator";
@@ -14,7 +12,7 @@ class OrganizationService {
         const organizationCode = generateCode();
 
         return await repo.create({
-            organizationCode,
+            organization_code: organizationCode,
             name: name.trim(),
             status: status || "active",
         });

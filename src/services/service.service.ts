@@ -1,4 +1,3 @@
-// Service service — manages the catalogue of bookable services offered by a business.
 import repo from "../repositories/service.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateService } from "../utils/validator";
@@ -6,22 +5,24 @@ import { validateService } from "../utils/validator";
 class ServiceService {
 
     async create(data: any, actor: any) {
-        const { name, businessCode, description, price, cost, currency, durationUom, durationValue, availability } = data;
+
+        const { name, business_code, description, price, cost, currency, duration_uom, duration_value, availability } = data;
+        // console.log(data);
 
         validateService(data);
 
         const serviceCode = generateCode();
 
         return await repo.create({
-            businessCode,
-            serviceCode,
+            business_code,
+            service_code: serviceCode,
             name: name.trim(),
             description: description || null,
             price: price || null,
             cost: cost || null,
-            currency: currency || "USD",
-            durationUom: durationUom || null,
-            durationValue: durationValue || null,
+            currency: currency || "PKR",
+            duration_uom: duration_uom || null,
+            duration_value: duration_value || null,
             availability: availability || "onsite",
         });
     }
@@ -59,5 +60,4 @@ class ServiceService {
         return await repo.delete(serviceCode);
     }
 }
-
 export default new ServiceService();

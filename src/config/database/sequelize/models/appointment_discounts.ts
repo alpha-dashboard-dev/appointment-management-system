@@ -1,68 +1,93 @@
-export default (sequelize: any, DataTypes: any) => {
-  return sequelize.define(
-      "AppointmentDiscount",
-      {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          primaryKey: true,
-        },
+const { Model, DataTypes } = require('sequelize');
 
-        businessCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "business_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+class AppointmentDiscount extends Model {
+    static initModel(sequelize) {
+        AppointmentDiscount.init({
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
 
-        serviceCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "service_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            business_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        appointmentCode: {
-          type: DataTypes.STRING(8),
-          allowNull: false,
-          field: "appointment_code",
-          validate: {
-            is: /^[A-Za-z0-9]{8}$/,
-          },
-        },
+            service_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        discountUom: {
-          type: DataTypes.ENUM("PERCENTAGE", "FIXED"),
-          allowNull: false,
-          field: "discount_uom",
-        },
+            appointment_code: {
+                type: DataTypes.STRING(8),
+                allowNull: false,
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
+            },
 
-        discountValue: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          field: "discount_value",
-        },
+            discount_uom: {
+                type: DataTypes.ENUM("PERCENTAGE", "FIXED"),
+                allowNull: false,
+            },
 
-        createdAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "created_at",
-        },
+            discount_value: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
 
-        updatedAt: {
-          type: DataTypes.DATE,
-          defaultValue: DataTypes.NOW,
-          field: "updated_at",
-        },
-      },
-      {
-        tableName: "appointment_discounts",
-        timestamps: true,
-        underscored: true,
-      }
-  );
-};
+            created_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+
+            updated_at: {
+                type: DataTypes.DATE,
+                defaultValue: DataTypes.NOW,
+            },
+        }, {
+            sequelize,
+            modelName: 'AppointmentDiscount',
+            tableName: 'appointment_discounts',
+            timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
+            underscored: true,
+        });
+
+        return AppointmentDiscount;
+    }
+
+    static associate(models) {
+
+        AppointmentDiscount.belongsTo(models.Appointment, {
+            foreignKey: "appointment_code",
+            targetKey: "appointment_code",
+            as: "appointment",
+            constraints: false,
+        });
+
+        AppointmentDiscount.belongsTo(models.Service, {
+            foreignKey: "service_code",
+            targetKey: "service_code",
+            as: "service",
+            constraints: false,
+        });
+
+        AppointmentDiscount.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = AppointmentDiscount;

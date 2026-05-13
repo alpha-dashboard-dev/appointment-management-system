@@ -1,5 +1,3 @@
-// Auth controller — HTTP handlers for registration, login, token refresh, and logout.
-// Thin layer: validates input then delegates all logic to auth.service.
 import { Request, Response } from "express";
 import service from "../services/auth.service";
 import {validateUser} from "../utils/validator";

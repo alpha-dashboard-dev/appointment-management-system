@@ -1,4 +1,3 @@
-// Client controller — HTTP handlers for managing client (customer) profiles.
 import { Request, Response } from "express";
 import service from "../services/client.service";
 

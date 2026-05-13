@@ -1,7 +1,8 @@
-// Appointment-service repository — links which services are included in an appointment.
-// One appointment can include multiple services.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
+
 
 class AppointmentServiceRepository {
     private tables: any;

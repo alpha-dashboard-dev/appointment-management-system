@@ -1,26 +1,25 @@
-export default (sequelize: any, DataTypes: any) => {
-    return sequelize.define(
-        "AppointmentHistory",
-        {
+const { Model, DataTypes } = require('sequelize');
+
+class AppointmentHistory extends Model {
+    static initModel(sequelize) {
+        AppointmentHistory.init({
             id: {
                 type: DataTypes.INTEGER,
                 autoIncrement: true,
                 primaryKey: true,
             },
 
-            businessCode: {
+            business_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
-                field: "business_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
             },
 
-            appointmentCode: {
+            appointment_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
-                field: "appointment_code",
                 validate: {
                     is: /^[A-Za-z0-9]{8}$/,
                 },
@@ -32,45 +31,75 @@ export default (sequelize: any, DataTypes: any) => {
                     "UPDATED",
                     "ASSIGNED",
                     "RESCHEDULED",
-                    "CANCELLED",
+                    "CANCELLED"
                 ),
                 allowNull: false,
             },
 
-            changedBy: {
-                type: DataTypes.INTEGER,
+            changed_by: {
+                type: DataTypes.STRING(8),
                 allowNull: false,
-                field: "changed_by",
+                validate: {
+                    is: /^[A-Za-z0-9]{8}$/,
+                },
             },
 
-            oldValue: {
+            old_value: {
                 type: DataTypes.JSON,
                 allowNull: true,
-                field: "old_value",
             },
 
-            newValue: {
+            new_value: {
                 type: DataTypes.JSON,
                 allowNull: true,
-                field: "new_value",
             },
 
-            createdAt: {
+            created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "created_at",
             },
 
-            updatedAt: {
+            updated_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
-                field: "updated_at",
             },
-        },
-        {
-            tableName: "appointment_history",
+        }, {
+            sequelize,
+            modelName: 'AppointmentHistory',
+            tableName: 'appointment_history',
             timestamps: true,
+            createdAt: 'created_at',
+            updatedAt: 'updated_at',
             underscored: true,
-        }
-    );
-};
+        });
+
+        return AppointmentHistory;
+    }
+
+    static associate(models) {
+
+        AppointmentHistory.belongsTo(models.Appointment, {
+            foreignKey: "appointment_code",
+            targetKey: "appointment_code",
+            as: "appointment",
+            constraints: false,
+        });
+
+        // user (who made the change)
+        AppointmentHistory.belongsTo(models.User, {
+            foreignKey: "changed_by",
+            targetKey: "id",
+            as: "changedByUser",
+            constraints: false,
+        });
+
+        AppointmentHistory.belongsTo(models.Business, {
+            foreignKey: "business_code",
+            targetKey: "business_code",
+            as: "business",
+            constraints: false,
+        });
+    }
+}
+
+module.exports = AppointmentHistory;

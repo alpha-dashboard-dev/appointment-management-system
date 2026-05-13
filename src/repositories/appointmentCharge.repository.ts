@@ -1,6 +1,8 @@
-// Appointment-charge repository — links fee/charge records to a specific appointment.
-import db from "../config/database/sequelize/models/index";
+import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+
+const db = initModels();
+
 
 class AppointmentChargeRepository {
     private tables: any;

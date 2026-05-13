@@ -1,12 +1,7 @@
-// Appointment controller — HTTP handlers for the full appointment lifecycle.
-// Routes here cover creation, status changes, rescheduling, participants,
-// services, charges, discounts, recurrences, history, and more.
 import { Request, Response } from "express";
 import service from "../services/appointment.service";
 
 class AppointmentController {
-
-    // ─── Appointments ────────────────────────────────────────────────────────
 
     async create(req: Request, res: Response) {
         try {
@@ -67,8 +62,6 @@ class AppointmentController {
         }
     }
 
-    // ─── History ────────────────────────────────────────────────────────────
-
     async getHistory(req: Request, res: Response) {
         try {
             const data = await service.getHistory(String(req.params.appointmentCode));
@@ -77,8 +70,6 @@ class AppointmentController {
             return res.status(404).json({ success: false, message: err.message });
         }
     }
-
-    // ─── Participants ────────────────────────────────────────────────────────
 
     async addParticipant(req: Request, res: Response) {
         try {
@@ -107,8 +98,6 @@ class AppointmentController {
         }
     }
 
-    // ─── Services ───────────────────────────────────────────────────────────
-
     async addService(req: Request, res: Response) {
         try {
             const data = await service.addService(String(req.params.appointmentCode), req.body, req.user);
@@ -135,8 +124,6 @@ class AppointmentController {
             return res.status(400).json({ success: false, message: err.message });
         }
     }
-
-    // ─── Charges ────────────────────────────────────────────────────────────
 
     async addCharge(req: Request, res: Response) {
         try {
@@ -165,8 +152,6 @@ class AppointmentController {
         }
     }
 
-    // ─── Discounts ──────────────────────────────────────────────────────────
-
     async addDiscount(req: Request, res: Response) {
         try {
             const data = await service.addDiscount(String(req.params.appointmentCode), req.body, req.user);
@@ -193,8 +178,6 @@ class AppointmentController {
             return res.status(400).json({ success: false, message: err.message });
         }
     }
-
-    // ─── Recurrence ─────────────────────────────────────────────────────────
 
     async createRecurrence(req: Request, res: Response) {
         try {

@@ -1,27 +1,38 @@
-// User service — CRUD operations for system users (staff, owners, etc.).
-// Only admins can create or manage users.
 import repo from "../repositories/user.repository";
 import { validateUser } from "../utils/validator";
 import { hashPassword } from "../utils/hashPassword";
+import { generateCode } from "../utils/codeGenerator";
 
 class UserService {
 
-    async create(data: any, adminUser: any) {
-        if (!adminUser || adminUser.userType !== "ADMIN") {
-            throw new Error("Only admin can create users");
+    async create(data: any, User: any) {
+        // console.log(data, User);
+        if (!User || User.userType !== "ADMIN" && User.userType !== "BUSINESS_OWNER") {
+            throw new Error("Only admin or business owner can create users");
         }
-
-        // console.log(data);
 
         validateUser(data);
 
         const existing = await repo.findByEmail(data.email);
         if (existing) throw new Error("Email is already registered");
 
-        data.password = await hashPassword(data.password);
-        data.is_active = "active";
+        const user_code = generateCode();
 
-        return await repo.create(data);
+        const hashedPassword = await hashPassword(data.password);
+
+        const userData = {
+            user_code,
+            organization_code: data.organization_code,
+            business_code: data.business_code || null,
+            user_type: data.user_type,
+            email: data.email.trim().toLowerCase(),
+            password: hashedPassword,
+            is_active: data.is_active,
+            name: data.name || null,
+            phone: data.phone || null,
+        };
+
+        return await repo.create(userData);
     }
 
     async getAll(filters: any = {}) {
@@ -42,7 +53,6 @@ class UserService {
         if (!user) throw new Error("User not found");
 
         if (data.password) {
-            // Re-hash when password is being changed
             data.password = await hashPassword(data.password);
         }
 

@@ -1,4 +1,3 @@
-// ─── Constants ────────────────────────────────────────────────────────────────
 
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const CODE_REGEX = /^[A-Za-z0-9]{8}$/;
@@ -20,7 +19,6 @@ const VALID_ABILITY_USER_TYPES = ["ADMIN", "BUSINESS_OWNER", "STAFF", "CLIENT"];
 const VALID_ABILITY_STATUSES = ["ACTIVE", "INACTIVE"];
 const VALID_ORG_STATUSES = ["active", "in_active"];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function isValidEmail(email: string): boolean {
     return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -34,7 +32,6 @@ function isValidDate(value: string): boolean {
     return !isNaN(new Date(value).getTime());
 }
 
-// ─── Organization ─────────────────────────────────────────────────────────────
 
 export const validateOrganization = (data: any) => {
     const { name, status } = data;
@@ -48,10 +45,9 @@ export const validateOrganization = (data: any) => {
     }
 };
 
-// ─── Business ─────────────────────────────────────────────────────────────────
 
 export const validateBusiness = (data: any) => {
-    const { name, phone, email, organizationCode } = data;
+    const { name, phone, email, organization_code, user_code } = data;
 
     if (!name || name.trim().length < 2) {
         throw new Error("Business name must be at least 2 characters long");
@@ -65,15 +61,16 @@ export const validateBusiness = (data: any) => {
         throw new Error("Invalid business email address");
     }
 
-    if (!organizationCode || !isValidCode(organizationCode)) {
+    if (!organization_code || !isValidCode(organization_code)) {
         throw new Error("Valid 8-character organizationCode is required");
+    }
+    if (!user_code || !isValidCode(user_code)) {
+        throw new Error("Valid 8-character userCode is required");
     }
 };
 
-// ─── User ─────────────────────────────────────────────────────────────────────
-
 export const validateUser = (data: any) => {
-    const { name, email, password, userType, businessCode, organizationCode, phone } = data;
+    const { name, email, password, user_type, business_code, organization_code, phone } = data;
 
     if (!name || name.trim().length < 2) {
         throw new Error("Name must be at least 2 characters long");
@@ -87,15 +84,15 @@ export const validateUser = (data: any) => {
         throw new Error("Password must be at least 6 characters long");
     }
 
-    if (!userType || !VALID_USER_TYPES.includes(userType)) {
+    if (!user_type || !VALID_USER_TYPES.includes(user_type)) {
         throw new Error("Invalid userType. Must be one of: " + VALID_USER_TYPES.join(", "));
     }
 
-    if (!organizationCode || !isValidCode(organizationCode)) {
+    if (!organization_code || !isValidCode(organization_code)) {
         throw new Error("Valid 8-character organizationCode is required");
     }
 
-    if (userType !== "ADMIN" && (!businessCode || !isValidCode(businessCode))) {
+    if (user_type !== "ADMIN" && (!business_code || !isValidCode(business_code))) {
         throw new Error("Valid 8-character businessCode is required for non-admin users");
     }
 
@@ -104,10 +101,9 @@ export const validateUser = (data: any) => {
     }
 };
 
-// ─── Client ───────────────────────────────────────────────────────────────────
 
 export const validateClient = (data: any) => {
-    const { name, phone, businessCode, email } = data;
+    const { name, phone, business_code, email } = data;
 
     if (!name || name.trim().length < 2) {
         throw new Error("Client name must be at least 2 characters long");
@@ -117,7 +113,7 @@ export const validateClient = (data: any) => {
         throw new Error("Phone number is required and must be at least 5 characters");
     }
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
@@ -126,16 +122,16 @@ export const validateClient = (data: any) => {
     }
 };
 
-// ─── Service ──────────────────────────────────────────────────────────────────
 
 export const validateService = (data: any) => {
-    const { name, businessCode, price, durationUom, durationValue } = data;
+    // console.log(data)
+    const { name, business_code, price, duration_uom, duration_value } = data;
 
     if (!name || name.trim().length < 2) {
         throw new Error("Service name must be at least 2 characters long");
     }
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
@@ -143,43 +139,41 @@ export const validateService = (data: any) => {
         throw new Error("price must be a non-negative number");
     }
 
-    if (durationUom !== undefined && !VALID_DURATION_UOMS.includes(durationUom)) {
+    if (duration_uom !== undefined && !VALID_DURATION_UOMS.includes(duration_uom)) {
         throw new Error("Invalid durationUom. Must be one of: " + VALID_DURATION_UOMS.join(", "));
     }
 
-    if (durationValue !== undefined && (!Number.isInteger(Number(durationValue)) || Number(durationValue) < 1)) {
+    if (duration_value !== undefined && (!Number.isInteger(Number(duration_value)) || Number(duration_value) < 1)) {
         throw new Error("durationValue must be a positive integer");
     }
 };
 
-// ─── Location ─────────────────────────────────────────────────────────────────
 
 export const validateLocation = (data: any) => {
-    const { locationType, businessCode } = data;
+    const { location_type, business_code } = data;
 
-    if (!locationType || !VALID_LOCATION_TYPES.includes(locationType)) {
+    if (!location_type || !VALID_LOCATION_TYPES.includes(location_type)) {
         throw new Error("Invalid locationType. Must be one of: " + VALID_LOCATION_TYPES.join(", "));
     }
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 };
 
-// ─── Location Service ─────────────────────────────────────────────────────────
 
 export const validateLocationService = (data: any) => {
-    const { businessCode, serviceCode, locationCode, availability } = data;
+    const { business_code, service_code, location_code, availability } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!serviceCode || !isValidCode(serviceCode)) {
+    if (!service_code || !isValidCode(service_code)) {
         throw new Error("Valid 8-character serviceCode is required");
     }
 
-    if (!locationCode || !isValidCode(locationCode)) {
+    if (!location_code || !isValidCode(location_code)) {
         throw new Error("Valid 8-character locationCode is required");
     }
 
@@ -188,58 +182,56 @@ export const validateLocationService = (data: any) => {
     }
 };
 
-// ─── User Shift Schedule ──────────────────────────────────────────────────────
 
 export const validateSchedule = (data: any) => {
-    const { businessCode, userCode, workingDays, employeeType, locationCode, startTime, endTime } = data;
+    const { business_code, user_code, working_days, employee_type, location_code, start_time, end_time } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!userCode || !isValidCode(userCode)) {
+    if (!user_code || !isValidCode(user_code)) {
         throw new Error("Valid 8-character userCode is required");
     }
 
-    if (!workingDays || !VALID_WORKING_DAYS.includes(workingDays)) {
+    if (!working_days || !VALID_WORKING_DAYS.includes(working_days)) {
         throw new Error("Invalid workingDays. Must be one of: " + VALID_WORKING_DAYS.join(", "));
     }
 
-    if (!employeeType || !VALID_EMPLOYEE_TYPES.includes(employeeType)) {
+    if (!employee_type || !VALID_EMPLOYEE_TYPES.includes(employee_type)) {
         throw new Error("Invalid employeeType. Must be one of: " + VALID_EMPLOYEE_TYPES.join(", "));
     }
 
-    if (!locationCode || !isValidCode(locationCode)) {
+    if (!location_code || !isValidCode(location_code)) {
         throw new Error("Valid 8-character locationCode is required");
     }
 
-    if (!startTime || !TIME_REGEX.test(startTime)) {
+    if (!start_time || !TIME_REGEX.test(start_time)) {
         throw new Error("Invalid startTime format. Use HH:MM (e.g. 09:00)");
     }
 
-    if (!endTime || !TIME_REGEX.test(endTime)) {
+    if (!end_time || !TIME_REGEX.test(end_time)) {
         throw new Error("Invalid endTime format. Use HH:MM (e.g. 17:00)");
     }
 
-    if (startTime >= endTime) {
+    if (start_time >= end_time) {
         throw new Error("startTime must be earlier than endTime");
     }
 };
 
-// ─── User Ability ─────────────────────────────────────────────────────────────
 
 export const validateUserAbility = (data: any) => {
-    const { businessCode, userCode, userType, ability, status } = data;
+    const { business_code, user_code, user_type, ability, status } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!userCode || !isValidCode(userCode)) {
+    if (!user_code || !isValidCode(user_code)) {
         throw new Error("Valid 8-character userCode is required");
     }
 
-    if (!userType || !VALID_ABILITY_USER_TYPES.includes(userType)) {
+    if (!user_type || !VALID_ABILITY_USER_TYPES.includes(user_type)) {
         throw new Error("Invalid userType. Must be one of: " + VALID_ABILITY_USER_TYPES.join(", "));
     }
 
@@ -252,12 +244,11 @@ export const validateUserAbility = (data: any) => {
     }
 };
 
-// ─── Charge ───────────────────────────────────────────────────────────────────
 
 export const validateCharge = (data: any) => {
-    const { businessCode, name, chargeUom, chargeValue } = data;
+    const { business_code, name, charge_uom, charge_value } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
@@ -265,77 +256,79 @@ export const validateCharge = (data: any) => {
         throw new Error("Charge name must be at least 2 characters long");
     }
 
-    if (!chargeUom || !VALID_CHARGE_UOMS.includes(chargeUom)) {
-        throw new Error("Invalid chargeUom. Must be one of: " + VALID_CHARGE_UOMS.join(", "));
+    if (!charge_uom || !VALID_CHARGE_UOMS.includes(charge_uom)) {
+        throw new Error("Invalid charge_uom. Must be one of: " + VALID_CHARGE_UOMS.join(", "));
     }
 
-    if (chargeValue === undefined || chargeValue === null || isNaN(Number(chargeValue)) || Number(chargeValue) < 0) {
+    if (charge_value === undefined || charge_value === null || isNaN(Number(charge_value)) || Number(charge_value) < 0) {
         throw new Error("chargeValue must be a non-negative number");
     }
 
-    if (chargeUom === "PERCENTAGE" && Number(chargeValue) > 100) {
+    if (charge_uom === "PERCENTAGE" && Number(charge_value) > 100) {
         throw new Error("chargeValue cannot exceed 100 for PERCENTAGE type");
     }
 };
 
-// ─── Appointment ──────────────────────────────────────────────────────────────
 
 export const validateAppointment = (data: any) => {
-    const { businessCode, appointmentStartDate, appointmentEndDate, startTime, endTime } = data;
+    const { business_code, appointment_start_date, appointment_end_date, start_time, end_time, status } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!appointmentStartDate || !isValidDate(appointmentStartDate)) {
+    if (!appointment_start_date || !isValidDate(appointment_start_date)) {
         throw new Error("appointmentStartDate is required and must be a valid date (YYYY-MM-DD)");
     }
 
-    if (!appointmentEndDate || !isValidDate(appointmentEndDate)) {
+    if (!appointment_end_date || !isValidDate(appointment_end_date)) {
         throw new Error("appointmentEndDate is required and must be a valid date (YYYY-MM-DD)");
     }
 
-    if (new Date(appointmentStartDate) > new Date(appointmentEndDate)) {
+    if (new Date(appointment_start_date) > new Date(appointment_end_date)) {
         throw new Error("appointmentStartDate cannot be after appointmentEndDate");
     }
 
-    if (!startTime || !TIME_REGEX.test(startTime)) {
+    if (!start_time || !TIME_REGEX.test(start_time)) {
         throw new Error("Invalid startTime format. Use HH:MM (e.g. 09:00)");
     }
 
-    if (!endTime || !TIME_REGEX.test(endTime)) {
+    if (!end_time || !TIME_REGEX.test(end_time)) {
         throw new Error("Invalid endTime format. Use HH:MM (e.g. 17:00)");
     }
 
-    if (startTime >= endTime) {
+    if (start_time >= end_time) {
         throw new Error("startTime must be earlier than endTime");
+    }
+    if (!status || !VALID_APPOINTMENT_STATUSES.includes(status)) {
+        throw new Error("Invalid status. Must be one of: " + VALID_APPOINTMENT_STATUSES.join(", "));
     }
 };
 
 export const validateReschedule = (data: any) => {
-    const { appointmentStartDate, appointmentEndDate, startTime, endTime } = data;
+    const { appointment_start_date, appointment_end_date, start_time, end_time } = data;
 
-    if (!appointmentStartDate || !isValidDate(appointmentStartDate)) {
+    if (!appointment_start_date || !isValidDate(appointment_start_date)) {
         throw new Error("appointmentStartDate is required and must be a valid date (YYYY-MM-DD)");
     }
 
-    if (!appointmentEndDate || !isValidDate(appointmentEndDate)) {
+    if (!appointment_end_date || !isValidDate(appointment_end_date)) {
         throw new Error("appointmentEndDate is required and must be a valid date (YYYY-MM-DD)");
     }
 
-    if (new Date(appointmentStartDate) > new Date(appointmentEndDate)) {
+    if (new Date(appointment_start_date) > new Date(appointment_end_date)) {
         throw new Error("appointmentStartDate cannot be after appointmentEndDate");
     }
 
-    if (!startTime || !TIME_REGEX.test(startTime)) {
+    if (!start_time || !TIME_REGEX.test(start_time)) {
         throw new Error("Invalid startTime format. Use HH:MM");
     }
 
-    if (!endTime || !TIME_REGEX.test(endTime)) {
+    if (!end_time || !TIME_REGEX.test(end_time)) {
         throw new Error("Invalid endTime format. Use HH:MM");
     }
 
-    if (startTime >= endTime) {
+    if (start_time >= end_time) {
         throw new Error("startTime must be earlier than endTime");
     }
 };
@@ -348,12 +341,11 @@ export const validateAppointmentStatus = (data: any) => {
     }
 };
 
-// ─── Appointment Participant ──────────────────────────────────────────────────
 
 export const validateAppointmentParticipant = (data: any) => {
-    const { businessCode, userCode, userType } = data;
+    const { business_code, userCode, userType } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
@@ -366,106 +358,101 @@ export const validateAppointmentParticipant = (data: any) => {
     }
 };
 
-// ─── Appointment Service ──────────────────────────────────────────────────────
 
 export const validateAppointmentService = (data: any) => {
-    const { businessCode, serviceCode } = data;
+    const { business_code, service_code } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!serviceCode || !isValidCode(serviceCode)) {
+    if (!service_code || !isValidCode(service_code)) {
         throw new Error("Valid 8-character serviceCode is required");
     }
 };
 
-// ─── Appointment Charge ───────────────────────────────────────────────────────
 
 export const validateAppointmentCharge = (data: any) => {
-    const { businessCode, appointmentCode } = data;
+    const { business_code, appointment_code } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!appointmentCode || !isValidCode(appointmentCode)) {
+    if (!appointment_code || !isValidCode(appointment_code)) {
         throw new Error("Valid 8-character appointmentCode is required");
     }
 };
 
-// ─── Appointment Discount ─────────────────────────────────────────────────────
 
 export const validateAppointmentDiscount = (data: any) => {
-    const { businessCode, serviceCode, appointmentCode, discountUom, discountValue } = data;
+    const { business_code, service_code, appointment_code, discount_uom, discount_value } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!serviceCode || !isValidCode(serviceCode)) {
+    if (!service_code || !isValidCode(service_code)) {
         throw new Error("Valid 8-character serviceCode is required");
     }
 
-    if (!appointmentCode || !isValidCode(appointmentCode)) {
+    if (!appointment_code || !isValidCode(appointment_code)) {
         throw new Error("Valid 8-character appointmentCode is required");
     }
 
-    if (!discountUom || !VALID_DISCOUNT_UOMS.includes(discountUom)) {
+    if (!discount_uom || !VALID_DISCOUNT_UOMS.includes(discount_uom)) {
         throw new Error("Invalid discountUom. Must be one of: " + VALID_DISCOUNT_UOMS.join(", "));
     }
 
-    if (discountValue === undefined || discountValue === null || isNaN(Number(discountValue)) || Number(discountValue) < 0) {
+    if (discount_value === undefined || discount_value === null || isNaN(Number(discount_value)) || Number(discount_value) < 0) {
         throw new Error("discountValue must be a non-negative number");
     }
 
-    if (discountUom === "PERCENTAGE" && Number(discountValue) > 100) {
+    if (discount_uom === "PERCENTAGE" && Number(discount_value) > 100) {
         throw new Error("discountValue cannot exceed 100 for PERCENTAGE type");
     }
 };
 
-// ─── Appointment Recurrence ───────────────────────────────────────────────────
 
 export const validateAppointmentRecurrence = (data: any) => {
-    const { businessCode, serviceCode, recurrenceUom, recurrenceValue, autoCancelAfterDays, rescheduleAfterDays } = data;
+    const { business_code, service_code, recurrence_uom, recurrence_Value, auto_cancel_after_days, reschedule_after_days } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!serviceCode || !isValidCode(serviceCode)) {
+    if (!service_code || !isValidCode(service_code)) {
         throw new Error("Valid 8-character serviceCode is required");
     }
 
-    if (!recurrenceUom || !VALID_RECURRENCE_UOMS.includes(recurrenceUom)) {
+    if (!recurrence_uom || !VALID_RECURRENCE_UOMS.includes(recurrence_uom)) {
         throw new Error("Invalid recurrenceUom. Must be one of: " + VALID_RECURRENCE_UOMS.join(", "));
     }
 
-    if (!recurrenceValue || !Number.isInteger(Number(recurrenceValue)) || Number(recurrenceValue) < 1) {
+    if (!recurrence_Value || !Number.isInteger(Number(recurrence_Value)) || Number(recurrence_Value) < 1) {
         throw new Error("recurrenceValue must be a positive integer");
     }
 
-    if (autoCancelAfterDays !== undefined && autoCancelAfterDays !== null &&
-        (!Number.isInteger(Number(autoCancelAfterDays)) || Number(autoCancelAfterDays) < 0)) {
+    if (auto_cancel_after_days !== undefined && auto_cancel_after_days !== null &&
+        (!Number.isInteger(Number(auto_cancel_after_days)) || Number(auto_cancel_after_days) < 0)) {
         throw new Error("autoCancelAfterDays must be a non-negative integer");
     }
 
-    if (rescheduleAfterDays !== undefined && rescheduleAfterDays !== null &&
-        (!Number.isInteger(Number(rescheduleAfterDays)) || Number(rescheduleAfterDays) < 0)) {
+    if (reschedule_after_days !== undefined && reschedule_after_days !== null &&
+        (!Number.isInteger(Number(reschedule_after_days)) || Number(reschedule_after_days) < 0)) {
         throw new Error("rescheduleAfterDays must be a non-negative integer");
     }
 };
 
-// ─── Appointment History ──────────────────────────────────────────────────────
 
 export const validateAppointmentHistory = (data: any) => {
-    const { businessCode, appointmentCode, action } = data;
+    const { business_code, appointment_code, action } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!appointmentCode || !isValidCode(appointmentCode)) {
+    if (!appointment_code || !isValidCode(appointment_code)) {
         throw new Error("Valid 8-character appointmentCode is required");
     }
 
@@ -474,16 +461,14 @@ export const validateAppointmentHistory = (data: any) => {
     }
 };
 
-// ─── Invoice ──────────────────────────────────────────────────────────────────
-
 export const validateInvoice = (data: any) => {
-    const { businessCode, appointmentCode, status, subtotal, total, date } = data;
+    const { business_code, appointment_code, status, subtotal, total, date } = data;
 
-    if (!businessCode || !isValidCode(businessCode)) {
+    if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!appointmentCode || !isValidCode(appointmentCode)) {
+    if (!appointment_code || !isValidCode(appointment_code)) {
         throw new Error("Valid 8-character appointmentCode is required");
     }
 
