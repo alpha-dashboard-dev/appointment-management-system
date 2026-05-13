@@ -42,14 +42,23 @@ class ServiceService {
         if (!service) throw new Error("Service not found");
 
         const allowed: any = {};
-        if (data.name !== undefined) allowed.name = data.name;
-        if (data.description !== undefined) allowed.description = data.description;
-        if (data.price !== undefined) allowed.price = data.price;
-        if (data.cost !== undefined) allowed.cost = data.cost;
-        if (data.currency !== undefined) allowed.currency = data.currency;
-        if (data.durationUom !== undefined) allowed.durationUom = data.durationUom;
-        if (data.durationValue !== undefined) allowed.durationValue = data.durationValue;
-        if (data.availability !== undefined) allowed.availability = data.availability;
+        console.log(allowed)
+        if (data.name !== undefined)
+            allowed.name = data.name;
+        if (data.description !== undefined)
+            allowed.description = data.description;
+        if (data.price !== undefined)
+            allowed.price = data.price;
+        if (data.cost !== undefined)
+            allowed.cost = data.cost;
+        if (data.currency !== undefined)
+            allowed.currency = data.currency;
+        if (data.duration_uom !== undefined)
+            allowed.duration_uom = data.duration_uom;
+        if (data.duration_value !== undefined)
+            allowed.duration_value = data.duration_value;
+        if (data.availability !== undefined)
+            allowed.availability = data.availability;
 
         return await repo.update(serviceCode, allowed);
     }
