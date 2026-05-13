@@ -91,7 +91,7 @@ export const validateUser = (data: any) => {
         throw new Error("Valid 8-character organizationCode is required");
     }
 
-    if (user_type !== "ADMIN" && (!business_code || !isValidCode(business_code))) {
+    if (user_type !== "admin" && (!business_code || !isValidCode(business_code))) {
         throw new Error("Valid 8-character businessCode is required for non-admin users");
     }
 
@@ -154,7 +154,6 @@ export const validateLocation = (data: any) => {
     if (!location_type || !VALID_LOCATION_TYPES.includes(location_type)) {
         throw new Error("Invalid locationType. Must be one of: " + VALID_LOCATION_TYPES.join(", "));
     }
-
     if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
