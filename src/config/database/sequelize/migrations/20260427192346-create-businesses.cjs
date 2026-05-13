@@ -44,6 +44,10 @@ module.exports = {
             type: Sequelize.TEXT,
             allowNull: true,
           },
+            status: {
+              type: Sequelize.ENUM("active", "inactive"),
+                allowNull: false,
+            },
 
           user_code: {
             type: Sequelize.STRING(8),
