@@ -17,7 +17,7 @@ module.exports = {
       },
 
       charge_uom: {
-        type: Sequelize.ENUM('FIXED', 'PERCENTAGE'),
+        type: Sequelize.ENUM('fixed', 'percentage'),
         allowNull: false,
       },
 

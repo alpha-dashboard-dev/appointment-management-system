@@ -18,7 +18,7 @@ class Charge extends Model {
             },
 
             charge_uom: {
-                type: DataTypes.ENUM("FIXED", "PERCENTAGE"),
+                type: DataTypes.ENUM("fixed", "percentage"),
                 allowNull: false,
             },
 
