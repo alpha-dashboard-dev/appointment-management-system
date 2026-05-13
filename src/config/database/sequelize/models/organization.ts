@@ -24,7 +24,7 @@ class Organization extends Model {
             },
 
             status: {
-                type: DataTypes.ENUM("active", "in_active"),
+                type: DataTypes.ENUM("active", "inactive"),
                 allowNull: false,
                 defaultValue: "active",
             },

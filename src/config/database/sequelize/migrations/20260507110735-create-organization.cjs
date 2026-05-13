@@ -23,7 +23,7 @@ module.exports = {
       },
 
       status: {
-        type: Sequelize.ENUM('active', 'in_active'),
+        type: Sequelize.ENUM('active', 'inactive'),
         allowNull: false,
         defaultValue: 'active',
       },
