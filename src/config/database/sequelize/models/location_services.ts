@@ -35,11 +35,11 @@ class LocationService extends Model {
 
             availability: {
                 type: DataTypes.ENUM(
-                    "AVAILABLE",
-                    "NOT_AVAILABLE"
+                    "available",
+                    "not_available",
                 ),
                 allowNull: false,
-                defaultValue: "AVAILABLE",
+                defaultValue: "available",
             },
 
             created_at: {
