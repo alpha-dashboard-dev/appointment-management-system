@@ -22,12 +22,7 @@ module.exports = {
       },
 
       user_type: {
-        type: Sequelize.ENUM(
-            'ADMIN',
-            'BUSINESS_OWNER',
-            'STAFF',
-            'CLIENT'
-        ),
+        type: Sequelize.STRING(255),
         allowNull: false,
       },
 
@@ -37,9 +32,9 @@ module.exports = {
       },
 
       status: {
-        type: Sequelize.ENUM('ACTIVE', 'INACTIVE'),
+        type: Sequelize.ENUM('active', 'inactive'),
         allowNull: false,
-        defaultValue: 'ACTIVE',
+        defaultValue: 'active',
       },
 
       added_by: {
