@@ -27,7 +27,7 @@ module.exports = {
       },
 
       discount_uom: {
-        type: Sequelize.ENUM('PERCENTAGE', 'FIXED'),
+        type: Sequelize.ENUM('percentage', 'fixed'),
         allowNull: false,
       },
 
