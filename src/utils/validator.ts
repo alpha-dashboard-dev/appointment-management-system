@@ -1,22 +1,22 @@
 const TIME_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const CODE_REGEX = /^[A-Za-z0-9]{8}$/;
 
-const VALID_USER_TYPES = ["ADMIN", "BUSINESS_OWNER", "OPERATIONAL_STAFF", "SERVICE_STAFF", "CLIENT"];
-const VALID_WORKING_DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"];
+const VALID_USER_TYPES = ["admin", "business_owner", "operational_staff", "service_staff", "client"];
+const VALID_WORKING_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 const VALID_EMPLOYEE_TYPES = ["visiting", "permanent", "remote"];
-const VALID_APPOINTMENT_STATUSES = ["PENDING", "APPROVED", "IN_PROGRESS", "REJECTED", "COMPLETED", "CANCELLED", "RESCHEDULED"];
-const VALID_HISTORY_ACTIONS = ["CREATED", "UPDATED", "ASSIGNED", "RESCHEDULED", "CANCELLED"];
-const VALID_RECURRENCE_UOMS = ["MONTHLY", "DAILY", "WEEKLY", "FORTNIGHTLY", "QUARTERLY", "FIXED"];
+const VALID_APPOINTMENT_STATUSES = ["pending", "approved", "in_progress", "rejected", "completed", "canceled", "rescheduled"];
+const VALID_HISTORY_ACTIONS = ["created", "updated", "assigned", "rescheduled", "cancelled"];
+const VALID_RECURRENCE_UOMS = ["monthly", "daily", "weekly", "fortnightly", "quarterly", "fixed"];
 const VALID_DURATION_UOMS = ["week", "day", "hour", "minutes"];
-const VALID_CHARGE_UOMS = ["FIXED", "PERCENTAGE"];
-const VALID_DISCOUNT_UOMS = ["FIXED", "PERCENTAGE"];
-const VALID_INVOICE_STATUSES = ["DRAFT", "ISSUED", "PAID", "CANCELLED"];
-const VALID_LOCATION_TYPES = ["BUSINESS", "CLIENT"];
-const VALID_AVAILABILITY = ["AVAILABLE", "NOT_AVAILABLE"];
-const VALID_PARTICIPANT_USER_TYPES = ["OWNER", "STAFF", "CLIENT"];
-const VALID_ABILITY_USER_TYPES = ["ADMIN", "BUSINESS_OWNER", "STAFF", "CLIENT"];
-const VALID_ABILITY_STATUSES = ["ACTIVE", "INACTIVE"];
-const VALID_ORG_STATUSES = ["active", "in_active"];
+const VALID_CHARGE_UOMS = ["fixed", "percentage"];
+const VALID_DISCOUNT_UOMS = ["fixed", "percentage"];
+const VALID_INVOICE_STATUSES = ["draft", "issued", "paid", "canceled"];
+const VALID_LOCATION_TYPES = ["business", "client"];
+const VALID_AVAILABILITY = ["available", "not_available"];
+const VALID_PARTICIPANT_USER_TYPES = ["owner", "staff", "client"];
+const VALID_ABILITY_USER_TYPES = ["admin", "business_owner", "staff", "client"];
+const VALID_ABILITY_STATUSES = ["active", "inactive"];
+const VALID_ORG_STATUSES = ["active", "inactive"];
 
 
 function isValidEmail(email: string): boolean {
