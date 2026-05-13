@@ -27,11 +27,11 @@ class AppointmentHistory extends Model {
 
             action: {
                 type: DataTypes.ENUM(
-                    "CREATED",
-                    "UPDATED",
-                    "ASSIGNED",
-                    "RESCHEDULED",
-                    "CANCELLED"
+                    "created",
+                    "updated",
+                    "assigned",
+                    "rescheduled",
+                    "canceled",
                 ),
                 allowNull: false,
             },
@@ -88,7 +88,7 @@ class AppointmentHistory extends Model {
         // user (who made the change)
         AppointmentHistory.belongsTo(models.User, {
             foreignKey: "changed_by",
-            targetKey: "id",
+            targetKey: "user_code",
             as: "changedByUser",
             constraints: false,
         });

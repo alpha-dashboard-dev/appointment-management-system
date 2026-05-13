@@ -23,11 +23,11 @@ module.exports = {
 
       action: {
         type: Sequelize.ENUM(
-            "CREATED",
-            "UPDATED",
-            "ASSIGNED",
-            "RESCHEDULED",
-            "CANCELLED",
+            "created",
+            "updated",
+            "assigned",
+            "rescheduled",
+            "canceled",
         ),
         allowNull: false,
       },
