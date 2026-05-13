@@ -23,6 +23,8 @@ class AppointmentService {
     async create(data: any, actor: any) {
         const { business_code, appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes, status } = data;
 
+        // console.log(data)
+
         validateAppointment(data);
 
         const appointment_code = generateCode();
@@ -85,8 +87,10 @@ class AppointmentService {
             if (data[f] !== undefined) allowed[f] = data[f];
         }
 
-        if (allowed.start_time && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(allowed.start_time)) throw new Error("Invalid start_time");
-        if (allowed.end_time && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(allowed.end_time)) throw new Error("Invalid end_time");
+        if (allowed.start_time && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(allowed.start_time))
+            throw new Error("Invalid start_time");
+        if (allowed.end_time && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(allowed.end_time))
+            throw new Error("Invalid end_time");
 
         const updated = await repo.update(appointmentCode, allowed);
 

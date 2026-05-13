@@ -120,7 +120,7 @@ class Business extends Model {
         });
 
         Business.hasMany(models.Appointment, {
-            foreignKey: "business_id",
+            foreignKey: "business_code",
             sourceKey: "business_code",
             as: "appointments",
             constraints: false,

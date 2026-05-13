@@ -27,7 +27,7 @@ module.exports = {
       },
 
       user_type: {
-        type: Sequelize.ENUM('OWNER', 'STAFF', 'CLIENT'),
+        type: Sequelize.ENUM('BUSINESS_OWNER', 'OPERATIONAL_STAFF', 'SERVICE_STAFF', 'CLIENT'),
         allowNull: false,
       },
 

@@ -34,7 +34,7 @@ class AppointmentParticipant extends Model {
             },
 
             user_type: {
-                type: DataTypes.ENUM("OWNER", "STAFF", "CLIENT"),
+                type: DataTypes.ENUM("BUSINESS_OWNER", "OPERATIONAL_STAFF", "SERVICE_STAFF", "CLIENT"),
                 allowNull: false,
             },
 
