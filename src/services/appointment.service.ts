@@ -5,6 +5,7 @@ import appointmentServiceRepo from "../repositories/appointmentService.repositor
 import appointmentChargeRepo from "../repositories/appointmentCharge.repository";
 import appointmentDiscountRepo from "../repositories/appointmentDiscount.repository";
 import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.repository";
+import chargeRepo from "../repositories/charge.repository";
 import { generateCode } from "../utils/codeGenerator";
 import {
     validateAppointment,
@@ -126,6 +127,20 @@ class AppointmentService {
         };
 
         await repo.update(appointmentCode, updateData);
+
+        if (status === "approved") {
+            const activeCharges = await chargeRepo.findActiveByBusiness(appointment.business_code);
+            for (const charge of activeCharges) {
+                const chargeData = charge.dataValues || charge;
+                await appointmentChargeRepo.create({
+                    business_code: appointment.business_code,
+                    appointment_code: appointmentCode,
+                    charge_code: chargeData.charge_code,
+                    charge_uom: chargeData.charge_uom,
+                    charge_value: chargeData.charge_value,
+                });
+            }
+        }
 
         await historyRepo.create({
             business_code: appointment.business_code,

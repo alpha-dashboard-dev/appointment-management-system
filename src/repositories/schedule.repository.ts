@@ -1,5 +1,6 @@
 import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+import {Op} from "sequelize";
 
 const db = initModels();
 
@@ -36,6 +37,19 @@ class ScheduleRepository {
 
     async update(id: number, data: any) {
         return dbHelper.update(this.tables, id, data);
+    }
+
+    async findAvailableStaff(businessCode: string, locationCode: string, workingDay: string, startTime: string, endTime: string) {
+        return await db.UserShiftSchedule.findAll({
+            where: {
+                business_code: businessCode,
+                location_code: locationCode,
+                working_days: workingDay,
+                start_time: { [Op.lte]: startTime },
+                end_time: { [Op.gte]: endTime },
+            },
+            raw: true,
+        });
     }
 
     async delete(id: number) {

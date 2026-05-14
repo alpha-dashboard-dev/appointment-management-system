@@ -25,7 +25,6 @@ class UserController {
     async getAll(req: Request, res: Response) {
         try {
             const filters = {
-                organization_code: req.query.organization_code,
                 business_code: req.query.business_code,
                 user_type: req.query.user_type,
                 is_active: req.query.is_active,

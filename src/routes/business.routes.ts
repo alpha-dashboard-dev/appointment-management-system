@@ -35,10 +35,10 @@ router.put(
 );
 
 router.patch(
-    "/:businessCode/users",
+    "/:businessCode/status",
     authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.assignUser
+    authorizeRoles(ROLES.ADMIN),
+    controller.changeStatus
 )
 
 router.delete(

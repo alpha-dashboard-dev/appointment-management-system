@@ -29,6 +29,7 @@ class BusinessRepository {
     }
 
     async update(businessCode: string, data: any) {
+        // console.log(businessCode, data);
         return dbHelper.updateByCode(this.tables, "business_code", businessCode, data);
     }
 

@@ -12,12 +12,6 @@ module.exports = {
                     primaryKey: true,
                     type: Sequelize.INTEGER,
                 },
-
-                organization_code: {
-                    type: Sequelize.STRING(8),
-                    allowNull: false,
-                },
-
                 user_code: {
                     type: Sequelize.STRING(8),
                     allowNull: false,

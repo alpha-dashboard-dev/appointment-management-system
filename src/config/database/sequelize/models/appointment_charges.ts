@@ -34,12 +34,12 @@ class AppointmentCharge extends Model {
             },
 
             charge_uom: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.ENUM("fixed", "percentage"),
                 allowNull: true,
             },
 
             charge_value: {
-                type: DataTypes.ENUM("GST"),
+                type: DataTypes.DECIMAL(10, 2),
                 allowNull: true,
             },
 

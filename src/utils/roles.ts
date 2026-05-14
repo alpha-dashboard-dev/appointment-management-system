@@ -1,7 +1,7 @@
 export const ROLES = {
-    ADMIN: "ADMIN",                         // Full system access
-    BUSINESS_OWNER: "BUSINESS_OWNER",       // Manages their own business
-    OPERATIONAL_STAFF: "OPERATIONAL_STAFF", // Day-to-day operations
-    SERVICE_STAFF: "SERVICE_STAFF",         // Delivers services / takes appointments
-    CLIENT: "CLIENT",                       // End customer booking appointments
+    ADMIN: "admin",                         // Full system access
+    BUSINESS_OWNER: "business_owner",       // Manages their own business
+    OPERATIONAL_STAFF: "operational_staff", // Day-to-day operations
+    SERVICE_STAFF: "service_staff",         // Delivers services / takes appointments
+    CLIENT: "client",                       // End customer booking appointments
 } as const;

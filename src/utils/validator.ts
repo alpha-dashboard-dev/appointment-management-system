@@ -69,7 +69,7 @@ export const validateBusiness = (data: any) => {
 };
 
 export const validateUser = (data: any) => {
-    const { name, email, password, user_type, business_code, organization_code, phone } = data;
+    const { name, email, password, user_type, business_code, phone } = data;
 
     if (!name || name.trim().length < 2) {
         throw new Error("Name must be at least 2 characters long");
@@ -85,10 +85,6 @@ export const validateUser = (data: any) => {
 
     if (!user_type || !VALID_USER_TYPES.includes(user_type)) {
         throw new Error("Invalid userType. Must be one of: " + VALID_USER_TYPES.join(", "));
-    }
-
-    if (!organization_code || !isValidCode(organization_code)) {
-        throw new Error("Valid 8-character organizationCode is required");
     }
 
     if (user_type !== "admin" && (!business_code || !isValidCode(business_code))) {

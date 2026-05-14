@@ -40,30 +40,40 @@ class BusinessController {
         }
     }
 
-    async assignUser(req: Request, res: Response) {
+    // async assignUser(req: Request, res: Response) {
+    //     try {
+    //         const businessCode = String(req.params.businessCode);
+    //         const { user_code } = req.body;
+    //
+    //         // console.log(user_code, businessCode);
+    //
+    //         const data = await service.assignUser(
+    //             businessCode,
+    //             user_code,
+    //             req.user
+    //         );
+    //
+    //         return res.status(200).json({
+    //             success: true,
+    //             message: "User assigned successfully",
+    //             data,
+    //         });
+    //
+    //     } catch (err: any) {
+    //         return res.status(400).json({
+    //             success: false,
+    //             message: err.message,
+    //         });
+    //     }
+    // }
+
+    async changeStatus(req: Request, res: Response) {
         try {
-            const businessCode = String(req.params.businessCode);
-            const { user_code } = req.body;
-
-            // console.log(user_code, businessCode);
-
-            const data = await service.assignUser(
-                businessCode,
-                user_code,
-                req.user
-            );
-
-            return res.status(200).json({
-                success: true,
-                message: "User assigned successfully",
-                data,
-            });
-
+            const { status } = req.body;
+            const data = await service.changeStatus(String(req.params.businessCode), status);
+            return res.status(200).json({ success: true, message: "Status updated", data });
         } catch (err: any) {
-            return res.status(400).json({
-                success: false,
-                message: err.message,
-            });
+            return res.status(400).json({ success: false, message: err.message,  errors: err.errors || err, });
         }
     }
 

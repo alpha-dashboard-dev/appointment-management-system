@@ -8,15 +8,6 @@ class User extends Model {
                 autoIncrement: true,
                 primaryKey: true,
             },
-
-            organization_code: {
-                type: DataTypes.STRING(8),
-                allowNull: false,
-                validate: {
-                    is: /^[A-Za-z0-9]{8}$/,
-                },
-            },
-
             user_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
@@ -97,12 +88,6 @@ class User extends Model {
     }
 
     static associate(models) {
-        User.belongsTo(models.Organization, {
-            foreignKey: "organization_code",
-            targetKey: "organization_code",
-            as: "organization",
-            constraints: false,
-        });
 
         User.belongsTo(models.Business, {
             foreignKey: "business_code",

@@ -7,7 +7,7 @@ class UserService {
 
     async create(data: any, User: any) {
         // console.log(data, User);
-        if (!User || User.userType !== "ADMIN" && User.userType !== "BUSINESS_OWNER") {
+        if (!User || User.userType !== "admin" && User.userType !== "business_owner") {
             throw new Error("Only admin or business owner can create users");
         }
 
@@ -22,7 +22,6 @@ class UserService {
 
         const userData = {
             user_code,
-            organization_code: data.organization_code,
             business_code: data.business_code || null,
             user_type: data.user_type,
             email: data.email.trim().toLowerCase(),

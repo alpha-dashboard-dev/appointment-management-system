@@ -51,6 +51,22 @@ class ScheduleController {
             return res.status(400).json({ success: false, message: err.message });
         }
     }
+
+    async checkAvailability(req: Request, res: Response) {
+        try {
+            const { business_code, location_code, date, start_time, end_time } = req.query;
+            const data = await service.checkAvailability(
+                String(business_code || ""),
+                String(location_code || ""),
+                String(date || ""),
+                String(start_time || ""),
+                String(end_time || "")
+            );
+            return res.status(200).json({ success: true, data });
+        } catch (err: any) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
 }
 
 export default new ScheduleController();

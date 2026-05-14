@@ -27,12 +27,12 @@ module.exports = {
       },
 
       charge_uom: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.ENUM("fixed", "percentage"),
         allowNull: true,
       },
 
       charge_value: {
-        type: Sequelize.ENUM('GST'),
+        type: Sequelize.DECIMAL(10, 2),
         allowNull: true,
       },
 

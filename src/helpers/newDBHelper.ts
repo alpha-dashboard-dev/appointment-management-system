@@ -11,6 +11,7 @@ class DbHelper {
     }
 
     async create(table: any, data: any) {
+        // console.log(this.orm);
         if (this.orm === "sequelize") {
             return await table.sequelize.create(data);
         }
@@ -139,6 +140,7 @@ class DbHelper {
 
     async updateByCode(table: any, codeField: string, code: string, data: any) {
         if (this.orm === "sequelize") {
+
             return await table.sequelize.update(data, {
                 where: { [codeField]: code },
             });

@@ -41,7 +41,7 @@ class LocationService {
         if (!loc) throw new Error("Location not found");
 
         const allowed: any = {};
-        const fields = ["location_type", "address", "street", "apartment", "city", "postal_code", "province", "country"];
+        const fields = ["location_type", "address", "street", "apartment", "city", "postal_code", "province", "country", "status"];
         for (const f of fields) {
             if (data[f] !== undefined) allowed[f] = data[f];
         }
