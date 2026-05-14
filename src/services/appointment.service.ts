@@ -46,10 +46,10 @@ class AppointmentService {
         await historyRepo.create({
             business_code,
             appointment_code,
-            action: "CREATED",
+            action: "created",
             changed_by: actor?.userCode,
             old_value: null,
-            new_value: { appointment_code, status: "PENDING" },
+            new_value: { appointment_code, status: "pending" },
         });
 
         if (actor?.userCode) {
@@ -57,9 +57,9 @@ class AppointmentService {
                 business_code,
                 appointment_code,
                 user_code: actor.userCode,
-                user_type: "OWNER",
+                user_type: "owner",
                 user_role: actor.userType || null,
-                status: "ACTIVE",
+                status: "active",
             });
         }
 
@@ -98,7 +98,7 @@ class AppointmentService {
         await historyRepo.create({
             business_code: appointment.business_code,
             appointment_code: appointmentCode,
-            action: "UPDATED",
+            action: "updated",
             changed_by: actor?.userCode,
             old_value: oldValue,
             new_value: allowed,
@@ -116,14 +116,14 @@ class AppointmentService {
         const oldStatus = appointment.status;
 
         const updateData: any = { status };
-        if (status === "APPROVED") updateData.approved_by = actor?.userCode || null;
-        if (status === "CANCELLED") updateData.cancelled_by = actor?.userCode || null;
+        if (status === "approved") updateData.approved_by = actor?.userCode || null;
+        if (status === "canceled") updateData.cancelled_by = actor?.userCode || null;
 
         const actionMap: Record<string, string> = {
-            APPROVED: "ASSIGNED",
-            CANCELLED: "CANCELLED",
-            RESCHEDULED: "RESCHEDULED",
-            UPDATED: "UPDATED",
+            APPROVED: "assigned",
+            CANCELLED: "canceled",
+            RESCHEDULED: "rescheduled",
+            UPDATED: "updated",
         };
 
         await repo.update(appointmentCode, updateData);
@@ -145,7 +145,7 @@ class AppointmentService {
         await historyRepo.create({
             business_code: appointment.business_code,
             appointment_code: appointmentCode,
-            action: actionMap[status] || "UPDATED",
+            action: actionMap[status] || "updated",
             changed_by: actor?.userCode,
             old_value: { status: oldStatus },
             new_value: { status },
@@ -173,18 +173,18 @@ class AppointmentService {
             start_time,
             end_time,
             location_code: location_code || original.location_code || null,
-            status: "PENDING",
+            status: "pending",
             created_by: actor?.userCode,
             rescheduled_from: original.appointment_code,
             notes: notes || null,
         });
 
-        await repo.update(appointmentCode, { status: "RESCHEDULED" });
+        await repo.update(appointmentCode, { status: "rescheduled" });
 
         await historyRepo.create({
             business_code,
             appointment_code: new_appointment_code,
-            action: "RESCHEDULED",
+            action: "rescheduled",
             changed_by: actor?.userCode,
             old_value: { appointment_code: appointmentCode },
             new_value: { appointment_code: new_appointment_code },
@@ -211,7 +211,7 @@ class AppointmentService {
             user_code: userCode,
             user_type: userType,
             user_role: userRole || null,
-            status: "ACTIVE",
+            status: "active",
         });
     }
 
@@ -346,7 +346,7 @@ class AppointmentService {
             service_code,
             recurrence_uom,
             recurrence_value: recurrence_Value,
-            status: "ACTIVE",
+            status: "active",
             auto_cancel_after_days: auto_cancel_after_days || null,
             reschedule_after_days: reschedule_after_days || null,
         });
