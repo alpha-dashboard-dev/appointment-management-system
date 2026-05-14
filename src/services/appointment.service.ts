@@ -70,6 +70,7 @@ class AppointmentService {
         return await repo.findAll(filters);
     }
 
+
     async getByCode(appointmentCode: string) {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
