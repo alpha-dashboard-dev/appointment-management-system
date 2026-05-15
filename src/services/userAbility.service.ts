@@ -15,7 +15,7 @@ class UserAbilityService {
             user_code,
             user_type,
             ability: ability.trim(),
-            status: data.status || "ACTIVE",
+            status: data.status || "active",
             added_by: added_by || actor?.userCode || null,
         });
     }
@@ -37,7 +37,7 @@ class UserAbilityService {
         const allowed: any = {};
         if (data.ability !== undefined) allowed.ability = data.ability;
         if (data.status !== undefined) allowed.status = data.status;
-        allowed.updatedBy = actor?.userCode || null;
+        allowed.updated_by = actor?.userCode;
 
         return await repo.update(id, allowed);
     }

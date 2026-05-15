@@ -25,7 +25,7 @@ module.exports = {
         type: Sequelize.ENUM(
             'monday',
             'tuesday',
-            'wedneday',
+            'wednesday',
             'thursday',
             'friday',
             'saturday',

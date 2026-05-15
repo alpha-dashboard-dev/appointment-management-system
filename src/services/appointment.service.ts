@@ -22,9 +22,7 @@ class AppointmentService {
 
 
     async create(data: any, actor: any) {
-        const { business_code, appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes, status } = data;
-
-        // console.log(data)
+        const { business_code, appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes, status, user_role } = data;
 
         validateAppointment(data);
 
@@ -57,8 +55,8 @@ class AppointmentService {
                 business_code,
                 appointment_code,
                 user_code: actor.userCode,
-                user_type: "owner",
-                user_role: actor.userType || null,
+                user_type: actor.userType,
+                user_role: user_role || null,
                 status: "active",
             });
         }
@@ -199,19 +197,19 @@ class AppointmentService {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
 
-        const { userCode, userType, userRole } = data;
+        const { user_code, user_type, user_role } = data;
         validateAppointmentParticipant({
             business_code: appointment.business_code,
-            userCode,
-            userType,
+            user_code,
+            user_type,
         });
 
         return await participantRepo.create({
             business_code: appointment.business_code,
             appointment_code: appointmentCode,
-            user_code: userCode,
-            user_type: userType,
-            user_role: userRole || null,
+            user_code: user_code,
+            user_type: user_type,
+            user_role: user_role || null,
             status: "active",
         });
     }

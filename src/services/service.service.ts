@@ -9,7 +9,7 @@ class ServiceService {
 
     async create(data: any, actor: any) {
 
-        const { name, business_code, description, price, cost, currency, duration_uom, duration_value, availability } = data;
+        const { name, business_code, description, price, cost, currency, duration_uom, duration_value, status } = data;
         // console.log(data);
 
         validateService(data);
@@ -26,7 +26,7 @@ class ServiceService {
             currency: currency || "PKR",
             duration_uom: duration_uom || null,
             duration_value: duration_value || null,
-            availability: availability || "onsite",
+            status: status,
         });
     }
 
@@ -60,10 +60,25 @@ class ServiceService {
             allowed.duration_uom = data.duration_uom;
         if (data.duration_value !== undefined)
             allowed.duration_value = data.duration_value;
-        if (data.availability !== undefined)
-            allowed.availability = data.availability;
+        // if (data.availability !== undefined)
+        //     allowed.availability = data.availability;
 
         return await repo.update(serviceCode, allowed);
+    }
+
+    async changeStatus(serviceCode: string, status: string, user: any) {
+        // console.log(user.userType, serviceCode, status)
+
+        if(!user && user.userType !== "admin" || user.userType !== "business_owner") {
+            throw new Error("only admin and business owner can change service status");
+        }
+        if (!["active", "inactive"].includes(status)) {
+            throw new Error("Invalid status");
+        }
+
+        return await repo.update(serviceCode, {
+            status: status,
+        });
     }
 
     async delete(serviceCode: string, actor: any) {

@@ -42,6 +42,13 @@ router.put(
     controller.update
 );
 
+router.patch(
+    "/:serviceCode/status",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.changeStatus
+);
+
 router.delete(
     "/:serviceCode",
     authenticate,

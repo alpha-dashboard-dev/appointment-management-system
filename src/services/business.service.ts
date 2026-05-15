@@ -8,7 +8,7 @@ class BusinessService {
 
     async create(data: any) {
         const { organization_code, name, email, phone, address, timezone } = data;
-        console.log(data)
+        // console.log(data)
         validateBusiness(data);
 
         /*

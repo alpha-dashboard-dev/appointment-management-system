@@ -34,6 +34,13 @@ router.put(
     controller.update
 );
 
+router.patch(
+    "/:locationCode/status",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.update
+);
+
 router.delete(
     "/:locationCode",
     authenticate,
