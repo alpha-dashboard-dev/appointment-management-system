@@ -3,7 +3,7 @@
 
     <!-- HEADER -->
     <div class="header">
-      <h2>Businesses</h2>
+      <h2>Business</h2>
 
       <router-link to="/businesses/create" class="btn">
         + Create Business
@@ -19,7 +19,6 @@
 
     <!-- TABLE -->
     <table class="table">
-
       <thead>
       <tr>
         <th>Name</th>
