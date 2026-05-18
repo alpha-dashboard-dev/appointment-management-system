@@ -3,6 +3,7 @@
 
     <h2>Create Business</h2>
 
+
     <form class="form" @submit.prevent="submit">
 
       <input v-model="form.name" placeholder="Business Name" />

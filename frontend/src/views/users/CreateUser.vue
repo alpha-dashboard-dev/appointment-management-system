@@ -4,8 +4,7 @@
     <h2>Create Users</h2>
 
     <form class="form" @submit.prevent="submit">
-
-      <input v-model="form.name" placeholder="Organization Name" />
+      <input v-model="form.name" placeholder="Name" />
       <input v-model="form.ownerName" placeholder="Owner Name" />
       <input v-model="form.email" placeholder="Email" />
       <input v-model="form.phone" placeholder="Phone" />
@@ -16,8 +15,7 @@
         <option value="inactive">Inactive</option>
       </select>
 
-      <button type="submit">Create Users</button>
-
+      <button type="submit"> Create Users</button>
     </form>
 
   </div>
@@ -42,7 +40,7 @@ function submit() {
   console.log('User Created:', form)
 
   // API READY PLACEHOLDER
-  // await axios.post('/organizations', form)
+  // await axios.post('/users', form)
 
   router.push('/users')
 }

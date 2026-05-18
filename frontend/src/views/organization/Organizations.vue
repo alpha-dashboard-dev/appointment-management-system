@@ -16,9 +16,6 @@
       <thead>
       <tr>
         <th>Name</th>
-        <th>Owner</th>
-        <th>Email</th>
-        <th>Location</th>
         <th>Status</th>
         <th width="150">Actions</th>
       </tr>
@@ -28,9 +25,6 @@
       <tr v-for="business in businesses" :key="business.id">
 
         <td>{{ business.name }}</td>
-        <td>{{ business.ownerName }}</td>
-        <td>{{ business.email }}</td>
-        <td>{{ business.location }}</td>
 
         <td>
             <span :class="['status', business.status]">
@@ -56,7 +50,6 @@
 
       </tr>
       </tbody>
-
     </table>
 
     <!-- EDIT MODAL -->

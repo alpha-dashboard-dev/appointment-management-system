@@ -17,6 +17,7 @@
 
     </div>
 
+
     <!-- FILTERS -->
     <div class="filters">
 
@@ -34,7 +35,6 @@
       />
 
     </div>
-
     <!-- TABLE -->
     <div class="card">
 
@@ -66,9 +66,7 @@
           <td>{{ appointment.time }}</td>
 
           <td>
-              <span
-                  :class="['badge', appointment.status]"
-              >
+              <span :class="['badge', appointment.status]">
                 {{ appointment.status }}
               </span>
           </td>

@@ -6,10 +6,6 @@
     <form class="form" @submit.prevent="submit">
 
       <input v-model="form.name" placeholder="Organization Name" />
-      <input v-model="form.ownerName" placeholder="Owner Name" />
-      <input v-model="form.email" placeholder="Email" />
-      <input v-model="form.phone" placeholder="Phone" />
-      <input v-model="form.location" placeholder="Location" />
 
       <select v-model="form.status">
         <option value="active">Active</option>
@@ -19,7 +15,6 @@
       <button type="submit">Create Organization</button>
 
     </form>
-
   </div>
 </template>
 
