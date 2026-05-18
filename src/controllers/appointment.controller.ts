@@ -5,10 +5,12 @@ class AppointmentController {
 
     async create(req: Request, res: Response) {
         try {
+            // console.log(req.body);
+            // console.log(req.user);
             const data = await service.create(req.body, req.user);
             return res.status(201).json({ success: true, message: "Appointment created", data });
         } catch (err: any) {
-            return res.status(400).json({ success: false, message: err.message });
+            return res.status(400).json({ success: false, message: err.message, errors: err.errors || err, });
         }
     }
 

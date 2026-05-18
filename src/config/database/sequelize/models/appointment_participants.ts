@@ -34,7 +34,7 @@ class AppointmentParticipant extends Model {
             },
 
             user_type: {
-                type: DataTypes.ENUM("OWNER", "STAFF", "CLIENT"),
+                type: DataTypes.ENUM("business_owner", "operational_staff", "service_staff", "client"),
                 allowNull: false,
             },
 
@@ -44,9 +44,9 @@ class AppointmentParticipant extends Model {
             },
 
             status: {
-                type: DataTypes.ENUM("ACTIVE", "INACTIVE"),
+                type: DataTypes.ENUM("active", "inactive"),
                 allowNull: false,
-                defaultValue: "ACTIVE",
+                defaultValue: "active",
             },
 
             created_at: {

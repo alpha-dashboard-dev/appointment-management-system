@@ -28,8 +28,8 @@ class Location extends Model {
 
             location_type: {
                 type: DataTypes.ENUM(
-                    "BUSINESS",
-                    "CLIENT"
+                    "business",
+                    "client"
                 ),
                 allowNull: false,
             },
@@ -48,7 +48,6 @@ class Location extends Model {
                 type: DataTypes.STRING(255),
                 allowNull: true,
             },
-
             city: {
                 type: DataTypes.STRING(200),
                 allowNull: true,
@@ -67,6 +66,11 @@ class Location extends Model {
             country: {
                 type: DataTypes.STRING(200),
                 allowNull: true,
+            },
+            status: {
+                type: DataTypes.ENUM("active", "inactive"),
+                allowNull: false,
+                defaultValue: "active",
             },
 
             created_at: {

@@ -5,6 +5,7 @@ import appointmentServiceRepo from "../repositories/appointmentService.repositor
 import appointmentChargeRepo from "../repositories/appointmentCharge.repository";
 import appointmentDiscountRepo from "../repositories/appointmentDiscount.repository";
 import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.repository";
+import chargeRepo from "../repositories/charge.repository";
 import { generateCode } from "../utils/codeGenerator";
 import {
     validateAppointment,
@@ -21,43 +22,42 @@ class AppointmentService {
 
 
     async create(data: any, actor: any) {
-        const {business_code, appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes, status} = data
+        const { business_code, appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes, status, user_role } = data;
 
         validateAppointment(data);
 
-        const appointmentCode = generateCode();
+        const appointment_code = generateCode();
 
         const appointment = await repo.create({
             business_code,
-            appointment_code: appointmentCode,
+            appointment_code,
             appointment_start_date,
             appointment_end_date,
             start_time,
             end_time,
-            location_code,
+            location_code: location_code || null,
             status,
-            created_by: actor?.userId || 0,
+            created_by: actor?.userCode,
             notes: notes || null,
         });
 
-
         await historyRepo.create({
             business_code,
-            appointment_code: appointmentCode,
-            action: "CREATED",
-            changed_by: actor?.id || 0,
+            appointment_code,
+            action: "created",
+            changed_by: actor?.userCode,
             old_value: null,
-            new_value: { appointmentCode, status: "PENDING" },
+            new_value: { appointment_code, status: "pending" },
         });
 
         if (actor?.userCode) {
             await participantRepo.create({
                 business_code,
-                appointment_code: appointmentCode,
+                appointment_code,
                 user_code: actor.userCode,
-                user_type: "OWNER",
-                user_role: actor.user_type || null,
-                status: "ACTIVE",
+                user_type: actor.userType,
+                user_role: user_role || null,
+                status: "active",
             });
         }
 
@@ -67,6 +67,7 @@ class AppointmentService {
     async getAll(filters: any = {}) {
         return await repo.findAll(filters);
     }
+
 
     async getByCode(appointmentCode: string) {
         const appointment = await repo.findByCode(appointmentCode);
@@ -81,23 +82,25 @@ class AppointmentService {
         const oldValue = { ...appointment.dataValues || appointment };
 
         const allowed: any = {};
-        const fields = ["appointmentStartDate", "appointmentEndDate", "startTime", "endTime", "locationId", "notes"];
+        const fields = ["appointment_start_date", "appointment_end_date", "start_time", "end_time", "location_code", "notes"];
         for (const f of fields) {
             if (data[f] !== undefined) allowed[f] = data[f];
         }
 
-        if (allowed.startTime && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(allowed.startTime)) throw new Error("Invalid startTime");
-        if (allowed.endTime && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(allowed.endTime)) throw new Error("Invalid endTime");
+        if (allowed.start_time && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(allowed.start_time))
+            throw new Error("Invalid start_time");
+        if (allowed.end_time && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(allowed.end_time))
+            throw new Error("Invalid end_time");
 
         const updated = await repo.update(appointmentCode, allowed);
 
         await historyRepo.create({
-            businessCode: appointment.business_code || appointment.businessCode,
-            appointmentCode,
-            action: "UPDATED",
-            changedBy: actor?.id || 0,
-            oldValue,
-            newValue: allowed,
+            business_code: appointment.business_code,
+            appointment_code: appointmentCode,
+            action: "updated",
+            changed_by: actor?.userCode,
+            old_value: oldValue,
+            new_value: allowed,
         });
 
         return updated;
@@ -112,25 +115,39 @@ class AppointmentService {
         const oldStatus = appointment.status;
 
         const updateData: any = { status };
-        if (status === "APPROVED") updateData.approvedBy = actor?.id || null;
-        if (status === "CANCELLED") updateData.cancelledBy = actor?.id || null;
+        if (status === "approved") updateData.approved_by = actor?.userCode || null;
+        if (status === "canceled") updateData.cancelled_by = actor?.userCode || null;
 
         const actionMap: Record<string, string> = {
-            APPROVED: "ASSIGNED",
-            CANCELLED: "CANCELLED",
-            RESCHEDULED: "RESCHEDULED",
-            UPDATED: "UPDATED",
+            APPROVED: "assigned",
+            CANCELLED: "canceled",
+            RESCHEDULED: "rescheduled",
+            UPDATED: "updated",
         };
 
         await repo.update(appointmentCode, updateData);
 
+        if (status === "approved") {
+            const activeCharges = await chargeRepo.findActiveByBusiness(appointment.business_code);
+            for (const charge of activeCharges) {
+                const chargeData = charge.dataValues || charge;
+                await appointmentChargeRepo.create({
+                    business_code: appointment.business_code,
+                    appointment_code: appointmentCode,
+                    charge_code: chargeData.charge_code,
+                    charge_uom: chargeData.charge_uom,
+                    charge_value: chargeData.charge_value,
+                });
+            }
+        }
+
         await historyRepo.create({
-            businessCode: appointment.business_code || appointment.businessCode,
-            appointmentCode,
-            action: actionMap[status] || "UPDATED",
-            changedBy: actor?.id || 0,
-            oldValue: { status: oldStatus },
-            newValue: { status },
+            business_code: appointment.business_code,
+            appointment_code: appointmentCode,
+            action: actionMap[status] || "updated",
+            changed_by: actor?.userCode,
+            old_value: { status: oldStatus },
+            new_value: { status },
         });
 
         return { appointmentCode, status };
@@ -140,36 +157,36 @@ class AppointmentService {
         const original = await repo.findByCode(appointmentCode);
         if (!original) throw new Error("Appointment not found");
 
-        const { appointmentStartDate, appointmentEndDate, startTime, endTime, locationId, notes } = data;
+        const { appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes } = data;
 
         validateReschedule(data);
 
-        const businessCode = original.business_code || original.businessCode;
-        const newAppointmentCode = generateCode();
+        const business_code = original.business_code;
+        const new_appointment_code = generateCode();
 
         const newAppointment = await repo.create({
-            business_code: businessCode,
-            appointmentCode: newAppointmentCode,
-            appointmentStartDate,
-            appointmentEndDate,
-            startTime,
-            endTime,
-            locationId: locationId || original.locationId || null,
-            status: "PENDING",
-            createdBy: actor?.id || 0,
-            rescheduledFrom: original.id,
+            business_code,
+            appointment_code: new_appointment_code,
+            appointment_start_date,
+            appointment_end_date,
+            start_time,
+            end_time,
+            location_code: location_code || original.location_code || null,
+            status: "pending",
+            created_by: actor?.userCode,
+            rescheduled_from: original.appointment_code,
             notes: notes || null,
         });
 
-        await repo.update(appointmentCode, { status: "RESCHEDULED" });
+        await repo.update(appointmentCode, { status: "rescheduled" });
 
         await historyRepo.create({
-            businessCode,
-            appointmentCode: newAppointmentCode,
-            action: "RESCHEDULED",
-            changedBy: actor?.id || 0,
-            oldValue: { appointmentCode },
-            newValue: { appointmentCode: newAppointmentCode },
+            business_code,
+            appointment_code: new_appointment_code,
+            action: "rescheduled",
+            changed_by: actor?.userCode,
+            old_value: { appointment_code: appointmentCode },
+            new_value: { appointment_code: new_appointment_code },
         });
 
         return newAppointment;
@@ -180,20 +197,20 @@ class AppointmentService {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
 
-        const { userCode, userType, userRole } = data;
+        const { user_code, user_type, user_role } = data;
         validateAppointmentParticipant({
-            businessCode: appointment.business_code || appointment.businessCode,
-            userCode,
-            userType,
+            business_code: appointment.business_code,
+            user_code,
+            user_type,
         });
 
         return await participantRepo.create({
-            businessCode: appointment.business_code || appointment.businessCode,
-            appointmentCode,
-            userId: userCode,
-            userType,
-            userRole: userRole || null,
-            status: "ACTIVE",
+            business_code: appointment.business_code,
+            appointment_code: appointmentCode,
+            user_code: user_code,
+            user_type: user_type,
+            user_role: user_role || null,
+            status: "active",
         });
     }
 
@@ -218,16 +235,16 @@ class AppointmentService {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
 
-        const { serviceCode } = data;
+        const { service_code } = data;
         validateAppointmentService({
-            businessCode: appointment.business_code || appointment.businessCode,
-            serviceCode,
+            business_code: appointment.business_code,
+            service_code,
         });
 
         return await appointmentServiceRepo.create({
-            businessCode: appointment.business_code || appointment.businessCode,
-            serviceCode,
-            appointmentCode,
+            business_code: appointment.business_code,
+            service_code,
+            appointment_code: appointmentCode,
         });
     }
 
@@ -248,18 +265,18 @@ class AppointmentService {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
 
-        const { chargeId, chargeUom, chargeValue } = data;
+        const { charge_code, charge_uom, charge_value } = data;
         validateAppointmentCharge({
-            businessCode: appointment.business_code || appointment.businessCode,
-            appointmentCode,
+            business_code: appointment.business_code,
+            appointment_code: appointmentCode,
         });
 
         return await appointmentChargeRepo.create({
-            businessCode: appointment.business_code || appointment.businessCode,
-            appointmentCode,
-            chargeId: chargeId || null,
-            chargeUom: chargeUom || null,
-            chargeValue: chargeValue || null,
+            business_code: appointment.business_code,
+            appointment_code: appointmentCode,
+            charge_code: charge_code || null,
+            charge_uom: charge_uom || null,
+            charge_value: charge_value || null,
         });
     }
 
@@ -280,21 +297,21 @@ class AppointmentService {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
 
-        const { serviceCode, discountUom, discountValue } = data;
+        const { service_code, discount_uom, discount_value } = data;
         validateAppointmentDiscount({
-            businessCode: appointment.business_code || appointment.businessCode,
-            serviceCode,
-            appointmentCode,
-            discountUom,
-            discountValue,
+            business_code: appointment.business_code,
+            service_code,
+            appointment_code: appointmentCode,
+            discount_uom,
+            discount_value,
         });
 
         return await appointmentDiscountRepo.create({
-            businessCode: appointment.business_code || appointment.businessCode,
-            serviceCode,
-            appointmentCode,
-            discountUom,
-            discountValue,
+            business_code: appointment.business_code,
+            service_code,
+            appointment_code: appointmentCode,
+            discount_uom,
+            discount_value,
         });
     }
 
@@ -319,18 +336,18 @@ class AppointmentService {
 
 
     async createRecurrence(data: any, actor: any) {
-        const { businessCode, serviceCode, recurrenceUom, recurrenceValue, autoCancelAfterDays, rescheduleAfterDays } = data;
+        const { business_code, service_code, recurrence_uom, recurrence_Value, auto_cancel_after_days, reschedule_after_days } = data;
 
         validateAppointmentRecurrence(data);
 
         return await appointmentRecurrenceRepo.create({
-            businessCode,
-            serviceCode,
-            recurrenceUom,
-            recurrenceValue,
-            status: "ACTIVE",
-            autoCancelAfterDays: autoCancelAfterDays || null,
-            rescheduleAfterDays: rescheduleAfterDays || null,
+            business_code,
+            service_code,
+            recurrence_uom,
+            recurrence_value: recurrence_Value,
+            status: "active",
+            auto_cancel_after_days: auto_cancel_after_days || null,
+            reschedule_after_days: reschedule_after_days || null,
         });
     }
 

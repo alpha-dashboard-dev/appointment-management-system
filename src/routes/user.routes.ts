@@ -41,12 +41,12 @@ router.patch(
     controller.changeStatus
 );
 
-router.patch(
-    "/:userCode/business",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.assignBusiness
-);
+// router.patch(
+//     "/:userCode/business",
+//     authenticate,
+//     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+//     controller.assignBusiness
+// );
 
 router.delete(
     "/:userCode",

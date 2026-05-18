@@ -8,15 +8,6 @@ class User extends Model {
                 autoIncrement: true,
                 primaryKey: true,
             },
-
-            organization_code: {
-                type: DataTypes.STRING(8),
-                allowNull: false,
-                validate: {
-                    is: /^[A-Za-z0-9]{8}$/,
-                },
-            },
-
             user_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
@@ -59,11 +50,11 @@ class User extends Model {
 
             user_type: {
                 type: DataTypes.ENUM(
-                    "ADMIN",
-                    "BUSINESS_OWNER",
-                    "OPERATIONAL_STAFF",
-                    "SERVICE_STAFF",
-                    "CLIENT"
+                    "admin",
+                    "business_owner",
+                    "operational_staff",
+                    "service_staff",
+                    "client"
                 ),
                 allowNull: false,
             },
@@ -97,12 +88,6 @@ class User extends Model {
     }
 
     static associate(models) {
-        User.belongsTo(models.Organization, {
-            foreignKey: "organization_code",
-            targetKey: "organization_code",
-            as: "organization",
-            constraints: false,
-        });
 
         User.belongsTo(models.Business, {
             foreignKey: "business_code",

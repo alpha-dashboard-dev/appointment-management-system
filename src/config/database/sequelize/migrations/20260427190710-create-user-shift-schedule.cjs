@@ -23,13 +23,13 @@ module.exports = {
 
       working_days: {
         type: Sequelize.ENUM(
-            'MONDAY',
-            'TUESDAY',
-            'WEDNESDAY',
-            'THURSDAY',
-            'FRIDAY',
-            'SATURDAY',
-            'SUNDAY'
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday'
         ),
         allowNull: false,
       },

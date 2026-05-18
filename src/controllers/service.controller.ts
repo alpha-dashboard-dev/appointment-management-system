@@ -41,10 +41,45 @@ class ServiceController {
         }
     }
 
+    async changeStatus(req: Request, res: Response) {
+        try {
+            const serviceCode = String(req.params.serviceCode);
+            const { status } = req.body;
+
+            const data = await service.changeStatus(serviceCode, status, req.user);
+
+            return res.status(200).json({
+                success: true,
+                message: "Service status updated successfully",
+                data,
+            });
+
+        } catch (err: any) {
+            return res.status(400).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+
     async delete(req: Request, res: Response) {
         try {
             await service.delete(String(req.params.serviceCode), req.user);
             return res.status(200).json({ success: true, message: "Service deleted" });
+        } catch (err: any) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
+    async getForClient(req: Request, res: Response) {
+        try {
+            const businessCode = String(req.query.business_code || "");
+            const locationCode = req.query.location_code ? String(req.query.location_code) : undefined;
+            if (!businessCode) {
+                return res.status(400).json({ success: false, message: "business_code is required" });
+            }
+            const data = await service.getServicesForClient(businessCode, locationCode);
+            return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });
         }

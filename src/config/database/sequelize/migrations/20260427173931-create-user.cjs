@@ -12,12 +12,6 @@ module.exports = {
                     primaryKey: true,
                     type: Sequelize.INTEGER,
                 },
-
-                organization_code: {
-                    type: Sequelize.STRING(8),
-                    allowNull: false,
-                },
-
                 user_code: {
                     type: Sequelize.STRING(8),
                     allowNull: false,
@@ -50,11 +44,11 @@ module.exports = {
 
                 user_type: {
                     type: Sequelize.ENUM(
-                        'ADMIN',
-                        'BUSINESS_OWNER',
-                        'OPERATIONAL_STAFF',
-                        'SERVICE_STAFF',
-                        'CLIENT'
+                        'admin',
+                        'business_owner',
+                        'operational_staff',
+                        'service_staff',
+                        'client'
                     ),
                     allowNull: false,
                 },

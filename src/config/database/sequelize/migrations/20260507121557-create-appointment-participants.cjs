@@ -27,7 +27,7 @@ module.exports = {
       },
 
       user_type: {
-        type: Sequelize.ENUM('OWNER', 'STAFF', 'CLIENT'),
+        type: Sequelize.ENUM('business_owner', 'operational_staff', 'service_staff', 'client'),
         allowNull: false,
       },
 
@@ -37,9 +37,9 @@ module.exports = {
       },
 
       status: {
-        type: Sequelize.ENUM('ACTIVE', 'INACTIVE'),
+        type: Sequelize.ENUM('active', 'inactive'),
         allowNull: false,
-        defaultValue: 'ACTIVE',
+        defaultValue: 'active',
       },
 
       created_at: {

@@ -49,7 +49,7 @@ class Service extends Model {
             currency: {
                 type: DataTypes.STRING(10),
                 allowNull: true,
-                defaultValue: "USD",
+                defaultValue: "PKR",
             },
 
             duration_uom: {
@@ -65,6 +65,12 @@ class Service extends Model {
             duration_value: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
+            },
+
+            status:{
+                type: DataTypes.ENUM("active", "inactive"),
+                allowNull: false,
+                defaultValue: "active",
             },
 
             created_at: {

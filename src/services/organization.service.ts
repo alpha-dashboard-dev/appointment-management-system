@@ -14,7 +14,7 @@ class OrganizationService {
         return await repo.create({
             organization_code: organizationCode,
             name: name.trim(),
-            status: status || "active",
+            status: status,
         });
     }
 
@@ -40,8 +40,8 @@ class OrganizationService {
     }
 
     async changeStatus(organizationCode: string, status: string) {
-        if (!["active", "in_active"].includes(status)) {
-            throw new Error("Status must be 'active' or 'in_active'");
+        if (!["active", "inactive"].includes(status)) {
+            throw new Error("Status must be 'active' or 'inactive'");
         }
         const org = await repo.findByCode(organizationCode);
         if (!org) throw new Error("Organization not found");

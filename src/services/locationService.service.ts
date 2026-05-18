@@ -12,15 +12,21 @@ class LocationServiceService {
 
         const location = await locationRepo.findByCode(location_code);
         if (!location) throw new Error("Location not found");
+        if ((location.dataValues?.status ?? location.status) !== "active") {
+            throw new Error("Cannot add services to an inactive location");
+        }
 
         const service = await serviceRepo.findByCode(service_code);
         if (!service) throw new Error("Service not found");
+        if ((service.dataValues?.status ?? service.status) !== "active") {
+            throw new Error("Cannot map an inactive service to a location");
+        }
 
         return await repo.create({
             business_code,
             location_code,
             service_code,
-            availability: availability || "AVAILABLE",
+            availability: availability || "available",
         });
     }
 

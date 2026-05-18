@@ -56,16 +56,16 @@ class Appointment extends Model {
 
             status: {
                 type: DataTypes.ENUM(
-                    "PENDING",
-                    "APPROVED",
-                    "IN_PROGRESS",
-                    "REJECTED",
-                    "COMPLETED",
-                    "CANCELLED",
-                    "RESCHEDULED"
+                    "pending",
+                    "approved",
+                    "in_progress",
+                    "rejected",
+                    "completed",
+                    "canceled",
+                    "rescheduled"
                 ),
                 allowNull: false,
-                defaultValue: "PENDING",
+                defaultValue: "pending",
             },
 
             created_by: {

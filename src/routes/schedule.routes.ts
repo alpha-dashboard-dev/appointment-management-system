@@ -20,6 +20,14 @@ router.get(
     controller.getAll
 );
 
+// Check which staff members are available at a location on a given date/time
+router.get(
+    "/availability",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
+    controller.checkAvailability
+);
+
 router.get(
     "/:id",
     authenticate,

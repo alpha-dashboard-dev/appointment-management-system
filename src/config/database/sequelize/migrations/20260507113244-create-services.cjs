@@ -45,7 +45,7 @@ module.exports = {
       currency: {
         type: Sequelize.STRING(10),
         allowNull: true,
-        defaultValue: 'USD',
+        defaultValue: 'PKR',
       },
 
       duration_uom: {
@@ -56,6 +56,11 @@ module.exports = {
       duration_value: {
         type: Sequelize.INTEGER,
         allowNull: true,
+      },
+      status: {
+        type: Sequelize.ENUM('active', "inactive"),
+        allowNull: false,
+        defaultValue: 'active',
       },
 
       created_at: {

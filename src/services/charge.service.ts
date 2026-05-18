@@ -36,10 +36,16 @@ class ChargeService {
         if (!charge) throw new Error("Charge not found");
 
         const allowed: any = {};
-        if (data.charge_uom !== undefined) allowed.charge_uom = data.charge_uom;
-        if (data.charge_value !== undefined) allowed.charge_value = data.charge_value;
-        if (data.name !== undefined) allowed.name = data.name;
-        if (data.description !== undefined) allowed.description = data.description;
+        if (data.charge_uom !== undefined)
+            allowed.charge_uom = data.charge_uom;
+        if (data.charge_value !== undefined)
+            allowed.charge_value = data.charge_value;
+        if (data.name !== undefined)
+            allowed.name = data.name;
+        if (data.description !== undefined)
+            allowed.description = data.description;
+        if (data.status !== undefined)
+            allowed.status = data.status;
 
         return await repo.update(chargeCode, allowed);
     }

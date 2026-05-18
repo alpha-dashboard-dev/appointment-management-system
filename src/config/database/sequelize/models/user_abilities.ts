@@ -26,12 +26,7 @@ class UserAbility extends Model {
             },
 
             user_type: {
-                type: DataTypes.ENUM(
-                    "ADMIN",
-                    "BUSINESS_OWNER",
-                    "STAFF",
-                    "CLIENT"
-                ),
+                type: DataTypes.STRING(255),
                 allowNull: false,
             },
 
@@ -42,11 +37,11 @@ class UserAbility extends Model {
 
             status: {
                 type: DataTypes.ENUM(
-                    "ACTIVE",
-                    "INACTIVE"
+                    "active",
+                    "inactive"
                 ),
                 allowNull: false,
-                defaultValue: "ACTIVE",
+                defaultValue: "active",
             },
 
             added_by: {

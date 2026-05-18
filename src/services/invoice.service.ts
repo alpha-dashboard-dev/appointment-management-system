@@ -17,7 +17,7 @@ class InvoiceService {
             appointmentCode,
             subtotal: subtotal || null,
             total: total || null,
-            status: "DRAFT",
+            status: "draft",
             date: date || new Date().toISOString().split("T")[0],
             updatedBy: actor?.userCode || null,
         });

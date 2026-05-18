@@ -25,7 +25,6 @@ class UserController {
     async getAll(req: Request, res: Response) {
         try {
             const filters = {
-                organization_code: req.query.organization_code,
                 business_code: req.query.business_code,
                 user_type: req.query.user_type,
                 is_active: req.query.is_active,
@@ -131,30 +130,30 @@ class UserController {
         }
     }
 
-    async assignBusiness(req: Request, res: Response) {
-        try {
-            const userCode = String(req.params.userCode);
-            const { business_code } = req.body;
-
-            const data = await service.assignBusiness(
-                userCode,
-                business_code,
-                req.user
-            );
-
-            return res.status(200).json({
-                success: true,
-                message: "Business assigned successfully",
-                data,
-            });
-
-        } catch (err: any) {
-            return res.status(400).json({
-                success: false,
-                message: err.message,
-            });
-        }
-    }
+    // async assignBusiness(req: Request, res: Response) {
+    //     try {
+    //         const userCode = String(req.params.userCode);
+    //         const { business_code } = req.body;
+    //
+    //         const data = await service.assignBusiness(
+    //             userCode,
+    //             business_code,
+    //             req.user
+    //         );
+    //
+    //         return res.status(200).json({
+    //             success: true,
+    //             message: "Business assigned successfully",
+    //             data,
+    //         });
+    //
+    //     } catch (err: any) {
+    //         return res.status(400).json({
+    //             success: false,
+    //             message: err.message,
+    //         });
+    //     }
+    // }
 }
 
 export default new UserController();

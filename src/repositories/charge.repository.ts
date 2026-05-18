@@ -17,7 +17,12 @@ class ChargeRepository {
     async findAll(filters: any = {}) {
         const where: any = {};
         if (filters.business_code) where.business_code = filters.business_code;
+        if (filters.status) where.status = filters.status;
         return dbHelper.findAll(this.tables, { where });
+    }
+
+    async findActiveByBusiness(businessCode: string) {
+        return dbHelper.findAll(this.tables, { where: { business_code: businessCode, status: "active" } });
     }
 
     async findByCode(chargeCode: string) {

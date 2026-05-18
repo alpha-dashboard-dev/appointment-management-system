@@ -49,6 +49,11 @@ class Business extends Model {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
+            status: {
+                type: DataTypes.ENUM("active", "inactive"),
+                allowNull: false,
+                defaultValue: "active",
+            },
 
             user_code: {
                 type: DataTypes.STRING(8),
@@ -120,7 +125,7 @@ class Business extends Model {
         });
 
         Business.hasMany(models.Appointment, {
-            foreignKey: "business_id",
+            foreignKey: "business_code",
             sourceKey: "business_code",
             as: "appointments",
             constraints: false,

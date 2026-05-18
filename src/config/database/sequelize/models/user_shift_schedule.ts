@@ -27,13 +27,13 @@ class UserShiftSchedule extends Model {
 
             working_days: {
                 type: DataTypes.ENUM(
-                    "MONDAY",
-                    "TUESDAY",
-                    "WEDNESDAY",
-                    "THURSDAY",
-                    "FRIDAY",
-                    "SATURDAY",
-                    "SUNDAY"
+                    "monday",
+                    "tuesday",
+                    "wednesday",
+                    "thursday",
+                    "friday",
+                    "saturday",
+                    "sunday",
                 ),
                 allowNull: false,
             },

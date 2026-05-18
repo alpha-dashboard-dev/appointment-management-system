@@ -32,9 +32,9 @@ module.exports = {
       },
 
       invoice_status: {
-        type: Sequelize.ENUM('DRAFT', 'ISSUED', 'PAID', 'CANCELLED'),
+        type: Sequelize.ENUM('draft', 'issued', 'paid', 'canceled'),
         allowNull: false,
-        defaultValue: 'DRAFT',
+        defaultValue: 'draft',
       },
 
       date: {

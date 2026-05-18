@@ -27,9 +27,9 @@ module.exports = {
       },
 
       availability: {
-        type: Sequelize.ENUM('AVAILABLE', 'NOT_AVAILABLE'),
+        type: Sequelize.ENUM('available', 'not_available'),
         allowNull: false,
-        defaultValue: 'AVAILABLE',
+        defaultValue: 'available',
       },
 
       created_at: {

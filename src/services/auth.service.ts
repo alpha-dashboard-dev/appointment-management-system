@@ -1,5 +1,7 @@
 import repo from "../repositories/user.repository";
 import sessionRepo from "../repositories/session.repository";
+import businessRepo from "../repositories/business.repository";
+import organizationRepo from "../repositories/organization.repository";
 import {
     generateAccessToken,
     generateRefreshToken,
@@ -24,7 +26,6 @@ class AuthService {
 
         const userData = {
             user_code,
-            organization_code: payload.organization_code,
             business_code: payload.business_code || null,
             user_type: payload.user_type,
             email: payload.email.trim().toLowerCase(),
@@ -50,11 +51,35 @@ class AuthService {
         if (!passwordMatch) {
             throw new Error("Invalid email or password");
         }
+
+        if (user.is_active !== "active") {
+            throw new Error("Your account is inactive. Please contact support.");
+        }
+
+        if (user.user_type !== "admin") {
+            if (!user.business_code || user.business_code === "0") {
+                throw new Error("No business assigned to this account.");
+            }
+
+            const business = await businessRepo.findByCode(user.business_code);
+            if (!business) {
+                throw new Error("Business not found.");
+            }
+
+            const organization = await organizationRepo.findByCode(business.organization_code);
+            if (!organization || organization.status !== "active") {
+                throw new Error("Organization is inactive or not found.");
+            }
+
+            if (business.status !== "active") {
+                throw new Error("Business is inactive. Please contact support.");
+            }
+        }
+
         const payload = {
             user_code: user.user_code,
             user_type: user.user_type,
             business_code: user.business_code,
-            organization_code: user.organization_code,
         };
 
         const accessToken = generateAccessToken(payload);
@@ -82,7 +107,6 @@ class AuthService {
             user_code: user.user_code,
             user_type: user.user_type,
             business_code: user.business_code,
-            organization_code: user.organization_code,
         };
 
         const newAccessToken = generateAccessToken(payload);

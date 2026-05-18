@@ -34,7 +34,7 @@ class AppointmentDiscount extends Model {
             },
 
             discount_uom: {
-                type: DataTypes.ENUM("PERCENTAGE", "FIXED"),
+                type: DataTypes.ENUM("percentage", "fixed"),
                 allowNull: false,
             },
 

@@ -13,6 +13,14 @@ router.post(
     controller.create
 );
 
+// Client-facing endpoint: returns active services for a business/location + active charges
+router.get(
+    "/client-view",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
+    controller.getForClient
+);
+
 router.get(
     "/",
     authenticate,
@@ -32,6 +40,13 @@ router.put(
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
+);
+
+router.patch(
+    "/:serviceCode/status",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.changeStatus
 );
 
 router.delete(

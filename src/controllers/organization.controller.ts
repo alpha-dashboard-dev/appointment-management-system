@@ -47,7 +47,7 @@ class OrganizationController {
             const data = await service.changeStatus(String(req.params.organizationCode), status);
             return res.status(200).json({ success: true, message: "Status updated", data });
         } catch (err: any) {
-            return res.status(400).json({ success: false, message: err.message });
+            return res.status(400).json({ success: false, message: err.message,  errors: err.errors || err, });
         }
     }
 }

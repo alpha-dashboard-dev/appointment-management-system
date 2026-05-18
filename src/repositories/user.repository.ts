@@ -32,10 +32,6 @@ class UserRepository {
   async findAll(filters: any = {}) {
     const where: any = {};
 
-    if (filters.organization_code) {
-      where.organization_code = filters.organization_code;
-    }
-
     if (filters.business_code) {
       where.business_code = filters.business_code;
     }

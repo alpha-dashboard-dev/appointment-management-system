@@ -20,7 +20,6 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
             userCode: decoded.user_code,
             userType: decoded.user_type,
             businessCode: decoded.business_code,
-            organizationCode: decoded.organization_code,
         } as any;
 
         next();

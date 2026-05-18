@@ -24,7 +24,7 @@ class Organization extends Model {
             },
 
             status: {
-                type: DataTypes.ENUM("active", "in_active"),
+                type: DataTypes.ENUM("active", "inactive"),
                 allowNull: false,
                 defaultValue: "active",
             },
@@ -52,12 +52,12 @@ class Organization extends Model {
     }
 
     static associate(models) {
-        Organization.hasMany(models.User, {
-            foreignKey: "organization_code",
-            sourceKey: "organization_code",
-            as: "users",
-            constraints: false,
-        });
+        // Organization.hasMany(models.User, {
+        //     foreignKey: "organization_code",
+        //     sourceKey: "organization_code",
+        //     as: "users",
+        //     constraints: false,
+        // });
 
         Organization.hasMany(models.Business, {
             foreignKey: "organization_code",

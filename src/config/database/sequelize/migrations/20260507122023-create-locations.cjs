@@ -23,7 +23,7 @@ module.exports = {
       },
 
       location_type: {
-        type: Sequelize.ENUM('BUSINESS', 'CLIENT'),
+        type: Sequelize.ENUM('business', 'client'),
         allowNull: false,
       },
 
@@ -60,6 +60,11 @@ module.exports = {
       country: {
         type: Sequelize.STRING(200),
         allowNull: true,
+      },
+      status: {
+        type: Sequelize.ENUM('active', 'inactive'),
+        allowNull: false,
+        defaultValue: 'active',
       },
 
       created_at: {
