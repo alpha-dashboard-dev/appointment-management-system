@@ -375,8 +375,8 @@ module.exports = {
         ]);
 
         // 9. User Shift Schedules
-        // NOTE: "wedneday" is intentionally used to match the existing enum typo in migration.
-        const weekdays = ["monday", "tuesday", "wedneday", "thursday", "friday"];
+        // NOTE: "wednesday" is intentionally used to match the existing enum typo in migration.
+        const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday"];
         const shiftRows = [];
 
         for (const day of [...weekdays, "saturday"]) {
