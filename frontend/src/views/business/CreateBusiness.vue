@@ -1,81 +1,127 @@
 <template>
   <div class="page">
 
-    <h2>Create Business</h2>
+    <div class="page-header">
+      <h2>New Business</h2>
+      <router-link to="/businesses" class="back-link">← Back</router-link>
+    </div>
 
+    <div class="card">
+      <form class="form" @submit.prevent="submit">
 
-    <form class="form" @submit.prevent="submit">
+        <div class="field">
+          <label>Business Name *</label>
+          <input v-model="form.name" placeholder="Enter business name" required />
+        </div>
 
-      <input v-model="form.name" placeholder="Business Name" />
-      <input v-model="form.ownerName" placeholder="Owner Name" />
-      <input v-model="form.email" placeholder="Email" />
-      <input v-model="form.phone" placeholder="Phone" />
-      <input v-model="form.location" placeholder="Location" />
+        <div class="field">
+          <label>Organization *</label>
+          <select v-model="form.organization_code" required>
+            <option value="">Select organization</option>
+            <option v-for="org in organizations" :key="org.organization_code" :value="org.organization_code">
+              {{ org.name }}
+            </option>
+          </select>
+        </div>
 
-      <select v-model="form.status">
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </select>
+        <p v-if="error" class="error-msg">{{ error }}</p>
 
-      <button type="submit">Create Business</button>
+        <div class="form-actions">
+          <router-link to="/businesses" class="cancel-btn">Cancel</router-link>
+          <button type="submit" class="submit-btn" :disabled="loading">
+            {{ loading ? 'Creating...' : 'Create Business' }}
+          </button>
+        </div>
 
-    </form>
+      </form>
+    </div>
 
   </div>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/utils/api'
 
 const router = useRouter()
 
-const form = reactive({
-  name: '',
-  ownerName: '',
-  email: '',
-  phone: '',
-  location: '',
-  status: 'active'
+const form = reactive({ name: '', organization_code: '' })
+const organizations = ref([])
+const loading = ref(false)
+const error = ref('')
+
+onMounted(async () => {
+  try {
+    const res = await api.get('/organizations')
+    organizations.value = res.data.data || []
+  } catch (_) {}
 })
 
-function submit() {
-  console.log('Business Created:', form)
-
-  // API READY PLACEHOLDER
-  // await axios.post('/businesses', form)
-
-  router.push('/businesses')
+async function submit() {
+  loading.value = true
+  error.value = ''
+  try {
+    await api.post('/businesses', form)
+    router.push('/businesses')
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to create business'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <style scoped>
-.page {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 600px;
-}
+.page { display: flex; flex-direction: column; gap: 16px; }
 
-.form {
+.page-header {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+.page-header h2 { margin: 0; color: #1e293b; }
+.back-link { font-size: 14px; color: #6366f1; text-decoration: none; }
+
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  max-width: 600px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
-input, select {
-  padding: 10px;
+.form { display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 13px; font-weight: 600; color: #374151; }
+.field input, .field select {
+  padding: 9px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
+  font-size: 14px;
+  outline: none;
 }
+.field input:focus, .field select:focus { border-color: #6366f1; }
 
-button {
+.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.cancel-btn {
+  padding: 9px 16px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 14px;
+}
+.submit-btn {
   background: #6366f1;
   color: white;
   border: none;
-  padding: 10px;
+  padding: 9px 20px;
   border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
 }
+.submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 </style>

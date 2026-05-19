@@ -3,527 +3,341 @@
 
     <!-- HEADER -->
     <div class="header">
-
       <div>
         <h2>Appointments</h2>
-        <p class="sub">
-          Manage all appointment requests
-        </p>
+        <p class="sub">Manage all appointment requests</p>
       </div>
-
-      <router-link to="/appointments/create" class="btn">
-        + New Appointments
-      </router-link>
-
+      <router-link to="/appointments/create" class="btn">+ New Appointment</router-link>
     </div>
-
 
     <!-- FILTERS -->
     <div class="filters">
-
       <select v-model="statusFilter">
         <option value="">All Status</option>
         <option value="pending">Pending</option>
         <option value="approved">Approved</option>
         <option value="rejected">Rejected</option>
         <option value="rescheduled">Rescheduled</option>
+        <option value="completed">Completed</option>
       </select>
-
-      <input
-          v-model="search"
-          placeholder="Search client..."
-      />
-
+      <input v-model="search" placeholder="Search by code or client..." />
     </div>
-    <!-- TABLE -->
+
+    <!-- TABLE CARD -->
     <div class="card">
+      <div v-if="loading" class="loading">Loading...</div>
+      <div v-else-if="error" class="error-msg">{{ error }}</div>
 
-      <table class="table">
-
+      <table v-else class="table">
         <thead>
         <tr>
+          <th>Code</th>
           <th>Client</th>
           <th>Service</th>
-          <th>Staff</th>
           <th>Date</th>
-          <th>Time</th>
+          <th>Start Time</th>
           <th>Status</th>
-          <th width="280">Actions</th>
+          <th width="240">Actions</th>
         </tr>
         </thead>
-
         <tbody>
-
-        <tr
-            v-for="appointment in filteredAppointments"
-            :key="appointment.id"
-        >
-
-          <td>{{ appointment.client }}</td>
-          <td>{{ appointment.service }}</td>
-          <td>{{ appointment.staff }}</td>
-          <td>{{ appointment.date }}</td>
-          <td>{{ appointment.time }}</td>
-
+        <tr v-for="appt in filteredAppointments" :key="appt.appointment_code">
+          <td><code>{{ appt.appointment_code }}</code></td>
+          <td>{{ appt.client_name || appt.client_code || '—' }}</td>
+          <td>{{ appt.service_name || appt.service_code || '—' }}</td>
+          <td>{{ appt.appointment_date }}</td>
+          <td>{{ appt.start_time }}</td>
+          <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
           <td>
-              <span :class="['badge', appointment.status]">
-                {{ appointment.status }}
-              </span>
+            <button class="view-btn" @click="openDetails(appt)">View</button>
+            <button class="approve-btn" @click="changeStatus(appt, 'approved')" :disabled="appt.status === 'approved'">Approve</button>
+            <button class="reschedule-btn" @click="openReschedule(appt)">Reschedule</button>
+            <button class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>
           </td>
-
-          <td>
-
-            <button
-                class="view-btn"
-                @click="openDetails(appointment)"
-            >
-              View
-            </button>
-
-            <button
-                class="approve-btn"
-                @click="approveAppointment(appointment)"
-                :disabled="appointment.status === 'approved'"
-            >
-              Approve
-            </button>
-
-            <button
-                class="reschedule-btn"
-                @click="openReschedule(appointment)"
-            >
-              Reschedule
-            </button>
-
-            <button
-                class="reject-btn"
-                @click="rejectAppointment(appointment)"
-            >
-              Reject
-            </button>
-
-          </td>
-
         </tr>
-
+        <tr v-if="filteredAppointments.length === 0">
+          <td colspan="7" class="empty">No appointments found</td>
+        </tr>
         </tbody>
-
       </table>
-
     </div>
 
     <!-- DETAILS MODAL -->
-    <div
-        v-if="showDetails"
-        class="modal-overlay"
-    >
-
+    <div v-if="showDetails" class="modal-overlay">
       <div class="modal">
-
         <div class="modal-header">
           <h3>Appointment Details</h3>
-
-          <button
-              class="close"
-              @click="showDetails = false"
-          >
-            ✕
-          </button>
+          <button class="close" @click="showDetails = false">✕</button>
         </div>
-
-        <div class="details">
-
-          <div>
-            <strong>Client:</strong>
-            {{ selectedAppointment.client }}
-          </div>
-
-          <div>
-            <strong>Service:</strong>
-            {{ selectedAppointment.service }}
-          </div>
-
-          <div>
-            <strong>Staff:</strong>
-            {{ selectedAppointment.staff }}
-          </div>
-
-          <div>
-            <strong>Date:</strong>
-            {{ selectedAppointment.date }}
-          </div>
-
-          <div>
-            <strong>Time:</strong>
-            {{ selectedAppointment.time }}
-          </div>
-
-          <div>
-            <strong>Status:</strong>
-            {{ selectedAppointment.status }}
-          </div>
-
+        <div class="details" v-if="selected">
+          <div><strong>Code:</strong> {{ selected.appointment_code }}</div>
+          <div><strong>Client:</strong> {{ selected.client_name || selected.client_code }}</div>
+          <div><strong>Service:</strong> {{ selected.service_name || selected.service_code }}</div>
+          <div><strong>Date:</strong> {{ selected.appointment_date }}</div>
+          <div><strong>Start:</strong> {{ selected.start_time }}</div>
+          <div><strong>End:</strong> {{ selected.end_time }}</div>
+          <div><strong>Status:</strong> <span :class="['badge', selected.status]">{{ selected.status }}</span></div>
+          <div v-if="selected.notes"><strong>Notes:</strong> {{ selected.notes }}</div>
         </div>
-
       </div>
-
     </div>
 
     <!-- RESCHEDULE MODAL -->
-    <div
-        v-if="showReschedule"
-        class="modal-overlay"
-    >
-
+    <div v-if="showReschedule" class="modal-overlay">
       <div class="modal">
-
         <div class="modal-header">
           <h3>Reschedule Appointment</h3>
-
-          <button
-              class="close"
-              @click="closeReschedule"
-          >
-            ✕
-          </button>
+          <button class="close" @click="showReschedule = false">✕</button>
         </div>
-
-        <form
-            class="form"
-            @submit.prevent="submitReschedule"
-        >
-
-          <input
-              type="date"
-              v-model="rescheduleForm.date"
-          />
-
-          <input
-              type="time"
-              v-model="rescheduleForm.time"
-          />
-
-          <textarea
-              v-model="rescheduleForm.reason"
-              placeholder="Reason for reschedule"
-          ></textarea>
-
-          <button
-              type="submit"
-              class="primary-btn"
-          >
-            Send Reschedule Request
+        <form class="form" @submit.prevent="submitReschedule">
+          <div class="field">
+            <label>New Date *</label>
+            <input type="date" v-model="rescheduleForm.appointment_date" required />
+          </div>
+          <div class="field">
+            <label>Start Time *</label>
+            <input type="time" v-model="rescheduleForm.start_time" required />
+          </div>
+          <div class="field">
+            <label>End Time *</label>
+            <input type="time" v-model="rescheduleForm.end_time" required />
+          </div>
+          <div class="field">
+            <label>Reason</label>
+            <textarea v-model="rescheduleForm.reason" placeholder="Reason for reschedule" rows="3"></textarea>
+          </div>
+          <p v-if="rescheduleError" class="error-msg">{{ rescheduleError }}</p>
+          <button type="submit" class="primary-btn" :disabled="saving">
+            {{ saving ? 'Sending...' : 'Submit Reschedule' }}
           </button>
-
         </form>
-
       </div>
-
     </div>
 
   </div>
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
+import api from '@/utils/api'
 
-/* FILTERS */
+const appointments = ref([])
+const loading = ref(true)
+const saving = ref(false)
+const error = ref('')
+const rescheduleError = ref('')
+
 const search = ref('')
 const statusFilter = ref('')
 
-/* MODALS */
 const showDetails = ref(false)
 const showReschedule = ref(false)
+const selected = ref(null)
 
-/* SELECTED */
-const selectedAppointment = ref(null)
+const rescheduleForm = reactive({
+  appointment_date: '',
+  start_time: '',
+  end_time: '',
+  reason: '',
+})
 
-/* APPOINTMENTS */
-const appointments = ref([
-  {
-    id: 1,
-    client: 'Ahmed',
-    service: 'Consultation',
-    staff: 'Dr. Ali',
-    date: '2026-05-20',
-    time: '10:00 AM',
-    status: 'pending'
-  },
-  {
-    id: 2,
-    client: 'Fatima',
-    service: 'Dental Checkup',
-    staff: 'Sara Khan',
-    date: '2026-05-21',
-    time: '01:00 PM',
-    status: 'approved'
+async function fetchAppointments() {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await api.get('/appointments')
+    appointments.value = res.data.data || []
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load appointments'
+  } finally {
+    loading.value = false
   }
-])
+}
 
-/* FILTERED */
 const filteredAppointments = computed(() => {
   return appointments.value.filter(a => {
-
-    const matchSearch =
-        a.client.toLowerCase()
-            .includes(search.value.toLowerCase())
-
-    const matchStatus =
-        !statusFilter.value ||
-        a.status === statusFilter.value
-
+    const s = search.value.toLowerCase()
+    const matchSearch = !s ||
+        (a.appointment_code || '').toLowerCase().includes(s) ||
+        (a.client_name || '').toLowerCase().includes(s)
+    const matchStatus = !statusFilter.value || a.status === statusFilter.value
     return matchSearch && matchStatus
   })
 })
 
-/* DETAILS */
-function openDetails(appointment) {
-  selectedAppointment.value = appointment
+function openDetails(appt) {
+  selected.value = appt
   showDetails.value = true
 }
 
-/* APPROVE */
-function approveAppointment(appointment) {
-
-  // AVAILABILITY CHECK PLACEHOLDER
-  const available = true
-
-  if (available) {
-    appointment.status = 'approved'
-  }
-
-  console.log('Approved:', appointment)
-
-  // API READY
-  // await axios.patch(...)
-}
-
-/* REJECT */
-function rejectAppointment(appointment) {
-  appointment.status = 'rejected'
-
-  console.log('Rejected:', appointment)
-
-  // API READY
-}
-
-/* RESCHEDULE */
-const rescheduleForm = reactive({
-  date: '',
-  time: '',
-  reason: ''
-})
-
-function openReschedule(appointment) {
-  selectedAppointment.value = appointment
+function openReschedule(appt) {
+  selected.value = appt
+  rescheduleForm.appointment_date = appt.appointment_date || ''
+  rescheduleForm.start_time = appt.start_time || ''
+  rescheduleForm.end_time = appt.end_time || ''
+  rescheduleForm.reason = ''
+  rescheduleError.value = ''
   showReschedule.value = true
 }
 
-function closeReschedule() {
-  showReschedule.value = false
+async function changeStatus(appt, status) {
+  try {
+    await api.patch(`/appointments/${appt.appointment_code}/status`, { status })
+    appt.status = status
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Status update failed'
+  }
 }
 
-function submitReschedule() {
-
-  selectedAppointment.value.status =
-      'rescheduled'
-
-  selectedAppointment.value.date =
-      rescheduleForm.date
-
-  selectedAppointment.value.time =
-      rescheduleForm.time
-
-  console.log(
-      'Rescheduled:',
-      selectedAppointment.value
-  )
-
-  closeReschedule()
-
-  // API READY
+async function submitReschedule() {
+  saving.value = true
+  rescheduleError.value = ''
+  try {
+    await api.post(`/appointments/${selected.value.appointment_code}/reschedule`, rescheduleForm)
+    showReschedule.value = false
+    await fetchAppointments()
+  } catch (err) {
+    rescheduleError.value = err.response?.data?.message || 'Reschedule failed'
+  } finally {
+    saving.value = false
+  }
 }
+
+onMounted(fetchAppointments)
 </script>
 
 <style scoped>
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+.page { display: flex; flex-direction: column; gap: 16px; }
 
-/* HEADER */
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
-
-.sub {
-  color: #64748b;
-}
-
-/* FILTERS */
-.filters {
-  display: flex;
-  gap: 10px;
-}
-
-.filters input,
-.filters select {
-  padding: 10px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-}
-
-/* CARD */
-.card {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-}
-
-/* TABLE */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
-}
-
-/* BADGES */
-.badge {
-  padding: 5px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-
-.pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.approved {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.rejected {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.rescheduled {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-/* BUTTONS */
-.primary-btn,
-.view-btn,
-.approve-btn,
-.reject-btn,
-.reschedule-btn {
-  border: none;
-  padding: 7px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-right: 5px;
-}
+.header h2 { margin: 0; color: #1e293b; }
+.sub { margin: 2px 0 0; font-size: 13px; color: #64748b; }
 
 .btn {
   background: #6366f1;
   color: white;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 6px;
   text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
 }
+
+.filters {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.filters select, .filters input {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  min-width: 160px;
+}
+
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow-x: auto;
+}
+
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+}
+.table th { color: #64748b; font-weight: 600; }
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+.badge.pending    { background: #fef3c7; color: #d97706; }
+.badge.approved   { background: #dcfce7; color: #16a34a; }
+.badge.rejected   { background: #fee2e2; color: #dc2626; }
+.badge.rescheduled { background: #dbeafe; color: #2563eb; }
+.badge.completed  { background: #f0fdf4; color: #15803d; }
+
+.view-btn, .approve-btn, .reschedule-btn, .reject-btn {
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  margin-right: 3px;
+}
+.view-btn       { background: #e0f2fe; color: #0284c7; }
+.approve-btn    { background: #dcfce7; color: #16a34a; }
+.reschedule-btn { background: #ede9fe; color: #6366f1; }
+.reject-btn     { background: #fee2e2; color: #dc2626; }
+.approve-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
+.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.modal {
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  width: 460px;
+  max-width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.modal-header h3 { margin: 0; }
+.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
+
+.details { display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+.details div { padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
+
+.form { display: flex; flex-direction: column; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 13px; font-weight: 600; color: #374151; }
+.field input, .field textarea {
+  padding: 9px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}
+
 .primary-btn {
   background: #6366f1;
   color: white;
-}
-
-.view-btn {
-  background: #0ea5e9;
-  color: white;
-}
-
-.approve-btn {
-  background: #22c55e;
-  color: white;
-}
-
-.reject-btn {
-  background: #ef4444;
-  color: white;
-}
-
-.reschedule-btn {
-  background: #f59e0b;
-  color: white;
-}
-
-/* MODAL */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  z-index: 999;
-}
-
-.modal {
-  background: white;
-  width: 500px;
-  border-radius: 10px;
-  padding: 20px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.close {
   border: none;
-  background: none;
-  cursor: pointer;
-}
-
-/* DETAILS */
-.details {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-/* FORM */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.form input,
-.form textarea {
   padding: 10px;
-  border: 1px solid #e2e8f0;
   border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
 }
+.primary-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
-textarea {
-  min-height: 100px;
-}
+code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
 </style>

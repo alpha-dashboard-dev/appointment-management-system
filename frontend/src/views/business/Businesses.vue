@@ -3,359 +3,259 @@
 
     <!-- HEADER -->
     <div class="header">
-      <h2>Business</h2>
-
-      <router-link to="/businesses/create" class="btn">
-        + Create Business
-      </router-link>
-
-      <router-link
-          :to="`/businesses/${businesses.business_code}`"
-          class="view-btn"
-      >
-        View
-      </router-link>
+      <div>
+        <h2>Businesses</h2>
+        <p class="sub">Manage all businesses</p>
+      </div>
+      <router-link to="/businesses/create" class="btn">+ New Business</router-link>
     </div>
 
-    <!-- TABLE -->
-    <table class="table">
-      <thead>
-      <tr>
-        <th>Name</th>
-        <th>Owner</th>
-        <th>Email</th>
-        <th>Location</th>
-        <th>Status</th>
-        <th width="150">Actions</th>
-      </tr>
-      </thead>
+    <!-- TABLE CARD -->
+    <div class="card">
+      <div v-if="loading" class="loading">Loading...</div>
+      <div v-else-if="error" class="error-msg">{{ error }}</div>
 
-      <tbody>
-      <tr v-for="business in businesses" :key="business.id">
-
-        <td>{{ business.name }}</td>
-        <td>{{ business.ownerName }}</td>
-        <td>{{ business.email }}</td>
-        <td>{{ business.location }}</td>
-
-        <td>
-            <span :class="['status', business.status]">
-              {{ business.status }}
-            </span>
-        </td>
-
-        <td>
-          <button
-              class="edit-btn"
-              @click="openEditModal(business)"
-          >
-            Edit
-          </button>
-
-          <button
-              class="delete-btn"
-              @click="openDeleteModal(business)"
-          >
-            Delete
-          </button>
-        </td>
-
-      </tr>
-      </tbody>
-
-    </table>
+      <table v-else class="table">
+        <thead>
+        <tr>
+          <th>Name</th>
+          <th>Code</th>
+          <th>Organization</th>
+          <th>Status</th>
+          <th width="180">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="biz in businesses" :key="biz.business_code">
+          <td>{{ biz.name }}</td>
+          <td><code>{{ biz.business_code }}</code></td>
+          <td>{{ biz.organization_name || biz.organization_code || '—' }}</td>
+          <td>
+            <span :class="['badge', biz.status]">{{ biz.status }}</span>
+          </td>
+          <td>
+            <router-link :to="`/businesses/${biz.business_code}`" class="view-btn">View</router-link>
+            <button class="edit-btn" @click="openEdit(biz)">Edit</button>
+            <button class="delete-btn" @click="openDelete(biz)">Delete</button>
+          </td>
+        </tr>
+        <tr v-if="businesses.length === 0">
+          <td colspan="5" class="empty">No businesses found</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
 
     <!-- EDIT MODAL -->
     <div v-if="showEditModal" class="modal-overlay">
-
       <div class="modal">
-
         <div class="modal-header">
           <h3>Edit Business</h3>
-
-          <button class="close" @click="closeEditModal">
-            ✕
-          </button>
+          <button class="close" @click="showEditModal = false">✕</button>
         </div>
-
         <form class="form" @submit.prevent="updateBusiness">
-
-          <input v-model="editForm.name" placeholder="Business Name" />
-
-          <input v-model="editForm.ownerName" placeholder="Owner Name" />
-
-          <input v-model="editForm.email" placeholder="Email" />
-
-          <input v-model="editForm.location" placeholder="Location" />
-
+          <input v-model="editForm.name" placeholder="Business Name" required />
           <select v-model="editForm.status">
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
-
-          <button type="submit" class="save-btn">
-            Save Changes
+          <p v-if="formError" class="error-msg">{{ formError }}</p>
+          <button type="submit" class="save-btn" :disabled="saving">
+            {{ saving ? 'Saving...' : 'Save Changes' }}
           </button>
-
         </form>
-
       </div>
-
     </div>
 
     <!-- DELETE MODAL -->
     <div v-if="showDeleteModal" class="modal-overlay">
-
       <div class="modal delete-modal">
-
         <h3>Delete Business</h3>
-
-        <p>
-          Are you sure you want to delete
-          <strong>{{ selectedBusiness?.name }}</strong>?
-        </p>
-
+        <p>Are you sure you want to delete <strong>{{ selected?.name }}</strong>?</p>
         <div class="actions">
-
-          <button class="cancel-btn" @click="closeDeleteModal">
-            Cancel
+          <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
+          <button class="delete-confirm-btn" @click="deleteBusiness" :disabled="saving">
+            {{ saving ? 'Deleting...' : 'Delete' }}
           </button>
-
-          <button class="delete-confirm-btn" @click="deleteBusiness">
-            Delete
-          </button>
-
         </div>
-
       </div>
-
     </div>
 
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import api from '@/utils/api'
 
-const businesses = ref([
-  {
-    id: 1,
-    name: 'City Clinic',
-    ownerName: 'Ali Khan',
-    email: 'city@clinic.com',
-    location: 'Lahore',
-    status: 'active'
-  },
-  {
-    id: 2,
-    name: 'Health Care Center',
-    ownerName: 'John Doe',
-    email: 'health@care.com',
-    location: 'Karachi',
-    status: 'inactive'
-  }
-])
+const businesses = ref([])
+const loading = ref(true)
+const saving = ref(false)
+const error = ref('')
+const formError = ref('')
 
-/* MODALS */
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+const selected = ref(null)
 
-/* SELECTED */
-const selectedBusiness = ref(null)
+const editForm = reactive({ name: '', status: 'active' })
 
-/* EDIT FORM */
-const editForm = reactive({
-  id: null,
-  name: '',
-  ownerName: '',
-  email: '',
-  location: '',
-  status: 'active'
-})
+async function fetchBusinesses() {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await api.get('/businesses')
+    businesses.value = res.data.data || []
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load businesses'
+  } finally {
+    loading.value = false
+  }
+}
 
-/* OPEN EDIT */
-function openEditModal(business) {
-  selectedBusiness.value = business
-
-  editForm.id = business.id
-  editForm.name = business.name
-  editForm.ownerName = business.ownerName
-  editForm.email = business.email
-  editForm.location = business.location
-  editForm.status = business.status
-
+function openEdit(biz) {
+  selected.value = biz
+  editForm.name = biz.name
+  editForm.status = biz.status
+  formError.value = ''
   showEditModal.value = true
 }
 
-/* CLOSE EDIT */
-function closeEditModal() {
-  showEditModal.value = false
-}
-
-/* UPDATE */
-
-function updateBusiness() {
-  const index = businesses.value.findIndex(
-      b => b.id === editForm.id
-  )
-
-  if (index !== -1) {
-    businesses.value[index] = {
-      ...editForm
-    }
-  }
-
-  closeEditModal()
-
-  console.log('Updated:', editForm)
-
-  // API READY
-  // await axios.put(`/businesses/${editForm.id}`, editForm)
-}
-
-/* DELETE */
-function openDeleteModal(business) {
-  selectedBusiness.value = business
+function openDelete(biz) {
+  selected.value = biz
   showDeleteModal.value = true
 }
 
-function closeDeleteModal() {
-  showDeleteModal.value = false
+async function updateBusiness() {
+  saving.value = true
+  formError.value = ''
+  try {
+    await api.put(`/businesses/${selected.value.business_code}`, editForm)
+    showEditModal.value = false
+    await fetchBusinesses()
+  } catch (err) {
+    formError.value = err.response?.data?.message || 'Update failed'
+  } finally {
+    saving.value = false
+  }
 }
 
-function deleteBusiness() {
-  businesses.value = businesses.value.filter(
-      b => b.id !== selectedBusiness.value.id
-  )
-
-  closeDeleteModal()
-
-  console.log('Deleted:', selectedBusiness.value)
-
-  // API READY
-  // await axios.delete(`/businesses/${selectedBusiness.value.id}`)
+async function deleteBusiness() {
+  saving.value = true
+  try {
+    await api.delete(`/businesses/${selected.value.business_code}`)
+    showDeleteModal.value = false
+    await fetchBusinesses()
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Delete failed'
+  } finally {
+    saving.value = false
+  }
 }
+
+onMounted(fetchBusinesses)
 </script>
 
 <style scoped>
-.page {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-}
+.page { display: flex; flex-direction: column; gap: 16px; }
 
-/* HEADER */
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
+.header h2 { margin: 0; color: #1e293b; }
+.sub { margin: 2px 0 0; font-size: 13px; color: #64748b; }
 
-/* BUTTONS */
 .btn {
   background: #6366f1;
   color: white;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 6px;
   text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-.edit-btn,
-.delete-btn {
-  border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-right: 5px;
-}
-
-.edit-btn {
-  background: #3b82f6;
-  color: white;
-}
-
-.delete-btn {
-  background: #ef4444;
-  color: white;
-}
-
-/* TABLE */
-.table {
-  width: 100%;
-  margin-top: 20px;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-}
-
-.status {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-
-.active {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.inactive {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-/* MODAL */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  z-index: 999;
-}
-
-.modal {
+.card {
   background: white;
-  width: 500px;
   border-radius: 10px;
   padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td {
+  text-align: left;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.table th { color: #64748b; font-weight: 600; }
+
+.badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+.badge.active   { background: #dcfce7; color: #16a34a; }
+.badge.inactive { background: #fee2e2; color: #dc2626; }
+
+.view-btn {
+  background: #e0f2fe;
+  color: #0284c7;
+  padding: 5px 10px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 12px;
+  margin-right: 4px;
+}
+.edit-btn, .delete-btn {
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-right: 4px;
+}
+.edit-btn   { background: #ede9fe; color: #6366f1; }
+.delete-btn { background: #fee2e2; color: #dc2626; }
+
+.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
+.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.modal {
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  width: 420px;
+  max-width: 90%;
+}
 .modal-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
+.modal-header h3 { margin: 0; }
+.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
 
-.close {
-  border: none;
-  background: none;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-/* FORM */
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-input,
-select {
-  padding: 10px;
+.form { display: flex; flex-direction: column; gap: 12px; }
+.form input, .form select {
+  padding: 9px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
+  font-size: 14px;
+  outline: none;
 }
-
 .save-btn {
   background: #6366f1;
   color: white;
@@ -363,32 +263,16 @@ select {
   padding: 10px;
   border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
 }
 
-/* DELETE */
-.delete-modal {
-  width: 400px;
-}
+.delete-modal { text-align: center; }
+.delete-modal h3 { margin: 0 0 12px; }
+.delete-modal p { color: #64748b; margin-bottom: 16px; }
 
-.actions {
-  margin-top: 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
+.actions { display: flex; gap: 10px; justify-content: center; }
+.cancel-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+.delete-confirm-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
 
-.cancel-btn {
-  background: #e2e8f0;
-  border: none;
-  padding: 10px;
-  border-radius: 6px;
-}
-
-.delete-confirm-btn {
-  background: #ef4444;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 6px;
-}
+code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
 </style>

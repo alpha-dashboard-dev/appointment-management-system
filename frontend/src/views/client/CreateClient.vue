@@ -2,8 +2,8 @@
   <div class="page">
 
     <div class="page-header">
-      <h2>New User</h2>
-      <router-link to="/users" class="back-link">← Back</router-link>
+      <h2>New Client</h2>
+      <router-link to="/clients" class="back-link">← Back</router-link>
     </div>
 
     <div class="card">
@@ -11,7 +11,7 @@
 
         <div class="field">
           <label>Full Name *</label>
-          <input v-model="form.name" placeholder="Enter full name" required />
+          <input v-model="form.full_name" placeholder="Enter full name" required />
         </div>
 
         <div class="field">
@@ -25,14 +25,8 @@
         </div>
 
         <div class="field">
-          <label>User Type *</label>
-          <select v-model="form.user_type" required>
-            <option value="">Select type</option>
-            <option value="admin">Admin</option>
-            <option value="business_owner">Business Owner</option>
-            <option value="operational_staff">Operational Staff</option>
-            <option value="client">Client</option>
-          </select>
+          <label>Phone</label>
+          <input v-model="form.phone" placeholder="Enter phone number" />
         </div>
 
         <div class="field">
@@ -48,9 +42,9 @@
         <p v-if="error" class="error-msg">{{ error }}</p>
 
         <div class="form-actions">
-          <router-link to="/users" class="cancel-btn">Cancel</router-link>
+          <router-link to="/clients" class="cancel-btn">Cancel</router-link>
           <button type="submit" class="submit-btn" :disabled="loading">
-            {{ loading ? 'Creating...' : 'Create User' }}
+            {{ loading ? 'Creating...' : 'Create Client' }}
           </button>
         </div>
 
@@ -68,10 +62,10 @@ import api from '@/utils/api'
 const router = useRouter()
 
 const form = reactive({
-  name: '',
+  full_name: '',
   email: '',
   password: '',
-  user_type: '',
+  phone: '',
   business_code: '',
 })
 const businesses = ref([])
@@ -89,12 +83,13 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    const payload = { ...form }
+    const payload = { ...form, user_type: 'client' }
     if (!payload.business_code) delete payload.business_code
-    await api.post('/users', payload)
-    router.push('/users')
+    if (!payload.phone) delete payload.phone
+    await api.post('/clients', payload)
+    router.push('/clients')
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to create user'
+    error.value = err.response?.data?.message || 'Failed to create client'
   } finally {
     loading.value = false
   }
@@ -125,6 +120,7 @@ async function submit() {
   outline: none;
 }
 .field input:focus, .field select:focus { border-color: #6366f1; }
+
 .error-msg { color: #ef4444; font-size: 13px; margin: 0; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .cancel-btn {

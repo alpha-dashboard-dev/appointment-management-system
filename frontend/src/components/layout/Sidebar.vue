@@ -4,11 +4,8 @@
     <!-- Logo -->
     <div class="logo">
       <span v-if="!collapsed">AMS PORTAL</span>
-      <span v-else>AA</span>
-
-      <button class="toggle" @click="collapsed = !collapsed">
-        ☰
-      </button>
+      <span v-else>AMS</span>
+      <button class="toggle" @click="collapsed = !collapsed">☰</button>
     </div>
 
     <!-- Menu -->
@@ -24,17 +21,12 @@
       <div class="group">
         <div class="group-title" @click="toggle('org')">
           <i class="icon">🏢</i>
-          <span v-if="!collapsed">Organization</span>
-          <i v-if="!collapsed" class="arrow">⌄</i>
+          <span v-if="!collapsed">Organizations</span>
+          <i v-if="!collapsed" class="arrow" :class="{ rotated: open.org }">›</i>
         </div>
-
-        <div v-show="open.org" class="submenu">
-          <router-link to="/organizations" class="sub-item">
-            All Organizations
-          </router-link>
-          <router-link to="/organizations/create" class="sub-item">
-            Create Organization
-          </router-link>
+        <div v-show="open.org && !collapsed" class="submenu">
+          <router-link to="/organizations" class="sub-item">All Organizations</router-link>
+          <router-link to="/organizations/create" class="sub-item">New Organization</router-link>
         </div>
       </div>
 
@@ -42,15 +34,25 @@
       <div class="group">
         <div class="group-title" @click="toggle('biz')">
           <i class="icon">🏪</i>
-          <span v-if="!collapsed">Business</span>
-          <i v-if="!collapsed" class="arrow">⌄</i>
+          <span v-if="!collapsed">Businesses</span>
+          <i v-if="!collapsed" class="arrow" :class="{ rotated: open.biz }">›</i>
         </div>
+        <div v-show="open.biz && !collapsed" class="submenu">
+          <router-link to="/businesses" class="sub-item">All Businesses</router-link>
+          <router-link to="/businesses/create" class="sub-item">New Business</router-link>
+        </div>
+      </div>
 
-        <div v-show="open.biz" class="submenu">
-          <router-link to="/businesses" class="sub-item">Businesses</router-link>
-          <router-link to="/business/services" class="sub-item">Services</router-link>
-          <router-link to="/business/locations" class="sub-item">Locations</router-link>
-          <router-link to="/business/staff" class="sub-item">Staff</router-link>
+      <!-- CLIENTS -->
+      <div class="group">
+        <div class="group-title" @click="toggle('client')">
+          <i class="icon">👥</i>
+          <span v-if="!collapsed">Clients</span>
+          <i v-if="!collapsed" class="arrow" :class="{ rotated: open.client }">›</i>
+        </div>
+        <div v-show="open.client && !collapsed" class="submenu">
+          <router-link to="/clients" class="sub-item">All Clients</router-link>
+          <router-link to="/clients/create" class="sub-item">New Client</router-link>
         </div>
       </div>
 
@@ -59,39 +61,111 @@
         <div class="group-title" @click="toggle('app')">
           <i class="icon">📅</i>
           <span v-if="!collapsed">Appointments</span>
-          <i v-if="!collapsed" class="arrow">⌄</i>
+          <i v-if="!collapsed" class="arrow" :class="{ rotated: open.app }">›</i>
         </div>
-
-        <div v-show="open.app" class="submenu">
+        <div v-show="open.app && !collapsed" class="submenu">
           <router-link to="/appointments" class="sub-item">All Appointments</router-link>
-          <router-link to="/appointments/pending" class="sub-item">Pending</router-link>
-          <router-link to="/appointments/calendar" class="sub-item">Calendar</router-link>
+          <router-link to="/appointments/create" class="sub-item">New Appointment</router-link>
         </div>
       </div>
 
-      <!-- USERS -->
-      <router-link to="/users" class="item">
-        <i class="icon">👤</i>
-        <span v-if="!collapsed">Users</span>
+      <!-- SERVICES -->
+      <div class="group">
+        <div class="group-title" @click="toggle('svc')">
+          <i class="icon">⚕️</i>
+          <span v-if="!collapsed">Services</span>
+          <i v-if="!collapsed" class="arrow" :class="{ rotated: open.svc }">›</i>
+        </div>
+        <div v-show="open.svc && !collapsed" class="submenu">
+          <router-link to="/services" class="sub-item">All Services</router-link>
+          <router-link to="/services/create" class="sub-item">New Service</router-link>
+        </div>
+      </div>
+
+      <!-- LOCATIONS -->
+      <div class="group">
+        <div class="group-title" @click="toggle('loc')">
+          <i class="icon">📍</i>
+          <span v-if="!collapsed">Locations</span>
+          <i v-if="!collapsed" class="arrow" :class="{ rotated: open.loc }">›</i>
+        </div>
+        <div v-show="open.loc && !collapsed" class="submenu">
+          <router-link to="/locations" class="sub-item">All Locations</router-link>
+          <router-link to="/locations/create" class="sub-item">New Location</router-link>
+          <router-link to="/location-services" class="sub-item">Location Services</router-link>
+        </div>
+      </div>
+
+      <!-- SCHEDULES -->
+      <router-link to="/schedules" class="item">
+        <i class="icon">🗓️</i>
+        <span v-if="!collapsed">Schedules</span>
       </router-link>
 
+      <!-- CHARGES -->
+      <router-link to="/charges" class="item">
+        <i class="icon">💰</i>
+        <span v-if="!collapsed">Charges</span>
+      </router-link>
+
+      <!-- INVOICES -->
+      <router-link to="/invoices" class="item">
+        <i class="icon">🧾</i>
+        <span v-if="!collapsed">Invoices</span>
+      </router-link>
+
+      <!-- USERS -->
+      <div class="group">
+        <div class="group-title" @click="toggle('usr')">
+          <i class="icon">👤</i>
+          <span v-if="!collapsed">Users</span>
+          <i v-if="!collapsed" class="arrow" :class="{ rotated: open.usr }">›</i>
+        </div>
+        <div v-show="open.usr && !collapsed" class="submenu">
+          <router-link to="/users" class="sub-item">All Users</router-link>
+          <router-link to="/users/create" class="sub-item">New User</router-link>
+        </div>
+      </div>
+
     </nav>
+
+    <!-- LOGOUT -->
+    <div class="logout-section">
+      <button class="logout-btn" @click="handleLogout">
+        <i class="icon">🚪</i>
+        <span v-if="!collapsed">Logout</span>
+      </button>
+    </div>
   </aside>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 const collapsed = ref(false)
 
 const open = reactive({
-  org: true,
+  org: false,
   biz: false,
   app: false,
+  client: false,
+  svc: false,
+  loc: false,
+  usr: false,
 })
 
 function toggle(key) {
   open[key] = !open[key]
+}
+
+async function handleLogout() {
+  await authStore.logout()
+  router.push('/login')
 }
 </script>
 
@@ -104,21 +178,25 @@ function toggle(key) {
   transition: 0.3s;
   display: flex;
   flex-direction: column;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
 }
 
 .sidebar.collapsed {
-  width: 80px;
+  width: 72px;
 }
 
-/* Logo */
 .logo {
-  height: 60px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 15px;
-  font-weight: bold;
+  padding: 0 16px;
+  font-weight: 700;
+  font-size: 16px;
   border-bottom: 1px solid #334155;
+  flex-shrink: 0;
 }
 
 .toggle {
@@ -126,12 +204,13 @@ function toggle(key) {
   border: none;
   color: white;
   cursor: pointer;
+  font-size: 18px;
 }
 
-/* Menu */
 .menu {
-  padding: 10px;
+  padding: 10px 8px;
   overflow-y: auto;
+  flex: 1;
 }
 
 .item,
@@ -139,11 +218,13 @@ function toggle(key) {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px;
+  padding: 9px 10px;
   cursor: pointer;
   border-radius: 6px;
-  color: #cbd5e1;
+  color: #94a3b8;
   text-decoration: none;
+  font-size: 14px;
+  transition: background 0.2s, color 0.2s;
 }
 
 .item:hover,
@@ -179,5 +260,47 @@ function toggle(key) {
 
 .arrow {
   margin-left: auto;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.arrow.rotated {
+  transform: rotate(90deg);
+}
+
+.item.router-link-active {
+  background: #334155;
+  color: white;
+}
+
+.sub-item.router-link-active {
+  color: white;
+  font-weight: 600;
+}
+
+.logout-section {
+  padding: 10px 8px;
+  border-top: 1px solid #334155;
+  flex-shrink: 0;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.logout-btn:hover {
+  background: #ef4444;
+  color: white;
 }
 </style>

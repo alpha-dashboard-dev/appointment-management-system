@@ -1,361 +1,257 @@
 <template>
   <div class="page">
 
-    <!-- HEADER -->
-    <div class="header">
+    <div v-if="loading" class="loading-full">Loading...</div>
 
-      <div>
-        <h2>{{ business.name }}</h2>
+    <template v-else>
 
-        <div class="meta">
-          {{ business.location }} • {{ business.email }}
+      <!-- HEADER -->
+      <div class="header-card">
+        <div>
+          <h2>{{ business.name }}</h2>
+          <p class="meta">Code: {{ business.business_code }}</p>
         </div>
+        <span :class="['badge', business.status]">{{ business.status }}</span>
       </div>
 
-      <span :class="['status', business.status]">
-        {{ business.status }}
-      </span>
-
-    </div>
-
-    <!-- TABS -->
-    <div class="tabs">
-
-      <button
-          v-for="tab in tabs"
-          :key="tab"
-          :class="['tab', activeTab === tab ? 'active' : '']"
-          @click="activeTab = tab"
-      >
-        {{ tab }}
-      </button>
-
-    </div>
-
-    <!-- TAB CONTENT -->
-
-    <!-- SERVICES -->
-    <div v-if="activeTab === 'Services'" class="card">
-
-      <div class="card-header">
-        <h3>Services</h3>
-
-        <button class="primary-btn">
-          + Add Service
+      <!-- TABS -->
+      <div class="tabs">
+        <button
+            v-for="tab in tabs"
+            :key="tab"
+            :class="['tab', activeTab === tab ? 'active' : '']"
+            @click="activeTab = tab"
+        >
+          {{ tab }}
         </button>
       </div>
 
-      <table class="table">
-        <thead>
-        <tr>
-          <th>Name</th>
-          <th>Duration</th>
-          <th>Price</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        <tr v-for="service in services" :key="service.id">
-          <td>{{ service.name }}</td>
-          <td>{{ service.duration }}</td>
-          <td>${{ service.price }}</td>
-        </tr>
-        </tbody>
-      </table>
-
-    </div>
-
-    <!-- STAFF -->
-    <div v-if="activeTab === 'Staff'" class="card">
-
-      <div class="card-header">
-        <h3>Staff Members</h3>
-
-        <button class="primary-btn">
-          + Add Staff
-        </button>
+      <!-- SERVICES -->
+      <div v-if="activeTab === 'Services'" class="card">
+        <div class="card-header">
+          <h3>Services</h3>
+          <router-link to="/services/create" class="primary-btn">+ Add Service</router-link>
+        </div>
+        <div v-if="tabLoading" class="loading">Loading...</div>
+        <table v-else class="table">
+          <thead>
+          <tr><th>Name</th><th>Duration (min)</th><th>Price</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+          <tr v-for="svc in services" :key="svc.service_code">
+            <td>{{ svc.name }}</td>
+            <td>{{ svc.duration_minutes }}</td>
+            <td>{{ svc.price ?? '—' }}</td>
+            <td><span :class="['badge', svc.status]">{{ svc.status }}</span></td>
+          </tr>
+          <tr v-if="services.length === 0"><td colspan="4" class="empty">No services</td></tr>
+          </tbody>
+        </table>
       </div>
 
-      <table class="table">
-        <thead>
-        <tr>
-          <th>Name</th>
-          <th>Role</th>
-          <th>Email</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        <tr v-for="staff in staffMembers" :key="staff.id">
-          <td>{{ staff.name }}</td>
-          <td>{{ staff.role }}</td>
-          <td>{{ staff.email }}</td>
-        </tr>
-        </tbody>
-      </table>
-
-    </div>
-
-    <!-- LOCATIONS -->
-    <div v-if="activeTab === 'Locations'" class="card">
-
-      <div class="card-header">
-        <h3>Locations</h3>
-
-        <button class="primary-btn">
-          + Add Location
-        </button>
+      <!-- STAFF -->
+      <div v-if="activeTab === 'Staff'" class="card">
+        <div class="card-header">
+          <h3>Staff Members</h3>
+          <router-link to="/users/create" class="primary-btn">+ Add Staff</router-link>
+        </div>
+        <div v-if="tabLoading" class="loading">Loading...</div>
+        <table v-else class="table">
+          <thead>
+          <tr><th>Name</th><th>Email</th><th>Type</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+          <tr v-for="user in staff" :key="user.user_code">
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.user_type }}</td>
+            <td><span :class="['badge', user.is_active ? 'active' : 'inactive']">{{ user.is_active ? 'Active' : 'Inactive' }}</span></td>
+          </tr>
+          <tr v-if="staff.length === 0"><td colspan="4" class="empty">No staff members</td></tr>
+          </tbody>
+        </table>
       </div>
 
-      <table class="table">
-        <thead>
-        <tr>
-          <th>Branch</th>
-          <th>Address</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        <tr v-for="location in locations" :key="location.id">
-          <td>{{ location.name }}</td>
-          <td>{{ location.address }}</td>
-        </tr>
-        </tbody>
-      </table>
-
-    </div>
-
-    <!-- APPOINTMENTS -->
-    <div v-if="activeTab === 'Appointments'" class="card">
-
-      <div class="card-header">
-        <h3>Appointments</h3>
+      <!-- LOCATIONS -->
+      <div v-if="activeTab === 'Locations'" class="card">
+        <div class="card-header">
+          <h3>Locations</h3>
+          <router-link to="/locations/create" class="primary-btn">+ Add Location</router-link>
+        </div>
+        <div v-if="tabLoading" class="loading">Loading...</div>
+        <table v-else class="table">
+          <thead>
+          <tr><th>Name</th><th>Type</th><th>Address</th></tr>
+          </thead>
+          <tbody>
+          <tr v-for="loc in locations" :key="loc.location_code">
+            <td>{{ loc.name }}</td>
+            <td>{{ loc.location_type }}</td>
+            <td>{{ loc.address || '—' }}</td>
+          </tr>
+          <tr v-if="locations.length === 0"><td colspan="3" class="empty">No locations</td></tr>
+          </tbody>
+        </table>
       </div>
 
-      <table class="table">
-        <thead>
-        <tr>
-          <th>Client</th>
-          <th>Service</th>
-          <th>Date</th>
-          <th>Status</th>
-        </tr>
-        </thead>
+      <!-- APPOINTMENTS -->
+      <div v-if="activeTab === 'Appointments'" class="card">
+        <div class="card-header">
+          <h3>Appointments</h3>
+        </div>
+        <div v-if="tabLoading" class="loading">Loading...</div>
+        <table v-else class="table">
+          <thead>
+          <tr><th>Code</th><th>Date</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+          <tr v-for="appt in appointments" :key="appt.appointment_code">
+            <td><code>{{ appt.appointment_code }}</code></td>
+            <td>{{ appt.appointment_date }}</td>
+            <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
+          </tr>
+          <tr v-if="appointments.length === 0"><td colspan="3" class="empty">No appointments</td></tr>
+          </tbody>
+        </table>
+      </div>
 
-        <tbody>
-        <tr v-for="appointment in appointments" :key="appointment.id">
-
-          <td>{{ appointment.client }}</td>
-          <td>{{ appointment.service }}</td>
-          <td>{{ appointment.date }}</td>
-
-          <td>
-              <span :class="['badge', appointment.status]">
-                {{ appointment.status }}
-              </span>
-          </td>
-
-        </tr>
-        </tbody>
-      </table>
-
-    </div>
+    </template>
 
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import api from '@/utils/api'
 
-/* BUSINESS */
-const business = ref({
-  id: 1,
-  name: 'City Clinic',
-  email: 'city@clinic.com',
-  location: 'Lahore',
-  status: 'active'
+const route = useRoute()
+const businessCode = route.params.business_code
+
+const loading = ref(true)
+const tabLoading = ref(false)
+const business = ref({})
+const activeTab = ref('Services')
+const tabs = ['Services', 'Staff', 'Locations', 'Appointments']
+
+const services = ref([])
+const staff = ref([])
+const locations = ref([])
+const appointments = ref([])
+
+onMounted(async () => {
+  try {
+    const res = await api.get(`/businesses/${businessCode}`)
+    business.value = res.data.data
+  } catch (_) {}
+  loading.value = false
+  loadTab('Services')
 })
 
-/* TABS */
-const tabs = [
-  'Services',
-  'Staff',
-  'Locations',
-  'Appointments'
-]
+watch(activeTab, loadTab)
 
-const activeTab = ref('Services')
-
-/* SERVICES */
-const services = ref([
-  {
-    id: 1,
-    name: 'Dental Checkup',
-    duration: '30 mins',
-    price: 50
-  },
-  {
-    id: 2,
-    name: 'Consultation',
-    duration: '45 mins',
-    price: 80
-  }
-])
-
-/* STAFF */
-const staffMembers = ref([
-  {
-    id: 1,
-    name: 'Dr. Ali',
-    role: 'Dentist',
-    email: 'ali@mail.com'
-  },
-  {
-    id: 2,
-    name: 'Sara Khan',
-    role: 'Receptionist',
-    email: 'sara@mail.com'
-  }
-])
-
-/* LOCATIONS */
-const locations = ref([
-  {
-    id: 1,
-    name: 'Main Branch',
-    address: 'Johar Town Lahore'
-  },
-  {
-    id: 2,
-    name: 'North Branch',
-    address: 'DHA Lahore'
-  }
-])
-
-/* APPOINTMENTS */
-const appointments = ref([
-  {
-    id: 1,
-    client: 'Ahmed',
-    service: 'Consultation',
-    date: '2026-05-18',
-    status: 'approved'
-  },
-  {
-    id: 2,
-    client: 'Fatima',
-    service: 'Dental Checkup',
-    date: '2026-05-20',
-    status: 'pending'
-  }
-])
+async function loadTab(tab) {
+  tabLoading.value = true
+  try {
+    if (tab === 'Services') {
+      const res = await api.get('/services', { params: { business_code: businessCode } })
+      services.value = res.data.data || []
+    } else if (tab === 'Staff') {
+      const res = await api.get('/users', { params: { business_code: businessCode } })
+      staff.value = res.data.data || []
+    } else if (tab === 'Locations') {
+      const res = await api.get('/locations', { params: { business_code: businessCode } })
+      locations.value = res.data.data || []
+    } else if (tab === 'Appointments') {
+      const res = await api.get('/appointments', { params: { business_code: businessCode } })
+      appointments.value = res.data.data || []
+    }
+  } catch (_) {}
+  tabLoading.value = false
+}
 </script>
 
 <style scoped>
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+.page { display: flex; flex-direction: column; gap: 16px; }
 
-/* HEADER */
-.header {
+.loading-full { text-align: center; padding: 40px; color: #94a3b8; }
+
+.header-card {
   background: white;
-  padding: 20px;
+  padding: 20px 24px;
   border-radius: 10px;
-
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
+.header-card h2 { margin: 0; color: #1e293b; }
+.meta { margin: 4px 0 0; font-size: 13px; color: #64748b; }
 
-.meta {
-  color: #64748b;
-  margin-top: 5px;
-}
-
-.status {
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-}
-
-.active {
-  background: #dcfce7;
-  color: #166534;
-}
-
-/* TABS */
 .tabs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
-
 .tab {
-  background: white;
+  padding: 8px 16px;
+  border-radius: 6px;
   border: 1px solid #e2e8f0;
-  padding: 10px 16px;
-  border-radius: 8px;
+  background: white;
   cursor: pointer;
+  font-size: 13px;
+  color: #64748b;
+  transition: all 0.2s;
 }
+.tab.active { background: #6366f1; color: white; border-color: #6366f1; }
 
-.tab.active {
-  background: #6366f1;
-  color: white;
-}
-
-/* CARD */
 .card {
   background: white;
-  padding: 20px;
   border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-
-/* CARD HEADER */
 .card-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
+.card-header h3 { margin: 0; color: #1e293b; }
 
-/* BUTTON */
 .primary-btn {
   background: #6366f1;
   color: white;
-  border: none;
-  padding: 8px 12px;
+  padding: 6px 14px;
   border-radius: 6px;
-  cursor: pointer;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-/* TABLE */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td {
   text-align: left;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid #f1f5f9;
 }
+.table th { color: #64748b; font-weight: 600; }
 
-/* BADGES */
 .badge {
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 3px 10px;
+  border-radius: 20px;
   font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
 }
+.badge.active     { background: #dcfce7; color: #16a34a; }
+.badge.inactive   { background: #fee2e2; color: #dc2626; }
+.badge.pending    { background: #fef3c7; color: #d97706; }
+.badge.approved   { background: #dcfce7; color: #16a34a; }
+.badge.rejected   { background: #fee2e2; color: #dc2626; }
+.badge.rescheduled { background: #dbeafe; color: #2563eb; }
 
-.pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.approved {
-  background: #dcfce7;
-  color: #166534;
-}
+.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
+code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
 </style>
