@@ -7,14 +7,14 @@ import { ROLES } from "../utils/roles";
 const router = Router();
 
 router.post(
-    "/",
+    "/create-schedule",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.create
 );
 
 router.get(
-    "/",
+    "/get-schedule",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.getAll
@@ -22,28 +22,28 @@ router.get(
 
 // Check which staff members are available at a location on a given date/time
 router.get(
-    "/availability",
+    "/check-staff-availability",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.checkAvailability
 );
 
 router.get(
-    "/:id",
+    "/get-schedule:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF),
     controller.getById
 );
 
 router.put(
-    "/:id",
+    "/update-schedule:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.delete(
-    "/:id",
+    "/delete-schedule:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete
