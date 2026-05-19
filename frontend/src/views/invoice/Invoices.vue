@@ -19,7 +19,7 @@
         <option value="">All Status</option>
         <option value="pending">Pending</option>
         <option value="paid">Paid</option>
-        <option value="cancelled">Cancelled</option>
+        <option value="canceled">Canceled</option>
       </select>
     </div>
 
@@ -40,7 +40,7 @@
         </thead>
         <tbody>
         <tr v-for="inv in invoices" :key="inv.id">
-          <td><code>#{{ inv.id }}</code></td>
+          <td><code>{{ inv.id }}</code></td>
           <td><code>{{ inv.appointment_code || '—' }}</code></td>
           <td>{{ inv.total_amount != null ? inv.total_amount : '—' }}</td>
           <td><span :class="['badge', inv.status]">{{ inv.status }}</span></td>
@@ -102,7 +102,7 @@ async function fetchInvoices() {
     const params = {}
     if (bizFilter.value) params.business_code = bizFilter.value
     if (statusFilter.value) params.status = statusFilter.value
-    const res = await api.get('/invoices', { params })
+    const res = await api.get('/invoices/get-invoice', { params })
     invoices.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load invoices'
@@ -119,7 +119,7 @@ function openDetails(inv) {
 async function updateStatus(inv, status) {
   saving.value = true
   try {
-    await api.patch(`/invoices/${inv.id}/status`, { status })
+    await api.patch(`/invoices/update-invoice-status${inv.id}`, { status })
     showDetails.value = false
     await fetchInvoices()
   } catch (err) {

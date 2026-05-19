@@ -102,7 +102,7 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const res = await api.get('/businesses')
+    const res = await api.get('/businesses/get-business')
     businesses.value = res.data.data || []
   } catch (_) {}
 })
@@ -114,7 +114,7 @@ async function submit() {
     const payload = { ...form }
     Object.keys(payload).forEach(k => { if (!payload[k]) delete payload[k] })
     payload.business_code = form.business_code
-    await api.post('/locations', payload)
+    await api.post('/locations/create-location', payload)
     router.push('/locations')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create location'

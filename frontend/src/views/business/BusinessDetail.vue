@@ -141,7 +141,7 @@ const appointments = ref([])
 
 onMounted(async () => {
   try {
-    const res = await api.get(`/businesses/${businessCode}`)
+    const res = await api.get(`/businesses/get-business${businessCode}`)
     business.value = res.data.data
   } catch (_) {}
   loading.value = false
@@ -154,13 +154,13 @@ async function loadTab(tab) {
   tabLoading.value = true
   try {
     if (tab === 'Services') {
-      const res = await api.get('/services', { params: { business_code: businessCode } })
+      const res = await api.get('/services/get-services', { params: { business_code: businessCode } })
       services.value = res.data.data || []
     } else if (tab === 'Staff') {
-      const res = await api.get('/users', { params: { business_code: businessCode } })
+      const res = await api.get('/users/get-users', { params: { business_code: businessCode } })
       staff.value = res.data.data || []
     } else if (tab === 'Locations') {
-      const res = await api.get('/locations', { params: { business_code: businessCode } })
+      const res = await api.get('/locations/get-locations', { params: { business_code: businessCode } })
       locations.value = res.data.data || []
     } else if (tab === 'Appointments') {
       const res = await api.get('/appointments', { params: { business_code: businessCode } })

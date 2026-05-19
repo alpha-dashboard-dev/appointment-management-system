@@ -121,7 +121,7 @@ async function fetchLocations() {
   error.value = ''
   try {
     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/locations', { params })
+    const res = await api.get('/locations/get-location', { params })
     locations.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load locations'
@@ -153,7 +153,7 @@ async function updateLocation() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/locations/${selected.value.location_code}`, editForm)
+    await api.put(`/locations/update-location${selected.value.location_code}`, editForm)
     showEditModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -166,7 +166,7 @@ async function updateLocation() {
 async function deleteLocation() {
   saving.value = true
   try {
-    await api.delete(`/locations/${selected.value.location_code}`)
+    await api.delete(`/locations/delete-location${selected.value.location_code}`)
     showDeleteModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -177,7 +177,7 @@ async function deleteLocation() {
 }
 
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchLocations(), api.get('/businesses')])
+  const [_, bizRes] = await Promise.allSettled([fetchLocations(), api.get('/businesses/get-business')])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>

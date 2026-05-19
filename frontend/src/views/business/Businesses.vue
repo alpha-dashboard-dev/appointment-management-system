@@ -104,7 +104,7 @@ async function fetchBusinesses() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/businesses')
+    const res = await api.get('/businesses/get-business')
     businesses.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load businesses'
@@ -130,7 +130,7 @@ async function updateBusiness() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/businesses/${selected.value.business_code}`, editForm)
+    await api.put(`/businesses/update-business${selected.value.business_code}`, editForm)
     showEditModal.value = false
     await fetchBusinesses()
   } catch (err) {
@@ -143,7 +143,7 @@ async function updateBusiness() {
 async function deleteBusiness() {
   saving.value = true
   try {
-    await api.delete(`/businesses/${selected.value.business_code}`)
+    await api.delete(`/businesses/delete-business${selected.value.business_code}`)
     showDeleteModal.value = false
     await fetchBusinesses()
   } catch (err) {

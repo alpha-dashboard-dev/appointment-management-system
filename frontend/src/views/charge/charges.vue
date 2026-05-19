@@ -84,7 +84,7 @@ async function fetchCharges() {
   error.value = ''
   try {
     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/charges', { params })
+    const res = await api.get('/charges/get-charge', { params })
     charges.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load charges'
@@ -101,7 +101,7 @@ function openDelete(charge) {
 async function deleteCharge() {
   saving.value = true
   try {
-    await api.delete(`/charges/${selected.value.charge_code}`)
+    await api.delete(`/charges/delete-charge${selected.value.charge_code}`)
     showDeleteModal.value = false
     await fetchCharges()
   } catch (err) {

@@ -26,13 +26,13 @@
 
         <div class="field">
           <label>Address</label>
-          <input v-model="form.addresse" placeholder="Enter your address" />
+          <input v-model="form.address" placeholder="Enter your address" />
         </div>
 
         <div class="field">
           <label>Business</label>
           <select v-model="form.business_code">
-            <option value="">No business</option>
+            <option value="">Select Business</option>
             <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
               {{ biz.name }}
             </option>
@@ -74,7 +74,7 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const res = await api.get('/businesses')
+    const res = await api.get('/businesses/get-business')
     businesses.value = res.data.data || []
   } catch (_) {}
 })
@@ -86,7 +86,7 @@ async function submit() {
     const payload = { ...form, user_type: 'client' }
     if (!payload.business_code) delete payload.business_code
     if (!payload.phone) delete payload.phone
-    await api.post('/clients', payload)
+    await api.post('/clients/create-client', payload)
     router.push('/clients')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create client'

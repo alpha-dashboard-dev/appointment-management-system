@@ -97,7 +97,7 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const res = await api.get('/organizations')
+    const res = await api.get('/organizations/get-organization')
     organizations.value = res.data.data || []
   } catch (_) {}
 })
@@ -106,7 +106,7 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    await api.post('/businesses', form)
+    await api.post('/businesses/create-business', form)
     router.push('/businesses')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create business'

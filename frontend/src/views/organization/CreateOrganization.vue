@@ -54,7 +54,7 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    await api.post('/organizations', form)
+    await api.post('/organizations/create-organization', form)
     router.push('/organizations')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create organization'

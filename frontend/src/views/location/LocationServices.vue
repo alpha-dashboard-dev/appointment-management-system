@@ -196,7 +196,7 @@ async function fetchMappings() {
     const params = {}
     if (bizFilter.value) params.business_code = bizFilter.value
     if (locFilter.value) params.location_code = locFilter.value
-    const res = await api.get('/location-services', { params })
+    const res = await api.get('/location-services/get-location-service', { params })
     mappings.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load mappings'
@@ -235,7 +235,7 @@ async function createMapping() {
   saving.value = true
   formError.value = ''
   try {
-    await api.post('/location-services', createForm)
+    await api.post('/location-services/create-location-service', createForm)
     showCreateModal.value = false
     await fetchMappings()
   } catch (err) {
@@ -249,7 +249,7 @@ async function updateMapping() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/location-services/${selected.value.id}`, editForm)
+    await api.put(`/location-services/update-location-service${selected.value.id}`, editForm)
     showEditModal.value = false
     await fetchMappings()
   } catch (err) {
@@ -262,7 +262,7 @@ async function updateMapping() {
 async function deleteMapping() {
   saving.value = true
   try {
-    await api.delete(`/location-services/${selected.value.id}`)
+    await api.delete(`/location-services/delete-location-service${selected.value.id}`)
     showDeleteModal.value = false
     await fetchMappings()
   } catch (err) {
@@ -275,9 +275,9 @@ async function deleteMapping() {
 onMounted(async () => {
   const [_, bizRes, locRes, svcRes] = await Promise.allSettled([
     fetchMappings(),
-    api.get('/businesses'),
-    api.get('/locations'),
-    api.get('/services'),
+    api.get('/businesses/get-business'),
+    api.get('/locations/get-location'),
+    api.get('/services/get-service'),
   ])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
   if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []

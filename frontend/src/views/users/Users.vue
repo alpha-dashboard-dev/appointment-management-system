@@ -110,7 +110,7 @@ async function fetchUsers() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/users')
+    const res = await api.get('/users/get-users')
     users.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load users'
@@ -137,7 +137,7 @@ async function updateUser() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/users/${selected.value.user_code}`, editForm)
+    await api.put(`/users/update-user${selected.value.user_code}`, editForm)
     showEditModal.value = false
     await fetchUsers()
   } catch (err) {
@@ -150,7 +150,7 @@ async function updateUser() {
 async function deleteUser() {
   saving.value = true
   try {
-    await api.delete(`/users/${selected.value.user_code}`)
+    await api.delete(`/users/delete-users${selected.value.user_code}`)
     showDeleteModal.value = false
     await fetchUsers()
   } catch (err) {

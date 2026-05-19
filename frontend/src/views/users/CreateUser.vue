@@ -21,7 +21,7 @@
 
         <div class="field">
           <label>Phone *</label>
-          <input v-model="form.email" type="text" placeholder="Enter phone number" required />
+          <input v-model="form.phone" type="text" placeholder="Enter phone number" required />
         </div>
 
         <div class="field">
@@ -97,7 +97,7 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const res = await api.get('/businesses')
+    const res = await api.get('/businesses/get-business')
     businesses.value = res.data.data || []
   } catch (_) {}
 })
@@ -108,7 +108,7 @@ async function submit() {
   try {
     const payload = { ...form }
     if (!payload.business_code) delete payload.business_code
-    await api.post('/users', payload)
+    await api.post('/users/create-user', payload)
     router.push('/users')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create user'

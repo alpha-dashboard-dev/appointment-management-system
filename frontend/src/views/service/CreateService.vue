@@ -109,7 +109,7 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    const res = await api.get('/businesses')
+    const res = await api.get('/businesses/get-business')
     businesses.value = res.data.data || []
   } catch (_) {}
 })
@@ -121,7 +121,7 @@ async function submit() {
     const payload = { ...form }
     if (!payload.price && payload.price !== 0) delete payload.price
     if (!payload.description) delete payload.description
-    await api.post('/services', payload)
+    await api.post('/services/create-service', payload)
     router.push('/services')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create service'

@@ -86,7 +86,7 @@ async function fetchSchedules() {
   error.value = ''
   try {
     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/schedules', { params })
+    const res = await api.get('/schedules/get-schedule', { params })
     schedules.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load schedules'
@@ -103,7 +103,7 @@ function openDelete(schedule) {
 async function deleteSchedule() {
   saving.value = true
   try {
-    await api.delete(`/schedules/${selected.value.id}`)
+    await api.delete(`/schedules/delete-schedule${selected.value.id}`)
     showDeleteModal.value = false
     await fetchSchedules()
   } catch (err) {
@@ -114,7 +114,7 @@ async function deleteSchedule() {
 }
 
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchSchedules(), api.get('/businesses')])
+  const [_, bizRes] = await Promise.allSettled([fetchSchedules(), api.get('/businesses/get-business')])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>

@@ -130,14 +130,14 @@ const stats = ref({
 onMounted(async () => {
   try {
     const [orgs, bizs, clients, appts, users, svcs, invs, locs] = await Promise.allSettled([
-      api.get('/organizations'),
-      api.get('/businesses'),
-      api.get('/clients'),
+      api.get('/organizations/get-organization'),
+      api.get('/businesses/get-business'),
+      api.get('/clients/get-clients'),
       api.get('/appointments'),
-      api.get('/users'),
-      api.get('/services'),
-      api.get('/invoices'),
-      api.get('/locations'),
+      api.get('/users/get-users'),
+      api.get('/services/get-services'),
+      api.get('/invoices/get-invoices'),
+      api.get('/locations/get-locations'),
     ])
 
     stats.value.organizations = orgs.status === 'fulfilled' ? (orgs.value.data.data?.length ?? 0) : 0

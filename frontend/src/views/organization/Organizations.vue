@@ -101,7 +101,7 @@ async function fetchOrgs() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/organizations')
+    const res = await api.get('/organizations/get-organization')
     organizations.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load organizations'
@@ -127,7 +127,7 @@ async function updateOrg() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/organizations/${selected.value.organization_code}`, editForm)
+    await api.put(`/organizations/update-organization${selected.value.organization_code}`, editForm)
     showEditModal.value = false
     await fetchOrgs()
   } catch (err) {
@@ -140,7 +140,7 @@ async function updateOrg() {
 async function deleteOrg() {
   saving.value = true
   try {
-    await api.patch(`/organizations/${selected.value.organization_code}/status`, { status: 'inactive' })
+    await api.patch(`/organizations/update-organization-status${selected.value.organization_code}`, { status: 'inactive' })
     showDeleteModal.value = false
     await fetchOrgs()
   } catch (err) {

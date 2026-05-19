@@ -114,7 +114,7 @@ async function fetchClients() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/clients')
+    const res = await api.get('/clients/get-client')
     clients.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load clients'
@@ -141,7 +141,7 @@ async function updateClient() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/clients/${selected.value.user_code}`, editForm)
+    await api.put(`/clients/update-client${selected.value.user_code}`, editForm)
     showEditModal.value = false
     await fetchClients()
   } catch (err) {
@@ -154,7 +154,7 @@ async function updateClient() {
 async function deleteClient() {
   saving.value = true
   try {
-    await api.delete(`/clients/${selected.value.user_code}`)
+    await api.delete(`/clients/delete-client${selected.value.user_code}`)
     showDeleteModal.value = false
     await fetchClients()
   } catch (err) {
