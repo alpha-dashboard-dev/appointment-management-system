@@ -28,13 +28,18 @@
         </div>
 
         <div class="field">
+          <label>Address</label>
+          <input v-model="form.address" placeholder="Address" />
+        </div>
+
+        <div class="field">
           <label>Street</label>
           <input v-model="form.street" placeholder="Street" />
         </div>
 
         <div class="field">
-          <label>Address</label>
-          <input v-model="form.address" placeholder="Address" />
+          <label>Apartment</label>
+          <input v-model="form.apartment" placeholder="Street" />
         </div>
 
         <div class="field">
@@ -55,6 +60,16 @@
         <div class="field">
           <label>Country</label>
           <input v-model="form.country" placeholder="Country" />
+        </div>
+
+        <div class="field">
+          <label>Status *</label>
+          <select v-model="form.status" required>
+            <option value="">Select Status</option>
+            <option v-for="status in statuses" :key="status" :value="status">
+              {{ status }}
+            </option>
+          </select>
         </div>
 
         <p v-if="error" class="error-msg">{{ error }}</p>
@@ -78,7 +93,9 @@ import { useRouter } from 'vue-router'
 import api from '@/utils/api'
 
 const router = useRouter()
-const form = reactive({ business_code: '', location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '' })
+const statuses = ['active', 'inactive']
+const form = reactive({ business_code: '', location_type: 'business', street: '', address: '', apartment: '', city: '',
+  province: '', postal_code: '', country: '', status: '' })
 const businesses = ref([])
 const loading = ref(false)
 const error = ref('')
