@@ -14,7 +14,7 @@ router.post(
 );
 
 router.get(
-    "/get-user",
+    "/get-users",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.getAll
