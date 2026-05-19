@@ -4,7 +4,6 @@
     <!-- Logo -->
     <div class="logo">
       <span v-if="!collapsed">AMS PORTAL</span>
-<!--      <span v-else>AMS</span>-->
       <button class="toggle" @click="collapsed = !collapsed">☰</button>
     </div>
 
