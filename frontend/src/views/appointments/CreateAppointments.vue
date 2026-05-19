@@ -49,10 +49,25 @@
           </select>
         </div>
 
-        <div class="row">
+        <div class="field">
+          <label>Status *</label>
+          <select v-model="form.status" required>
+            <option value="">Select Status</option>
+            <option v-for="status in statuses" :key="status" :value="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+
+
+        <div class="row two-columns">
           <div class="field">
-            <label>Date *</label>
-            <input type="date" v-model="form.appointment_date" required />
+            <label>Start Date *</label>
+            <input type="date" v-model="form.appointment_start_date" required />
+          </div>
+          <div class="field">
+            <label>End Date *</label>
+            <input type="date" v-model="form.appointment_end_date" required />
           </div>
           <div class="field">
             <label>Start Time *</label>
@@ -91,15 +106,19 @@ import api from '@/utils/api'
 
 const router = useRouter()
 
+const statuses = ['pending', 'approved', 'rejected', 'completed', 'in_progress', 'canceled', 'rescheduled']
+
 const form = reactive({
   business_code: '',
   client_code: '',
   service_code: '',
   location_code: '',
-  appointment_date: '',
+  appointment_start_date: '',
+  appointment_end_date: '',
   start_time: '',
   end_time: '',
   notes: '',
+  status: '',
 })
 
 const businesses = ref([])
@@ -163,6 +182,11 @@ async function submit() {
 .form { display: flex; flex-direction: column; gap: 16px; }
 
 .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
 
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 13px; font-weight: 600; color: #374151; }
