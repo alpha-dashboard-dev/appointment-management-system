@@ -11,7 +11,44 @@
 
         <div class="field">
           <label>Business Name *</label>
-          <input v-model="form.name" placeholder="Enter business name" required />
+          <input type="text" v-model="form.name" placeholder="Enter business name" required />
+        </div>
+
+        <div class="field">
+          <label>Business Email *</label>
+          <input type="email" v-model="form.email" placeholder="Enter business email" required />
+        </div>
+
+        <div class="field">
+          <label>Phone Number *</label>
+          <input type="text" v-model="form.phone" placeholder="Enter phone number" required />
+        </div>
+
+        <div class="field">
+          <label>Address *</label>
+          <input type="text" v-model="form.address" placeholder="Enter address" required />
+        </div>
+
+        <div class="field">
+          <label>Time Zone *</label>
+
+          <select v-model="form.timezone" required>
+            <option value="">Select Time Zone</option>
+
+            <option v-for="tz in timezones" :key="tz" :value="tz">
+              {{ tz }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Status *</label>
+          <select v-model="form.status" required>
+            <option value="">Select status</option>
+            <option v-for="status in ['active', 'inactive']" :key="status" :value="status">
+              {{ status }}
+            </option>
+          </select>
         </div>
 
         <div class="field">
@@ -44,9 +81,16 @@ import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/utils/api'
 
-const router = useRouter()
-
-const form = reactive({ name: '', organization_code: '' })
+const router = useRouter();
+const form = reactive({ name: '', organization_code: '', email: '', timezone: '', status: '', phone: '' })
+const timezones = [
+  'Asia/Karachi',
+  'Asia/Dubai',
+  'Asia/Kolkata',
+  'Europe/London',
+  'America/New_York',
+  'UTC'
+]
 const organizations = ref([])
 const loading = ref(false)
 const error = ref('')
