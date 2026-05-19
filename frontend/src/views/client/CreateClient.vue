@@ -20,13 +20,13 @@
         </div>
 
         <div class="field">
-          <label>Password *</label>
-          <input v-model="form.password" type="password" placeholder="Enter password" required />
+          <label>Phone</label>
+          <input v-model="form.phone" placeholder="Enter phone number" />
         </div>
 
         <div class="field">
-          <label>Phone</label>
-          <input v-model="form.phone" placeholder="Enter phone number" />
+          <label>Address</label>
+          <input v-model="form.addresse" placeholder="Enter your address" />
         </div>
 
         <div class="field">
@@ -64,8 +64,8 @@ const router = useRouter()
 const form = reactive({
   full_name: '',
   email: '',
-  password: '',
   phone: '',
+  address: '',
   business_code: '',
 })
 const businesses = ref([])
