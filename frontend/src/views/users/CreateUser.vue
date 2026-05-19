@@ -15,8 +15,13 @@
         </div>
 
         <div class="field">
-          <label>Email *</label>
-          <input v-model="form.email" type="email" placeholder="Enter email" required />
+          <label>Email</label>
+          <input v-model="form.email" type="email" placeholder="Enter email" />
+        </div>
+
+        <div class="field">
+          <label>Phone *</label>
+          <input v-model="form.email" type="text" placeholder="Enter phone number" required />
         </div>
 
         <div class="field">
@@ -28,7 +33,7 @@
           <label>User Type *</label>
           <select v-model="form.user_type" required>
             <option value="">Select type</option>
-            <option value="admin">Admin</option>
+<!--            <option value="admin">Admin</option>-->
             <option value="business_owner">Business Owner</option>
             <option value="operational_staff">Operational Staff</option>
             <option value="client">Client</option>
@@ -38,9 +43,19 @@
         <div class="field">
           <label>Business</label>
           <select v-model="form.business_code">
-            <option value="">No business</option>
+            <option value="">Select Business</option>
             <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
               {{ biz.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Status *</label>
+          <select v-model="form.status" required>
+            <option value="">Select status</option>
+            <option v-for="status in ['active', 'inactive']" :key="status" :value="status">
+              {{ status }}
             </option>
           </select>
         </div>
@@ -70,9 +85,11 @@ const router = useRouter()
 const form = reactive({
   name: '',
   email: '',
+  phone: '',
   password: '',
   user_type: '',
   business_code: '',
+  status: '',
 })
 const businesses = ref([])
 const loading = ref(false)

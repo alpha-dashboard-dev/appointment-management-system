@@ -14,6 +14,16 @@
           <input v-model="form.name" placeholder="Enter organization name" required />
         </div>
 
+        <div class="field">
+          <label>Status *</label>
+          <select v-model="form.status" required>
+            <option value="">Select status</option>
+            <option v-for="status in ['active', 'inactive']" :key="status" :value="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+
         <p v-if="error" class="error-msg">{{ error }}</p>
 
         <div class="form-actions">
@@ -36,7 +46,7 @@ import api from '@/utils/api'
 
 const router = useRouter()
 
-const form = reactive({ name: '' })
+const form = reactive({ name: '' , status: ''})
 const loading = ref(false)
 const error = ref('')
 
