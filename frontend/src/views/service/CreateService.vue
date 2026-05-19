@@ -25,8 +25,8 @@
         </div>
 
         <div class="field">
-          <label>Duration (minutes) *</label>
-          <input v-model.number="form.duration_minutes" type="number" placeholder="e.g. 30" min="1" required />
+          <label>Description</label>
+          <textarea v-model="form.description" placeholder="Optional description..." rows="3"></textarea>
         </div>
 
         <div class="field">
@@ -35,9 +35,46 @@
         </div>
 
         <div class="field">
-          <label>Description</label>
-          <textarea v-model="form.description" placeholder="Optional description..." rows="3"></textarea>
+          <label>Cost</label>
+          <input v-model.number="form.cost" type="number" placeholder="e.g. 50.00" step="0.01" min="0" />
         </div>
+
+        <div class="field">
+          <label>Currency</label>
+          <select v-model="form.currency" required>
+            <option value="">Select Currency</option>
+
+            <option v-for="currency in currencies" :key="currency" :value="currency">
+              {{ currency }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Duration (value) *</label>
+          <input v-model.number="form.duration_value" type="number" placeholder="e.g. 30" min="1" required />
+        </div>
+
+        <div class="field">
+          <label>Duration Unit *</label>
+          <select v-model="form.duration_uom" required>
+            <option value="">Select Duration Unit</option>
+            <option v-for="duration_uom in durationUnits" :key="duration_uom" :value="duration_uom">
+              {{ duration_uom }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Status *</label>
+          <select v-model="form.status" required>
+            <option value="">Select Status</option>
+            <option v-for="status in statuses" :key="status" :value="status">
+              {{ status }}
+            </option>
+          </select>
+        </div>
+
 
         <p v-if="error" class="error-msg">{{ error }}</p>
 
@@ -60,7 +97,12 @@ import { useRouter } from 'vue-router'
 import api from '@/utils/api'
 
 const router = useRouter()
-const form = reactive({ business_code: '', name: '', duration_minutes: '', price: '', description: '' })
+const statuses = ['active', 'inactive']
+const currencies = ['PKR', 'USD', 'EUR']
+const durationUnits = ['hour', 'minute', 'second']
+
+const form = reactive({ business_code: '', name: '', duration_value: '', price: '', description: '', cost: '', duration_uom: '',
+  status: '' , currency: ''})
 const businesses = ref([])
 const loading = ref(false)
 const error = ref('')
