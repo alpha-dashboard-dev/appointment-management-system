@@ -10,7 +10,6 @@
       <router-link to="/clients/create" class="btn">+ New Client</router-link>
     </div>
 
-
     <!-- FILTER -->
     <div class="filters">
       <input v-model="search" placeholder="Search by name or email..." />
@@ -82,8 +81,8 @@
         </div>
       </div>
     </div>
-
   </div>
+
 </template>
 
 <script setup>
