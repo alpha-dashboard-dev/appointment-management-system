@@ -7,6 +7,18 @@ export const useAuthStore = defineStore('auth', () => {
     const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
 
     const isAuthenticated = computed(() => !!token.value)
+    const role = computed(() => user.value?.user_type || null)
+
+    const dashboardRoute = computed(() => {
+        const map = {
+            admin: '/dashboard',
+            business_owner: '/business/dashboard',
+            operational_staff: '/operations/dashboard',
+            service_staff: '/staff/dashboard',
+            client: '/client/dashboard',
+        }
+        return map[role.value] || '/dashboard'
+    })
 
     async function login(email, password) {
         const res = await api.post('/auth/login', { email, password })
@@ -27,5 +39,5 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('user')
     }
 
-    return { token, user, isAuthenticated, login, logout }
+    return { token, user, isAuthenticated, role, dashboardRoute, login, logout }
 })

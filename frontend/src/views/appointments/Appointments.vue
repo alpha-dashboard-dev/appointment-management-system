@@ -45,7 +45,7 @@
           <td><code>{{ appt.appointment_code }}</code></td>
           <td>{{ appt.client_name || appt.client_code || '—' }}</td>
           <td>{{ appt.service_name || appt.service_code || '—' }}</td>
-          <td>{{ appt.appointment_date }}</td>
+          <td>{{ appt.appointment_start_date }}</td>
           <td>{{ appt.start_time }}</td>
           <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
           <td>
@@ -73,7 +73,7 @@
           <div><strong>Code:</strong> {{ selected.appointment_code }}</div>
           <div><strong>Client:</strong> {{ selected.client_name || selected.client_code }}</div>
           <div><strong>Service:</strong> {{ selected.service_name || selected.service_code }}</div>
-          <div><strong>Date:</strong> {{ selected.appointment_date }}</div>
+          <div><strong>Date:</strong> {{ selected.appointment_start_date }}</div>
           <div><strong>Start:</strong> {{ selected.start_time }}</div>
           <div><strong>End:</strong> {{ selected.end_time }}</div>
           <div><strong>Status:</strong> <span :class="['badge', selected.status]">{{ selected.status }}</span></div>
@@ -172,7 +172,7 @@ function openDetails(appt) {
 
 function openReschedule(appt) {
   selected.value = appt
-  rescheduleForm.appointment_date = appt.appointment_date || ''
+  rescheduleForm.appointment_date = appt.appointment_start_date || ''
   rescheduleForm.start_time = appt.start_time || ''
   rescheduleForm.end_time = appt.end_time || ''
   rescheduleForm.reason = ''

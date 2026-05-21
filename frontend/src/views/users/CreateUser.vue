@@ -36,6 +36,7 @@
 <!--            <option value="admin">Admin</option>-->
             <option value="business_owner">Business Owner</option>
             <option value="operational_staff">Operational Staff</option>
+            <option value="service_staff">Service Staff</option>
             <option value="client">Client</option>
           </select>
         </div>
@@ -52,7 +53,7 @@
 
         <div class="field">
           <label>Status *</label>
-          <select v-model="form.status" required>
+          <select v-model="form.is_active" required>
             <option value="">Select status</option>
             <option v-for="status in ['active', 'inactive']" :key="status" :value="status">
               {{ status }}
@@ -89,7 +90,7 @@ const form = reactive({
   password: '',
   user_type: '',
   business_code: '',
-  status: '',
+  is_active: '',
 })
 const businesses = ref([])
 const loading = ref(false)

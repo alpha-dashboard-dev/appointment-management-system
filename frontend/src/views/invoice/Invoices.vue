@@ -135,7 +135,7 @@ function formatDate(d) {
 }
 
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchInvoices(), api.get('/businesses')])
+  const [_, bizRes] = await Promise.allSettled([fetchInvoices(), api.get('/businesses/get-business')])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>

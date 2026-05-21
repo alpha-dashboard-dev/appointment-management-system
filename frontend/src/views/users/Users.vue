@@ -33,8 +33,8 @@
           <td>{{ user.user_type }}</td>
           <td><code>{{ user.user_code }}</code></td>
           <td>
-              <span :class="['badge', user.is_active ? 'active' : 'inactive']">
-                {{ user.is_active ? 'Active' : 'Inactive' }}
+              <span :class="['badge', user.is_active === 'active' ? 'active' : 'inactive']">
+                {{ user.is_active === 'active' ? 'Active' : 'Inactive' }}
               </span>
           </td>
           <td>
