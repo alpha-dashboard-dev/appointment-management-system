@@ -26,17 +26,17 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="biz in businesses" :key="biz.business_code">
-          <td>{{ biz.name }}</td>
-          <td><code>{{ biz.business_code }}</code></td>
-          <td>{{ biz.organization_name || biz.organization_code || '—' }}</td>
+        <tr v-for="business in businesses" :key="business.business_code">
+          <td>{{ business.name }}</td>
+          <td><code>{{ business.business_code }}</code></td>
+          <td>{{ business.organization_name || business.organization_code || '—' }}</td>
           <td>
-            <span :class="['badge', biz.status]">{{ biz.status }}</span>
+            <span :class="['badge', business.status]">{{ business.status }}</span>
           </td>
           <td>
-            <router-link :to="`/businesses/${biz.business_code}`" class="view-btn">View</router-link>
-            <button class="edit-btn" @click="openEdit(biz)">Edit</button>
-            <button class="delete-btn" @click="openDelete(biz)">Delete</button>
+            <router-link :to="`/businesses/${business.business_code}`" class="view-btn">View</router-link>
+            <button class="edit-btn" @click="openEdit(business)">Edit</button>
+            <button class="delete-btn" @click="openDelete(business)">Deactivate</button>
           </td>
         </tr>
         <tr v-if="businesses.length === 0">
@@ -71,10 +71,10 @@
     <div v-if="showDeleteModal" class="modal-overlay">
       <div class="modal delete-modal">
         <h3>Delete Business</h3>
-        <p>Are you sure you want to delete <strong>{{ selected?.name }}</strong>?</p>
+        <p>Are you sure you want to deactivate <strong>{{ selected?.name }}</strong>?</p>
         <div class="actions">
           <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
-          <button class="delete-confirm-btn" @click="deleteBusiness" :disabled="saving">
+          <button class="delete-confirm-btn" @click="deactivateBusiness" :disabled="saving">
             {{ saving ? 'Deleting...' : 'Delete' }}
           </button>
         </div>
@@ -113,16 +113,16 @@ async function fetchBusinesses() {
   }
 }
 
-function openEdit(biz) {
-  selected.value = biz
-  editForm.name = biz.name
-  editForm.status = biz.status
+function openEdit(business) {
+  selected.value = business
+  editForm.name = business.name
+  editForm.status = business.status
   formError.value = ''
   showEditModal.value = true
 }
 
-function openDelete(biz) {
-  selected.value = biz
+function openDelete(business) {
+  selected.value = business
   showDeleteModal.value = true
 }
 
@@ -140,18 +140,47 @@ async function updateBusiness() {
   }
 }
 
-async function deleteBusiness() {
+// async function updateBusiness() {
+//   saving.value = true
+//   formError.value = ''
+//   try {
+//     await api.put(`/businesses/update-business${selected.value.business_code}`, editForm)
+//     showEditModal.value = false
+//     await fetchBusinesses()
+//   } catch (err) {
+//     formError.value = err.response?.data?.message || 'Update failed'
+//   } finally {
+//     saving.value = false
+//   }
+// }
+
+// Deactivate Business
+
+async function deactivateBusiness() {
   saving.value = true
   try {
-    await api.delete(`/businesses/delete-business${selected.value.business_code}`)
+    await api.patch(`/businesses/update-business-status${selected.value.business_code}`, { status: 'inactive' })
     showDeleteModal.value = false
     await fetchBusinesses()
   } catch (err) {
-    error.value = err.response?.data?.message || 'Delete failed'
+    error.value = err.response?.data?.message || 'Deactivation failed'
   } finally {
     saving.value = false
   }
 }
+
+// async function deleteBusiness() {
+//   saving.value = true
+//   try {
+//     await api.delete(`/businesses/delete-business${selected.value.business_code}`)
+//     showDeleteModal.value = false
+//     await fetchBusinesses()
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Delete failed'
+//   } finally {
+//     saving.value = false
+//   }
+// }
 
 onMounted(fetchBusinesses)
 </script>

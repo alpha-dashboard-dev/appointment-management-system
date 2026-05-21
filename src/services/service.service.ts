@@ -60,8 +60,8 @@ class ServiceService {
             allowed.duration_uom = data.duration_uom;
         if (data.duration_value !== undefined)
             allowed.duration_value = data.duration_value;
-        // if (data.availability !== undefined)
-        //     allowed.availability = data.availability;
+        if (data.status !== undefined)
+            allowed.status = data.status;
 
         return await repo.update(serviceCode, allowed);
     }

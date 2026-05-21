@@ -2,18 +2,20 @@
   <div class="page">
     <div class="header">
       <div><h2>Services</h2><p class="sub">Manage your business services</p></div>
-      <button class="btn" @click="showCreateModal = true">+ New Service</button>
+      <router-link to="/business/services/create" class="btn">+ New Service</router-link>
+
+<!--      <button class="btn" @click="showCreateModal = true">+ New Service</button>-->
     </div>
     <div class="card">
       <div v-if="loading" class="loading">Loading...</div>
       <div v-else-if="error" class="error-msg">{{ error }}</div>
       <table v-else class="table">
-        <thead><tr><th>Name</th><th>Code</th><th>Duration (min)</th><th>Price</th><th>Status</th><th width="140">Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Code</th><th>Description</th><th>Price</th><th>Status</th><th width="140">Actions</th></tr></thead>
         <tbody>
           <tr v-for="svc in services" :key="svc.service_code">
             <td>{{ svc.name }}</td>
             <td><code>{{ svc.service_code }}</code></td>
-            <td>{{ svc.duration_minutes }}</td>
+            <td>{{ svc.description }}</td>
             <td>{{ svc.price ?? '—' }}</td>
             <td><span :class="['badge', svc.status]">{{ svc.status }}</span></td>
             <td>
@@ -27,19 +29,19 @@
     </div>
 
     <!-- CREATE MODAL -->
-    <div v-if="showCreateModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header"><h3>New Service</h3><button class="close" @click="showCreateModal = false">✕</button></div>
-        <form class="form" @submit.prevent="createService">
-          <div class="field"><label>Service Name *</label><input v-model="createForm.name" placeholder="Service name" required /></div>
-          <div class="field"><label>Duration (minutes) *</label><input v-model.number="createForm.duration_minutes" type="number" min="1" required /></div>
-          <div class="field"><label>Price</label><input v-model.number="createForm.price" type="number" step="0.01" min="0" /></div>
-          <div class="field"><label>Description</label><textarea v-model="createForm.description" rows="2"></textarea></div>
-          <p v-if="formError" class="error-msg">{{ formError }}</p>
-          <button type="submit" class="save-btn" :disabled="saving">{{ saving ? 'Creating...' : 'Create' }}</button>
-        </form>
-      </div>
-    </div>
+<!--    <div v-if="showCreateModal" class="modal-overlay">-->
+<!--      <div class="modal">-->
+<!--        <div class="modal-header"><h3>New Service</h3><button class="close" @click="showCreateModal = false">✕</button></div>-->
+<!--        <form class="form" @submit.prevent="createService">-->
+<!--          <div class="field"><label>Service Name *</label><input v-model="createForm.name" placeholder="Service name" required /></div>-->
+<!--          <div class="field"><label>Duration (minutes) *</label><input v-model.number="createForm.duration_minutes" type="number" min="1" required /></div>-->
+<!--          <div class="field"><label>Price</label><input v-model.number="createForm.price" type="number" step="0.01" min="0" /></div>-->
+<!--          <div class="field"><label>Description</label><textarea v-model="createForm.description" rows="2"></textarea></div>-->
+<!--          <p v-if="formError" class="error-msg">{{ formError }}</p>-->
+<!--          <button type="submit" class="save-btn" :disabled="saving">{{ saving ? 'Creating...' : 'Create' }}</button>-->
+<!--        </form>-->
+<!--      </div>-->
+<!--    </div>-->
 
     <!-- EDIT MODAL -->
     <div v-if="showEditModal" class="modal-overlay">
@@ -47,7 +49,7 @@
         <div class="modal-header"><h3>Edit Service</h3><button class="close" @click="showEditModal = false">✕</button></div>
         <form class="form" @submit.prevent="updateService">
           <div class="field"><label>Service Name *</label><input v-model="editForm.name" required /></div>
-          <div class="field"><label>Duration (minutes) *</label><input v-model.number="editForm.duration_minutes" type="number" min="1" required /></div>
+          <div class="field"><label>Duration</label><input v-model.number="editForm.duration_value" type="number" min="1" /></div>
           <div class="field"><label>Price</label><input v-model.number="editForm.price" type="number" step="0.01" min="0" /></div>
           <div class="field"><label>Status</label><select v-model="editForm.status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
           <p v-if="formError" class="error-msg">{{ formError }}</p>

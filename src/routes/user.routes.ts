@@ -35,7 +35,7 @@ router.put(
 );
 
 router.patch(
-    "/update-user-status:userCode/status",
+    "/update-user-status:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.changeStatus

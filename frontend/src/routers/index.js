@@ -7,6 +7,7 @@ import ClientLayout from "@/components/layout/ClientLayout.vue";
 import Dashboard from "@/views/Dashboard.vue";
 import { useAuthStore } from "@/stores/auth.store";
 
+
 const routes = [
     { path: "/", redirect: "/dashboard" },
     { path: "/login", component: () => import("@/views/auth/Login.vue") },
@@ -48,14 +49,18 @@ const routes = [
         children: [
             { path: "dashboard", component: () => import("@/views/business-owner/Dashboard.vue") },
             { path: "appointments", component: () => import("@/views/business-owner/Appointments.vue") },
-            { path: "appointments/create", component: () => import("@/views/business-owner/CreateAppointment.vue") },
+            { path: "appointments/create", component: () => import("@/views/appointments/CreateAppointments.vue") },
             { path: "services", component: () => import("@/views/business-owner/Services.vue") },
+            { path: "services/create", component: () => import("@/views/service/CreateService.vue") },
             { path: "locations", component: () => import("@/views/business-owner/Locations.vue") },
+            { path: "locations/create", component: () => import("@/views/location/CreateLocation.vue") },
+            { path: "location-services", component: () => import("@/views/location/LocationServices.vue") },
             { path: "staff", component: () => import("@/views/business-owner/Staff.vue") },
             { path: "staff/create", component: () => import("@/views/business-owner/CreateStaff.vue") },
             { path: "clients", component: () => import("@/views/business-owner/Clients.vue") },
-            { path: "schedules", component: () => import("@/views/business-owner/Schedules.vue") },
-            { path: "charges", component: () => import("@/views/business-owner/Charges.vue") },
+            { path: "clients/create", component: () => import("@/views/client/CreateClient.vue") },
+            { path: "schedules", component: () => import("@/views/schedule/Schedules.vue") },
+            { path: "charges", component: () => import("@/views/charge/charges.vue") },
             { path: "invoices", component: () => import("@/views/business-owner/Invoices.vue") },
         ],
     },

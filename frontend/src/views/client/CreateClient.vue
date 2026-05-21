@@ -11,7 +11,7 @@
 
         <div class="field">
           <label>Full Name *</label>
-          <input v-model="form.full_name" placeholder="Enter full name" required />
+          <input v-model="form.name" placeholder="Enter full name" required />
         </div>
 
         <div class="field">
@@ -25,8 +25,16 @@
         </div>
 
         <div class="field">
-          <label>Address</label>
-          <input v-model="form.address" placeholder="Enter your address" />
+          <label>Password *</label>
+          <input v-model="form.password" type="password" placeholder="Enter password" required />
+        </div>
+
+        <div class="field">
+          <label>User Type *</label>
+          <select v-model="form.user_type" required>
+            <option value="">Select type</option>
+            <option value="client">Client</option>
+          </select>
         </div>
 
         <div class="field">
@@ -35,6 +43,16 @@
             <option value="">Select Business</option>
             <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
               {{ biz.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Status *</label>
+          <select v-model="form.is_active" required>
+            <option value="">Select status</option>
+            <option v-for="status in ['active', 'inactive']" :key="status" :value="status">
+              {{ status }}
             </option>
           </select>
         </div>
@@ -62,11 +80,13 @@ import api from '@/utils/api'
 const router = useRouter()
 
 const form = reactive({
-  full_name: '',
+  name: '',
   email: '',
   phone: '',
-  address: '',
+  password: '',
+  user_type: '',
   business_code: '',
+  is_active: 'active',
 })
 const businesses = ref([])
 const loading = ref(false)

@@ -133,9 +133,17 @@ onMounted(async () => {
     stats.value.pending = appointments.value.filter(a => a.status === 'pending').length
     stats.value.approved = appointments.value.filter(a => a.status === 'approved').length
   }
-  stats.value.clients = clients.status === 'fulfilled' ? (clients.value.data.data?.length ?? 0) : 0
+
+  stats.value.clients =
+      clients.status === 'fulfilled'
+          ? (clients.value.data.data || []).filter(c => c.user_type === 'client').length : 0
   stats.value.services = svcs.status === 'fulfilled' ? (svcs.value.data.data?.length ?? 0) : 0
-  stats.value.staff = staff.status === 'fulfilled' ? (staff.value.data.data?.length ?? 0) : 0
+  stats.value.staff =
+      staff.status === 'fulfilled'
+          ? (staff.value.data.data || []).filter(
+              s => ['operational_staff', 'service_staff'].includes(s.user_type)
+          ).length
+          : 0
   stats.value.invoices = invs.status === 'fulfilled' ? (invs.value.data.data?.length ?? 0) : 0
   stats.value.locations = locs.status === 'fulfilled' ? (locs.value.data.data?.length ?? 0) : 0
   loading.value = false

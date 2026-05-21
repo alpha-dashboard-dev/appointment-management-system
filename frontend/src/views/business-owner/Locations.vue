@@ -2,19 +2,19 @@
   <div class="page">
     <div class="header">
       <div><h2>Locations</h2><p class="sub">Manage business locations</p></div>
-      <button class="btn" @click="showCreateModal = true">+ New Location</button>
+      <router-link to="/business/locations/create" class="btn">+ New Location</router-link>
     </div>
     <div class="card">
       <div v-if="loading" class="loading">Loading...</div>
       <div v-else-if="error" class="error-msg">{{ error }}</div>
       <table v-else class="table">
-        <thead><tr><th>Name</th><th>Code</th><th>Type</th><th>Address</th><th>Status</th><th width="140">Actions</th></tr></thead>
+        <thead><tr><th>Business Code</th><th>Location Code</th><th>Type</th><th>Address</th><th>Status</th><th width="140">Actions</th></tr></thead>
         <tbody>
           <tr v-for="loc in locations" :key="loc.location_code">
-            <td>{{ loc.name }}</td>
+            <td>{{ loc.business_code }}</td>
             <td><code>{{ loc.location_code }}</code></td>
             <td>{{ loc.location_type || '—' }}</td>
-            <td>{{ loc.address || '—' }}</td>
+            <td>{{ loc.address + " "+ loc.street +" " + loc.city }}</td>
             <td><span :class="['badge', loc.status]">{{ loc.status }}</span></td>
             <td>
               <button class="edit-btn" @click="openEdit(loc)">Edit</button>
@@ -27,33 +27,33 @@
     </div>
 
     <!-- CREATE MODAL -->
-    <div v-if="showCreateModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header"><h3>New Location</h3><button class="close" @click="showCreateModal = false">✕</button></div>
-        <form class="form" @submit.prevent="createLocation">
-          <div class="field"><label>Name *</label><input v-model="createForm.name" placeholder="Location name" required /></div>
-          <div class="field"><label>Address</label><input v-model="createForm.address" placeholder="Address" /></div>
-          <div class="field">
-            <label>Location Type *</label>
-            <select v-model="createForm.location_type" required>
-              <option value="">Select type</option>
-              <option value="business">Business</option>
-              <option value="client">Client</option>
-            </select>
-          </div>
-          <p v-if="formError" class="error-msg">{{ formError }}</p>
-          <button type="submit" class="save-btn" :disabled="saving">{{ saving ? 'Creating...' : 'Create' }}</button>
-        </form>
-      </div>
-    </div>
+<!--    <div v-if="showCreateModal" class="modal-overlay">-->
+<!--      <div class="modal">-->
+<!--        <div class="modal-header"><h3>New Location</h3><button class="close" @click="showCreateModal = false">✕</button></div>-->
+<!--        <form class="form" @submit.prevent="createLocation">-->
+<!--          <div class="field"><label>Name *</label><input v-model="createForm.name" placeholder="Location name" required /></div>-->
+<!--          <div class="field"><label>Address</label><input v-model="createForm.address" placeholder="Address" /></div>-->
+<!--          <div class="field">-->
+<!--            <label>Location Type *</label>-->
+<!--            <select v-model="createForm.location_type" required>-->
+<!--              <option value="">Select type</option>-->
+<!--              <option value="business">Business</option>-->
+<!--              <option value="client">Client</option>-->
+<!--            </select>-->
+<!--          </div>-->
+<!--          <p v-if="formError" class="error-msg">{{ formError }}</p>-->
+<!--          <button type="submit" class="save-btn" :disabled="saving">{{ saving ? 'Creating...' : 'Create' }}</button>-->
+<!--        </form>-->
+<!--      </div>-->
+<!--    </div>-->
 
     <!-- EDIT MODAL -->
     <div v-if="showEditModal" class="modal-overlay">
       <div class="modal">
         <div class="modal-header"><h3>Edit Location</h3><button class="close" @click="showEditModal = false">✕</button></div>
         <form class="form" @submit.prevent="updateLocation">
-          <div class="field"><label>Name *</label><input v-model="editForm.name" required /></div>
           <div class="field"><label>Address</label><input v-model="editForm.address" /></div>
+          <div class="field"><label>City</label><input v-model="editForm.city"  /></div>
           <div class="field"><label>Status</label><select v-model="editForm.status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
           <p v-if="formError" class="error-msg">{{ formError }}</p>
           <button type="submit" class="save-btn" :disabled="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
@@ -92,8 +92,8 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
 
-const createForm = reactive({ name: '', address: '', location_type: '' })
-const editForm = reactive({ name: '', address: '', status: 'active' })
+// const createForm = reactive({ name: '', address: '', location_type: '' })
+const editForm = reactive({ city: '', address: '', status: 'active' })
 
 async function fetchLocations() {
   loading.value = true
@@ -111,7 +111,7 @@ async function fetchLocations() {
 
 function openEdit(loc) {
   selected.value = loc
-  editForm.name = loc.name
+  editForm.city = loc.city
   editForm.address = loc.address || ''
   editForm.status = loc.status || 'active'
   formError.value = ''
@@ -120,23 +120,23 @@ function openEdit(loc) {
 
 function openDelete(loc) { selected.value = loc; showDeleteModal.value = true }
 
-async function createLocation() {
-  saving.value = true
-  formError.value = ''
-  try {
-    const biz = authStore.user?.business_code
-    const payload = { ...createForm, business_code: biz }
-    if (!payload.address) delete payload.address
-    await api.post('/locations/create-location', payload)
-    showCreateModal.value = false
-    Object.assign(createForm, { name: '', address: '', location_type: '' })
-    await fetchLocations()
-  } catch (err) {
-    formError.value = err.response?.data?.message || 'Create failed'
-  } finally {
-    saving.value = false
-  }
-}
+// async function createLocation() {
+//   saving.value = true
+//   formError.value = ''
+//   try {
+//     const biz = authStore.user?.business_code
+//     const payload = { ...createForm, business_code: biz }
+//     if (!payload.address) delete payload.address
+//     await api.post('/locations/create-location', payload)
+//     showCreateModal.value = false
+//     Object.assign(createForm, { name: '', address: '', location_type: '' })
+//     await fetchLocations()
+//   } catch (err) {
+//     formError.value = err.response?.data?.message || 'Create failed'
+//   } finally {
+//     saving.value = false
+//   }
+// }
 
 async function updateLocation() {
   saving.value = true

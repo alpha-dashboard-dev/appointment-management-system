@@ -17,7 +17,7 @@
           <label>Service *</label>
           <select v-model="form.service_code" required>
             <option value="">Select service</option>
-            <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">{{ svc.name }} ({{ svc.duration_minutes }} min)</option>
+            <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">{{ svc.name }} ({{ svc.duration_value }} min)</option>
           </select>
         </div>
         <div v-if="form.business_code" class="field">

@@ -20,11 +20,11 @@
         </div>
 
         <div class="field">
-          <label>Client *</label>
-          <select v-model="form.client_code" required>
+          <label>Client </label>
+          <select v-model="form.user_type" required>
             <option value="">Select client</option>
-            <option v-for="client in clients" :key="client.user_code" :value="client.user_code">
-              {{ client.name }} ({{ client.email }})
+            <option v-for="client in clients" :key="client.user_type" :value="client.user_type">
+              {{ client.name }}  <!--({{ client.email }}) -->
             </option>
           </select>
         </div>
@@ -39,12 +39,13 @@
           </select>
         </div>
 
+
         <div class="field">
           <label>Location</label>
           <select v-model="form.location_code">
             <option value="">Select location</option>
             <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">
-              {{ loc.name }}
+              {{ loc.address + " " + loc.street + " " + loc.city }}
             </option>
           </select>
         </div>
@@ -58,7 +59,6 @@
             </option>
           </select>
         </div>
-
 
         <div class="row two-columns">
           <div class="field">
@@ -130,11 +130,17 @@ const error = ref('')
 
 onMounted(async () => {
   const [bizRes, clientRes] = await Promise.allSettled([
-    api.get('/businesses'),
-    api.get('/clients'),
+    api.get('/businesses/get-business'),
+    api.get('/clients/get-client'),
   ])
+
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
-  if (clientRes.status === 'fulfilled') clients.value = clientRes.value.data.data || []
+  // if (clientRes.status === 'fulfilled') clients.value = clientRes.value.data.data || []
+  if (clientRes.status === 'fulfilled') {
+    clients.value = (clientRes.value.data.data || []).filter(
+        c => c.user_type === 'client'
+    )
+  }
 })
 
 async function onBusinessChange() {
@@ -142,8 +148,8 @@ async function onBusinessChange() {
   form.location_code = ''
   if (!form.business_code) { services.value = []; locations.value = []; return }
   const [svcRes, locRes] = await Promise.allSettled([
-    api.get('/services', { params: { business_code: form.business_code } }),
-    api.get('/locations', { params: { business_code: form.business_code } }),
+    api.get('/services/get-service', { params: { business_code: form.business_code } }),
+    api.get('/locations/get-location', { params: { business_code: form.business_code } }),
   ])
   if (svcRes.status === 'fulfilled') services.value = svcRes.value.data.data || []
   if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []

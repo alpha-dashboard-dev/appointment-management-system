@@ -10,6 +10,7 @@
       <router-link to="/clients/create" class="btn">+ New Client</router-link>
     </div>
 
+
     <!-- FILTER -->
     <div class="filters">
       <input v-model="search" placeholder="Search by name or email..." />
@@ -26,7 +27,7 @@
           <th>Full Name</th>
           <th>Email</th>
           <th>Phone</th>
-          <th>Code</th>
+          <th>User Code</th>
           <th width="140">Actions</th>
         </tr>
         </thead>
@@ -66,6 +67,7 @@
         </form>
       </div>
     </div>
+
 
     <!-- DELETE MODAL -->
     <div v-if="showDeleteModal" class="modal-overlay">

@@ -25,7 +25,7 @@
       <table v-else class="table">
         <thead>
         <tr>
-          <th>Code</th>
+          <th>Charge Code</th>
           <th>Name</th>
           <th>Amount</th>
           <th>Type</th>
@@ -37,7 +37,7 @@
           <td><code>{{ charge.charge_code }}</code></td>
           <td>{{ charge.name }}</td>
           <td>{{ charge.charge_value }}</td>
-          <td>{{ charge.charge_type }}</td>
+          <td>{{ charge.charge_uom }}</td>
           <td>
             <button class="delete-btn" @click="openDelete(charge)">Delete</button>
           </td>

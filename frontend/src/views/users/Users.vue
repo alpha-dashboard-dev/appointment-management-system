@@ -39,7 +39,7 @@
           </td>
           <td>
             <button class="edit-btn" @click="openEdit(user)">Edit</button>
-            <button class="delete-btn" @click="openDelete(user)">Delete</button>
+            <button class="delete-btn" @click="openDelete(user)">Deactivate</button>
           </td>
         </tr>
         <tr v-if="users.length === 0">
@@ -59,11 +59,9 @@
         <form class="form" @submit.prevent="updateUser">
           <input v-model="editForm.name" placeholder="Full Name" required />
           <input v-model="editForm.email" type="email" placeholder="Email" required />
-          <select v-model="editForm.user_type">
-            <option value="admin">Admin</option>
-            <option value="business_owner">Business Owner</option>
-            <option value="operational_staff">Operational Staff</option>
-            <option value="client">Client</option>
+          <select v-model="editForm.is_active">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
           <p v-if="formError" class="error-msg">{{ formError }}</p>
           <button type="submit" class="save-btn" :disabled="saving">
@@ -80,7 +78,7 @@
         <p>Are you sure you want to deactivate <strong>{{ selected?.name }}</strong>?</p>
         <div class="actions">
           <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
-          <button class="delete-confirm-btn" @click="deleteUser" :disabled="saving">
+          <button class="delete-confirm-btn" @click="deactivateUser" :disabled="saving">
             {{ saving ? 'Processing...' : 'Deactivate' }}
           </button>
         </div>
@@ -104,7 +102,7 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
 
-const editForm = reactive({ name: '', email: '', user_type: 'client' })
+const editForm = reactive({ name: '', email: '', is_active: 'active' })
 
 async function fetchUsers() {
   loading.value = true
@@ -123,7 +121,7 @@ function openEdit(user) {
   selected.value = user
   editForm.name = user.name
   editForm.email = user.email
-  editForm.user_type = user.user_type
+  editForm.is_active = user.is_active
   formError.value = ''
   showEditModal.value = true
 }
@@ -146,19 +144,32 @@ async function updateUser() {
     saving.value = false
   }
 }
-
-async function deleteUser() {
+// deactivate user
+async function deactivateUser() {
   saving.value = true
   try {
-    await api.delete(`/users/delete-users${selected.value.user_code}`)
+    await api.patch(`/users/update-user-status${selected.value.user_code}`, { is_active: 'inactive' })
     showDeleteModal.value = false
     await fetchUsers()
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to deactivate user'
+    error.value = err.response?.data?.message || 'Deactivation failed'
   } finally {
     saving.value = false
   }
 }
+
+// async function deleteUser() {
+//   saving.value = true
+//   try {
+//     await api.delete(`/users/delete-user${selected.value.user_code}`)
+//     showDeleteModal.value = false
+//     await fetchUsers()
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to deactivate user'
+//   } finally {
+//     saving.value = false
+//   }
+// }
 
 onMounted(fetchUsers)
 </script>

@@ -16,7 +16,7 @@ router.post(
 router.get(
     "/get-business",
     authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.CLIENT),
     controller.getAll
 );
 

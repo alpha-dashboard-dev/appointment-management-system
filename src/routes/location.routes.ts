@@ -16,7 +16,7 @@ router.post(
 router.get(
     "/get-location",
     authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.CLIENT),
     controller.getAll
 );
 

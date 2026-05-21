@@ -102,7 +102,7 @@
           </div>
           <div class="field">
             <label>Location Code</label>
-            <input v-model="createForm.location_code" placeholder="Location code (optional)" />
+            <input v-model="createForm.location_code" placeholder="Location code" />
           </div>
           <div class="field">
             <label>Start Time *</label>
