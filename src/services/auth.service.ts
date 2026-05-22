@@ -76,19 +76,23 @@ class AuthService {
             }
         }
 
-        const payload = {
+        const tokenPayload = {
             user_code: user.user_code,
             user_type: user.user_type,
             business_code: user.business_code,
         };
 
-        const accessToken = generateAccessToken(payload);
-        const refreshToken = generateRefreshToken(payload);
+        const accessToken = generateAccessToken(tokenPayload);
+        const refreshToken = generateRefreshToken(tokenPayload);
 
         await sessionRepo.create(user.user_code, refreshToken);
 
         return {
-            user: payload,
+            user: {
+                ...tokenPayload,
+                name: user.name,
+                email: user.email,
+            },
             accessToken,
             refreshToken,
         };

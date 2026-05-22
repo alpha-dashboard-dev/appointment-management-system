@@ -73,9 +73,9 @@ async function fetch() {
   loading.value = true
   error.value = ''
   try {
-    const clientCode = authStore.user?.client_code
+    const userCode = authStore.user?.user_code
     const params = {}
-    if (clientCode) params.client_code = clientCode
+    if (userCode) params.user_code = userCode
     if (statusFilter.value) params.status = statusFilter.value
     const res = await api.get('/appointments', { params })
     appointments.value = res.data.data || []

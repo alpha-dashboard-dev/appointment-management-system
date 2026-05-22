@@ -48,8 +48,8 @@ const recent = computed(() => appointments.value.slice(0, 5))
 async function fetchAppointments() {
   loading.value = true
   try {
-    const clientCode = authStore.user?.client_code
-    const params = clientCode ? { client_code: clientCode } : {}
+    const userCode = authStore.user?.user_code
+    const params = userCode ? { user_code: userCode } : {}
     const res = await api.get('/appointments', { params })
     appointments.value = res.data.data || []
     const now = new Date()

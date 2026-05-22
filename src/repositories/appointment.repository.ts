@@ -19,6 +19,7 @@ class AppointmentRepository {
         const where: any = {};
         if (filters.business_code) where.business_code = filters.business_code;
         if (filters.status) where.status = filters.status;
+        if (filters.user_code) where.created_by = filters.user_code;
         return dbHelper.findAll(this.tables, { where });
     }
 

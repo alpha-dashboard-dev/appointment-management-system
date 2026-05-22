@@ -142,7 +142,7 @@ async function updateClient() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/clients/update-client${selected.value.user_code}`, editForm)
+    await api.put(`/clients/update-client/${selected.value.user_code}`, editForm)
     showEditModal.value = false
     await fetchClients()
   } catch (err) {
@@ -155,7 +155,7 @@ async function updateClient() {
 async function deleteClient() {
   saving.value = true
   try {
-    await api.delete(`/clients/delete-client${selected.value.user_code}`)
+    await api.delete(`/clients/delete-client/${selected.value.user_code}`)
     showDeleteModal.value = false
     await fetchClients()
   } catch (err) {

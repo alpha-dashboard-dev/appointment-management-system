@@ -21,21 +21,21 @@ router.get(
 );
 
 router.get(
-    "/get-client:userCode",
+    "/get-client/:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.getByCode
 );
 
 router.put(
-    "/update-client:userCode",
+    "/update-client/:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.update
 );
 
 router.delete(
-    "/delete-client:userCode",
+    "/delete-client/:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete
