@@ -71,7 +71,7 @@
         <p>Are you sure you want to delete <strong>{{ selected?.name }}</strong>?</p>
         <div class="actions">
           <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
-          <button class="delete-confirm-btn" @click="deleteOrg" :disabled="saving">
+          <button class="delete-confirm-btn" @click="deactivateOrg" :disabled="saving">
             {{ saving ? 'Deleting...' : 'Delete' }}
           </button>
         </div>
@@ -137,7 +137,7 @@ async function updateOrg() {
   }
 }
 
-async function deleteOrg() {
+async function deactivateOrg() {
   saving.value = true
   try {
     await api.patch(`/organizations/update-organization-status${selected.value.organization_code}`, { status: 'inactive' })

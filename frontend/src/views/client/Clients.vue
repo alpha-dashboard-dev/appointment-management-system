@@ -26,7 +26,7 @@
           <th>Full Name</th>
           <th>Email</th>
           <th>Phone</th>
-          <th>Code</th>
+          <th>User Code</th>
           <th width="140">Actions</th>
         </tr>
         </thead>
@@ -67,6 +67,7 @@
       </div>
     </div>
 
+
     <!-- DELETE MODAL -->
     <div v-if="showDeleteModal" class="modal-overlay">
       <div class="modal delete-modal">
@@ -80,8 +81,8 @@
         </div>
       </div>
     </div>
-
   </div>
+
 </template>
 
 <script setup>

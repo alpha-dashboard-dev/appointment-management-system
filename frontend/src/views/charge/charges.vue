@@ -6,6 +6,7 @@
         <h2>Charges</h2>
         <p class="sub">Manage all charges</p>
       </div>
+      <button class="btn" @click="showCreateModal = true">+ New Charge</button>
     </div>
 
     <div class="filters">
@@ -24,7 +25,7 @@
       <table v-else class="table">
         <thead>
         <tr>
-          <th>Code</th>
+          <th>Charge Code</th>
           <th>Name</th>
           <th>Amount</th>
           <th>Type</th>
@@ -35,8 +36,8 @@
         <tr v-for="charge in charges" :key="charge.charge_code">
           <td><code>{{ charge.charge_code }}</code></td>
           <td>{{ charge.name }}</td>
-          <td>{{ charge.amount }}</td>
-          <td>{{ charge.charge_type }}</td>
+          <td>{{ charge.charge_value }}</td>
+          <td>{{ charge.charge_uom }}</td>
           <td>
             <button class="delete-btn" @click="openDelete(charge)">Delete</button>
           </td>
@@ -62,6 +63,47 @@
       </div>
     </div>
 
+    <!-- CREATE MODAL -->
+    <div v-if="showCreateModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>New Charge</h3>
+          <button class="close" @click="showCreateModal = false">✕</button>
+        </div>
+        <form class="form" @submit.prevent="createCharge">
+          <div class="field">
+            <label>Business *</label>
+            <select v-model="createForm.business_code" required>
+              <option value="">Select business</option>
+              <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Name *</label>
+            <input v-model="createForm.name" placeholder="Charge name" required />
+          </div>
+          <div class="field">
+            <label>Charge UOM *</label>
+            <select v-model="createForm.charge_uom" required>
+              <option value="">Select UOM</option>
+              <option value="fixed">Fixed</option>
+              <option value="percentage">Percentage</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Charge Value *</label>
+            <input v-model.number="createForm.charge_value" type="number" step="0.01" min="0" placeholder="Value" required />
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <textarea v-model="createForm.description" rows="2" placeholder="Optional description"></textarea>
+          </div>
+          <p v-if="createError" class="error-msg">{{ createError }}</p>
+          <button type="submit" class="save-btn" :disabled="saving">{{ saving ? 'Creating...' : 'Create' }}</button>
+        </form>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -77,7 +119,10 @@ const error = ref('')
 const bizFilter = ref('')
 
 const showDeleteModal = ref(false)
+const showCreateModal = ref(false)
 const selected = ref(null)
+const createError = ref('')
+const createForm = ref({ business_code: '', name: '', charge_uom: '', charge_value: '', description: '' })
 
 async function fetchCharges() {
   loading.value = true
@@ -111,8 +156,25 @@ async function deleteCharge() {
   }
 }
 
+async function createCharge() {
+  saving.value = true
+  createError.value = ''
+  try {
+    const payload = { ...createForm.value }
+    if (!payload.description) delete payload.description
+    await api.post('/charges/create-charge', payload)
+    showCreateModal.value = false
+    createForm.value = { business_code: '', name: '', charge_uom: '', charge_value: '', description: '' }
+    await fetchCharges()
+  } catch (err) {
+    createError.value = err.response?.data?.message || 'Create failed'
+  } finally {
+    saving.value = false
+  }
+}
+
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchCharges(), api.get('/businesses')])
+  const [_, bizRes] = await Promise.allSettled([fetchCharges(), api.get('/businesses/get-business')])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>
@@ -132,7 +194,10 @@ onMounted(async () => {
 .loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
 .error-msg { color: #ef4444; font-size: 13px; margin: 0; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: white; border-radius: 10px; padding: 24px; width: 380px; max-width: 90%; }
+.modal { background: white; border-radius: 10px; padding: 24px; width: 440px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.modal-header h3 { margin: 0; }
+.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
 .delete-modal { text-align: center; }
 .delete-modal h3 { margin: 0 0 12px; }
 .delete-modal p { color: #64748b; margin-bottom: 16px; }
@@ -140,4 +205,10 @@ onMounted(async () => {
 .cancel-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
 .delete-confirm-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
 code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+.btn { background: #6366f1; color: white; border: none; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.form { display: flex; flex-direction: column; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 13px; font-weight: 600; color: #374151; }
+.field input, .field select, .field textarea { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; font-family: inherit; }
+.save-btn { background: #6366f1; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
 </style>

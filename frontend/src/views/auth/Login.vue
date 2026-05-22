@@ -58,7 +58,7 @@ async function submit() {
   error.value = ''
   try {
     await authStore.login(form.email, form.password)
-    router.push('/dashboard')
+    router.push(authStore.dashboardRoute)
   } catch (err) {
     error.value = err.response?.data?.message || 'Login failed. Check credentials.'
   } finally {

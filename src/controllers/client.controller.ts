@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import service from "../services/client.service";
+import service from "../services/user.service";
 
 class ClientController {
 

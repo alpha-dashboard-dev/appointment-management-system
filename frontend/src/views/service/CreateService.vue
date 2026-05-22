@@ -51,14 +51,14 @@
         </div>
 
         <div class="field">
-          <label>Duration (value) *</label>
-          <input v-model.number="form.duration_value" type="number" placeholder="e.g. 30" min="1" required />
+          <label>Duration (value)</label>
+          <input v-model.number="form.duration_value" type="number" placeholder="e.g. 30" min="1" />
         </div>
 
         <div class="field">
-          <label>Duration Unit *</label>
-          <select v-model="form.duration_uom" required>
-            <option value="">Select Duration Unit</option>
+          <label>Duration Unit</label>
+          <select v-model="form.duration_uom">
+            <option :value="null">Select Duration Unit</option>
             <option v-for="duration_uom in durationUnits" :key="duration_uom" :value="duration_uom">
               {{ duration_uom }}
             </option>
@@ -99,9 +99,9 @@ import api from '@/utils/api'
 const router = useRouter()
 const statuses = ['active', 'inactive']
 const currencies = ['PKR', 'USD', 'EUR']
-const durationUnits = ['hour', 'minute', 'second']
+const durationUnits = ['hour', 'minutes', 'day', 'week']
 
-const form = reactive({ business_code: '', name: '', duration_value: '', price: '', description: '', cost: '', duration_uom: '',
+const form = reactive({ business_code: '', name: '', duration_value: null, price: '', description: '', cost: '', duration_uom: null,
   status: '' , currency: ''})
 const businesses = ref([])
 const loading = ref(false)
@@ -121,6 +121,15 @@ async function submit() {
     const payload = { ...form }
     if (!payload.price && payload.price !== 0) delete payload.price
     if (!payload.description) delete payload.description
+    if (!payload.cost && payload.cost !== 0) delete payload.cost
+
+    if (!payload.duration_value) {
+      delete payload.duration_value
+    }
+
+    if (!payload.duration_uom) {
+      delete payload.duration_uom
+    }
     await api.post('/services/create-service', payload)
     router.push('/services')
   } catch (err) {

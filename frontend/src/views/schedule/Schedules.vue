@@ -6,6 +6,7 @@
         <h2>Schedules</h2>
         <p class="sub">Manage staff schedules</p>
       </div>
+      <button class="btn" @click="showCreateModal = true">+ New Schedule</button>
     </div>
 
     <div class="filters">
@@ -36,7 +37,7 @@
         <tr v-for="schedule in schedules" :key="schedule.id">
           <td>{{ schedule.id }}</td>
           <td>{{ schedule.user_name || schedule.user_code || '—' }}</td>
-          <td>{{ schedule.day_of_week }}</td>
+          <td>{{ schedule.working_days }}</td>
           <td>{{ schedule.start_time }}</td>
           <td>{{ schedule.end_time }}</td>
           <td>
@@ -64,6 +65,59 @@
       </div>
     </div>
 
+    <!-- CREATE MODAL -->
+    <div v-if="showCreateModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>New Schedule</h3>
+          <button class="close" @click="showCreateModal = false">✕</button>
+        </div>
+        <form class="form" @submit.prevent="createSchedule">
+          <div class="field">
+            <label>Business *</label>
+            <select v-model="createForm.business_code" required>
+              <option value="">Select business</option>
+              <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Staff User Code *</label>
+            <input v-model="createForm.user_code" placeholder="Staff user code" required />
+          </div>
+          <div class="field">
+            <label>Working Day *</label>
+            <select v-model="createForm.working_days" required>
+              <option value="">Select day</option>
+              <option v-for="d in days" :key="d" :value="d">{{ d }}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Employee Type *</label>
+            <select v-model="createForm.employee_type" required>
+              <option value="">Select type</option>
+              <option value="permanent">Permanent</option>
+              <option value="visiting">Visiting</option>
+              <option value="remote">Remote</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Location Code</label>
+            <input v-model="createForm.location_code" placeholder="Location code" />
+          </div>
+          <div class="field">
+            <label>Start Time *</label>
+            <input type="time" v-model="createForm.start_time" required />
+          </div>
+          <div class="field">
+            <label>End Time *</label>
+            <input type="time" v-model="createForm.end_time" required />
+          </div>
+          <p v-if="createError" class="error-msg">{{ createError }}</p>
+          <button type="submit" class="save-btn" :disabled="saving">{{ saving ? 'Creating...' : 'Create' }}</button>
+        </form>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -76,10 +130,15 @@ const businesses = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
+const createError = ref('')
 const bizFilter = ref('')
 
 const showDeleteModal = ref(false)
+const showCreateModal = ref(false)
 const selected = ref(null)
+
+const days = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+const createForm = ref({ business_code: '', user_code: '', working_days: '', employee_type: '', location_code: '', start_time: '', end_time: '' })
 
 async function fetchSchedules() {
   loading.value = true
@@ -113,6 +172,23 @@ async function deleteSchedule() {
   }
 }
 
+async function createSchedule() {
+  saving.value = true
+  createError.value = ''
+  try {
+    const payload = { ...createForm.value }
+    if (!payload.location_code) delete payload.location_code
+    await api.post('/schedules/create-schedule', payload)
+    showCreateModal.value = false
+    createForm.value = { business_code: '', user_code: '', working_days: '', employee_type: '', location_code: '', start_time: '', end_time: '' }
+    await fetchSchedules()
+  } catch (err) {
+    createError.value = err.response?.data?.message || 'Create failed'
+  } finally {
+    saving.value = false
+  }
+}
+
 onMounted(async () => {
   const [_, bizRes] = await Promise.allSettled([fetchSchedules(), api.get('/businesses/get-business')])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
@@ -134,11 +210,20 @@ onMounted(async () => {
 .loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
 .error-msg { color: #ef4444; font-size: 13px; margin: 0; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: white; border-radius: 10px; padding: 24px; width: 380px; max-width: 90%; }
+.modal { background: white; border-radius: 10px; padding: 24px; width: 460px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.modal-header h3 { margin: 0; }
+.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
 .delete-modal { text-align: center; }
 .delete-modal h3 { margin: 0 0 12px; }
 .delete-modal p { color: #64748b; margin-bottom: 16px; }
 .actions { display: flex; gap: 10px; justify-content: center; }
 .cancel-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
 .delete-confirm-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+.btn { background: #6366f1; color: white; border: none; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.form { display: flex; flex-direction: column; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 13px; font-weight: 600; color: #374151; }
+.field input, .field select { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; }
+.save-btn { background: #6366f1; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
 </style>

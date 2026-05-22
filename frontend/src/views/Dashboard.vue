@@ -94,7 +94,7 @@
           <td>{{ appt.appointment_code }}</td>
           <td>{{ appt.client_name || '—' }}</td>
           <td>{{ appt.service_name || '—' }}</td>
-          <td>{{ appt.appointment_date }}</td>
+          <td>{{ appt.appointment_start_date }}</td>
           <td>
             <span :class="['badge', appt.status]">{{ appt.status }}</span>
           </td>
@@ -132,12 +132,12 @@ onMounted(async () => {
     const [orgs, bizs, clients, appts, users, svcs, invs, locs] = await Promise.allSettled([
       api.get('/organizations/get-organization'),
       api.get('/businesses/get-business'),
-      api.get('/clients/get-clients'),
+      api.get('/clients/get-client'),
       api.get('/appointments'),
       api.get('/users/get-users'),
-      api.get('/services/get-services'),
-      api.get('/invoices/get-invoices'),
-      api.get('/locations/get-locations'),
+      api.get('/services/get-service'),
+      api.get('/invoices/get-invoice'),
+      api.get('/locations/get-location'),
     ])
 
     stats.value.organizations = orgs.status === 'fulfilled' ? (orgs.value.data.data?.length ?? 0) : 0
