@@ -9,15 +9,6 @@
     <div class="card">
       <form class="form" @submit.prevent="submit">
 
-        <div class="field">
-          <label>Business *</label>
-          <select v-model="form.business_code" required>
-            <option value="">Select business</option>
-            <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
-              {{ biz.name }}
-            </option>
-          </select>
-        </div>
 
         <div class="field">
           <label>Type *</label>

@@ -65,7 +65,6 @@ async function fetchAppointments() {
 
 onMounted(fetchAppointments)
 </script>
-
 <style scoped>
 .page { display: flex; flex-direction: column; gap: 20px; }
 .welcome h2 { margin: 0; color: #1e293b; }
