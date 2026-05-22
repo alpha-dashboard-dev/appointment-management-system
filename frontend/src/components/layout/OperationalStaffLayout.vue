@@ -21,7 +21,7 @@
           </div>
           <div v-show="open.app && !collapsed" class="submenu">
             <router-link to="/operations/appointments" class="sub-item">All Requests</router-link>
-            <router-link to="/operations/appointments/pending" class="sub-item">Pending Requests</router-link>
+            <router-link to="/operations/pending" class="sub-item">Pending Requests</router-link>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ function toggle(key) { open[key] = !open[key] }
 const titleMap = {
   '/operations/dashboard': 'Dashboard',
   '/operations/appointments': 'Appointments',
-  '/operations/pending': 'Pending Appointments',
+  '/operations/appointments/pending': 'Pending Appointments',
   '/operations/schedules': 'Staff Schedules',
   '/operations/availability': 'Check Staff Availability',
   '/operations/clients': 'Clients',
