@@ -75,7 +75,7 @@
         <div class="actions">
           <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
           <button class="delete-confirm-btn" @click="deactivateBusiness" :disabled="saving">
-            {{ saving ? 'Deleting...' : 'Delete' }}
+            {{ saving ? 'Deleting...' : 'Deactivate' }}
           </button>
         </div>
       </div>
