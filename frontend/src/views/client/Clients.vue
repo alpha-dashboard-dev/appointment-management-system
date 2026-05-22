@@ -15,6 +15,10 @@
       <input v-model="search" placeholder="Search by name or email..." />
     </div>
 
+    <div class="filters">
+      <input v-model=""
+    </div>
+
     <!-- TABLE CARD -->
     <div class="card">
       <div v-if="loading" class="loading">Loading...</div>
@@ -66,7 +70,6 @@
         </form>
       </div>
     </div>
-
 
     <!-- DELETE MODAL -->
     <div v-if="showDeleteModal" class="modal-overlay">

@@ -12,7 +12,6 @@ const routes = [
     { path: "/", redirect: "/dashboard" },
     { path: "/login", component: () => import("@/views/auth/Login.vue") },
 
-    // ── Admin ──────────────────────────────────────────────────────────
     {
         path: "/",
         component: AdminLayout,
@@ -41,7 +40,6 @@ const routes = [
         ],
     },
 
-    // ── Business Owner ─────────────────────────────────────────────────
     {
         path: "/business",
         component: BusinessOwnerLayout,
@@ -65,7 +63,6 @@ const routes = [
         ],
     },
 
-    // ── Operational Staff ──────────────────────────────────────────────
     {
         path: "/operations",
         component: OperationalStaffLayout,
@@ -80,7 +77,6 @@ const routes = [
         ],
     },
 
-    // ── Service Staff ──────────────────────────────────────────────────
     {
         path: "/staff",
         component: ServiceStaffLayout,
@@ -92,7 +88,6 @@ const routes = [
         ],
     },
 
-    // ── Client ─────────────────────────────────────────────────────────
     {
         path: "/client",
         component: ClientLayout,
