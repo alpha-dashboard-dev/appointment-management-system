@@ -125,7 +125,7 @@ router.beforeEach((to, _from, next) => {
         return next(roleRedirectMap[role] || "/dashboard");
     }
 
-    // Role guard: if route has roles restriction and user's role not in list
+    // if route has roles restriction and user's role not in list
     if (to.meta.roles && authStore.isAuthenticated) {
         const role = authStore.user?.user_type;
         if (!to.meta.roles.includes(role)) {

@@ -90,7 +90,7 @@ function toggle(key) { open[key] = !open[key] }
 const titleMap = {
   '/operations/dashboard': 'Dashboard',
   '/operations/appointments': 'Appointments',
-  '/operations/appointments/pending': 'Pending Appointments',
+  '/operations/pending': 'Pending Appointments',
   '/operations/schedules': 'Staff Schedules',
   '/operations/availability': 'Check Staff Availability',
   '/operations/clients': 'Clients',
