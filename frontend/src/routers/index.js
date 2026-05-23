@@ -11,6 +11,7 @@ import { useAuthStore } from "@/stores/auth.store";
 const routes = [
     { path: "/", redirect: "/dashboard" },
     { path: "/login", component: () => import("@/views/auth/Login.vue") },
+    { path: '/reset-password', component: () => import("@/views/auth/ForgotPassword.vue") },
 
     // ── Admin ──────────────────────────────────────────────────────────
     {
