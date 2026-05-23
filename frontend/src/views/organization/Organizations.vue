@@ -33,7 +33,7 @@
           </td>
           <td>
             <button class="edit-btn" @click="openEdit(org)">Edit</button>
-            <button class="delete-btn" @click="openDelete(org)">Delete</button>
+            <button class="delete-btn" @click="openDelete(org)">Deactivate</button>
           </td>
         </tr>
         <tr v-if="organizations.length === 0">
@@ -72,7 +72,7 @@
         <div class="actions">
           <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
           <button class="delete-confirm-btn" @click="deactivateOrg" :disabled="saving">
-            {{ saving ? 'Deleting...' : 'Delete' }}
+            {{ saving ? 'Deleting...' : 'Deactivate' }}
           </button>
         </div>
       </div>

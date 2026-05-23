@@ -19,6 +19,7 @@ class AppointmentController {
             const filters = {
                 business_code: req.query.business_code,
                 status: req.query.status,
+                user_code: req.query.user_code,
             };
             const data = await service.getAll(filters);
             return res.status(200).json({ success: true, data });

@@ -54,7 +54,6 @@
           <label>Duration (value)</label>
           <input v-model.number="form.duration_value" type="number" placeholder="e.g. 30" min="1" />
         </div>
-
         <div class="field">
           <label>Duration Unit</label>
           <select v-model="form.duration_uom">
@@ -74,7 +73,6 @@
             </option>
           </select>
         </div>
-
 
         <p v-if="error" class="error-msg">{{ error }}</p>
 
@@ -104,6 +102,7 @@ const durationUnits = ['hour', 'minutes', 'day', 'week']
 const form = reactive({ business_code: '', name: '', duration_value: null, price: '', description: '', cost: '', duration_uom: null,
   status: '' , currency: ''})
 const businesses = ref([])
+
 const loading = ref(false)
 const error = ref('')
 
@@ -113,6 +112,8 @@ onMounted(async () => {
     businesses.value = res.data.data || []
   } catch (_) {}
 })
+
+
 
 async function submit() {
   loading.value = true

@@ -17,14 +17,14 @@
           <label>Service *</label>
           <select v-model="form.service_code" required>
             <option value="">Select service</option>
-            <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">{{ svc.name }} ({{ svc.duration_value }} min)</option>
+            <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">{{ svc.name }}</option>
           </select>
         </div>
         <div v-if="form.business_code" class="field">
           <label>Location</label>
           <select v-model="form.location_code">
             <option value="">Select location (optional)</option>
-            <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">{{ loc.name }}</option>
+            <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">{{ loc.address + " " + loc.street + " " + loc.city }}</option>
           </select>
         </div>
         <div class="row">
@@ -86,7 +86,7 @@ async function onBusinessChange() {
   if (!form.business_code) return
   try {
     const [svcRes, locRes] = await Promise.all([
-      api.get('/services/client-view', { params: { business_code: form.business_code } }),
+      api.get('/services/get-service', { params: { business_code: form.business_code } }),
       api.get('/locations/get-location', { params: { business_code: form.business_code } }),
     ])
     services.value = svcRes.data.data || []

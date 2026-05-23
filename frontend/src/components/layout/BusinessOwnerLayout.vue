@@ -12,7 +12,6 @@
           <span v-if="!collapsed">Dashboard</span>
         </router-link>
 
-        <!-- APPOINTMENTS -->
         <div class="group">
           <div class="group-title" @click="toggle('app')">
             <i class="icon">📅</i>
@@ -25,7 +24,7 @@
           </div>
         </div>
 
-        <!-- SERVICES -->
+
         <div class="group">
           <div class="group-title" @click="toggle('svc')">
             <i class="icon">⚕️</i>
@@ -38,7 +37,7 @@
           </div>
         </div>
 
-        <!-- LOCATIONS -->
+
         <div class="group">
           <div class="group-title" @click="toggle('loc')">
             <i class="icon">📍</i>
@@ -48,10 +47,10 @@
           <div v-show="open.loc && !collapsed" class="submenu">
             <router-link to="/business/locations" class="sub-item">All Locations</router-link>
             <router-link to="/business/locations/create" class="sub-item">New Location</router-link>
+            <router-link to="/business/location-services" class="sub-item">Location Services</router-link>
           </div>
         </div>
 
-        <!-- STAFF (USERS) -->
         <div class="group">
           <div class="group-title" @click="toggle('staff')">
             <i class="icon">👤</i>
@@ -64,7 +63,6 @@
           </div>
         </div>
 
-        <!-- CLIENTS -->
         <div class="group">
           <div class="group-title" @click="toggle('client')">
             <i class="icon">👥</i>
@@ -77,19 +75,17 @@
           </div>
         </div>
 
-        <!-- SCHEDULES -->
         <router-link to="/business/schedules" class="item">
           <i class="icon">🗓️</i>
           <span v-if="!collapsed">Schedules</span>
         </router-link>
 
-        <!-- CHARGES -->
+
         <router-link to="/business/charges" class="item">
           <i class="icon">💰</i>
           <span v-if="!collapsed">Charges</span>
         </router-link>
 
-        <!-- INVOICES -->
         <router-link to="/business/invoices" class="item">
           <i class="icon">🧾</i>
           <span v-if="!collapsed">Invoices</span>
@@ -140,6 +136,7 @@ const titleMap = {
   '/business/services/create': 'New Service',
   '/business/locations': 'Locations',
   '/business/locations/create': 'New Location',
+  '/business/location-services': 'Location Services',
   '/business/staff': 'Staff',
   '/business/staff/create': 'Add Staff',
   '/business/clients': 'Clients',

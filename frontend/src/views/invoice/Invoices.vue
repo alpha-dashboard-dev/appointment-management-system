@@ -129,6 +129,7 @@ async function updateStatus(inv, status) {
   }
 }
 
+
 function formatDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString()

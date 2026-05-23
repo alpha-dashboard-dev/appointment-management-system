@@ -168,10 +168,7 @@
 
       <!-- LOCATIONS -->
       <div class="group">
-        <div
-            class="group-title"
-            @click="handleGroupClick('loc', '/locations')"
-        >
+        <div class="group-title" @click="handleGroupClick('loc', '/locations')">
           <i class="icon">📍</i>
 
           <span v-if="!collapsed">Locations</span>

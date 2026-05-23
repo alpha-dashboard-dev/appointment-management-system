@@ -80,15 +80,6 @@
             </select>
           </div>
           <div class="field">
-            <label>Location *</label>
-            <select v-model="createForm.location_code" required>
-              <option value="">Select location</option>
-              <option v-for="loc in filteredLocations" :key="loc.location_code" :value="loc.location_code">
-                {{ loc.location_code }} — {{ loc.city || loc.address || loc.location_type }}
-              </option>
-            </select>
-          </div>
-          <div class="field">
             <label>Service *</label>
             <select v-model="createForm.service_code" required>
               <option value="">Select service</option>
@@ -97,6 +88,16 @@
               </option>
             </select>
           </div>
+          <div class="field">
+            <label>Location *</label>
+            <select v-model="createForm.location_code" required>
+              <option value="">Select location</option>
+              <option v-for="loc in filteredLocations" :key="loc.location_code" :value="loc.location_code">
+                 {{  loc.address + " " + loc.city  }} — {{ loc.location_code }}
+              </option>
+            </select>
+          </div>
+
           <div class="field">
             <label>Availability</label>
             <select v-model="createForm.availability">
