@@ -1,5 +1,6 @@
 import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+import { Op } from "sequelize";
 
 const db = initModels();
 
@@ -20,6 +21,16 @@ class AppointmentRepository {
         if (filters.business_code) where.business_code = filters.business_code;
         if (filters.status) where.status = filters.status;
         if (filters.user_code) where.created_by = filters.user_code;
+        if (filters.rescheduled_from) where.rescheduled_from = filters.rescheduled_from;
+        return dbHelper.findAll(this.tables, { where });
+    }
+
+    // For service_staff: returns only appointments where they are a participant
+    async findByParticipantCodes(appointmentCodes: string[], extraFilters: any = {}) {
+        if (!appointmentCodes.length) return [];
+        const where: any = { appointment_code: { [Op.in]: appointmentCodes } };
+        if (extraFilters.business_code) where.business_code = extraFilters.business_code;
+        if (extraFilters.status) where.status = extraFilters.status;
         return dbHelper.findAll(this.tables, { where });
     }
 

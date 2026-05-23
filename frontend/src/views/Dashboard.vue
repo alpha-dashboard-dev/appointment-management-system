@@ -82,19 +82,21 @@
       <table v-else class="table">
         <thead>
         <tr>
-          <th>Code</th>
-          <th>Client</th>
-          <th>Service</th>
-          <th>Date</th>
+          <th>Appointment Code</th>
+          <th>Business Code</th>
+          <th>Appointment Notes</th>
+          <th>Start Date</th>
+          <th>Start Time</th>
           <th>Status</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="appt in recentAppointments" :key="appt.appointment_code">
           <td>{{ appt.appointment_code }}</td>
-          <td>{{ appt.client_name || '—' }}</td>
-          <td>{{ appt.service_name || '—' }}</td>
+          <td>{{ appt.business_code}}</td>
+          <td>{{ appt.notes || '—' }}</td>
           <td>{{ appt.appointment_start_date }}</td>
+          <td>{{ appt.start_time }}</td>
           <td>
             <span :class="['badge', appt.status]">{{ appt.status }}</span>
           </td>

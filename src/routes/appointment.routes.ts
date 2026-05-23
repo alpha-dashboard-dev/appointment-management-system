@@ -51,6 +51,13 @@ router.post(
     controller.reschedule
 );
 
+router.patch(
+    "/:appointmentCode/reschedule/respond",
+    authenticate,
+    authorizeRoles(ROLES.CLIENT),
+    controller.respondToReschedule
+);
+
 router.get(
     "/:appointmentCode/history",
     authenticate,
@@ -113,7 +120,7 @@ router.post(
 router.get(
     "/:appointmentCode/charges",
     authenticate,
-    authorizeRoles(...MANAGERS),
+    authorizeRoles(...MANAGERS, ROLES.CLIENT),
     controller.getCharges
 );
 

@@ -19,8 +19,8 @@
         <thead>
         <tr>
           <th>Name</th>
-          <th>Code</th>
-          <th>Organization</th>
+          <th>Business Code</th>
+          <th>Organizatio Code</th>
           <th>Status</th>
           <th width="180">Actions</th>
         </tr>
@@ -36,7 +36,7 @@
           <td>
             <router-link :to="`/businesses/${business.business_code}`" class="view-btn">View</router-link>
             <button class="edit-btn" @click="openEdit(business)">Edit</button>
-            <button class="delete-btn" @click="openDelete(business)">Deactivate</button>
+            <button class="delete-btn" @click="openDelete(business)">Delete</button>
           </td>
         </tr>
         <tr v-if="businesses.length === 0">
@@ -70,12 +70,12 @@
     <!-- DELETE MODAL -->
     <div v-if="showDeleteModal" class="modal-overlay">
       <div class="modal delete-modal">
-        <h3>Delete Business</h3>
+        <h3>Deactivate Business</h3>
         <p>Are you sure you want to deactivate <strong>{{ selected?.name }}</strong>?</p>
         <div class="actions">
           <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
           <button class="delete-confirm-btn" @click="deactivateBusiness" :disabled="saving">
-            {{ saving ? 'Deleting...' : 'Delete' }}
+            {{ saving ? 'Deleting...' : 'Deactivate' }}
           </button>
         </div>
       </div>

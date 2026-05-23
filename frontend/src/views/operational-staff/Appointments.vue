@@ -30,6 +30,7 @@
             <td>
               <button v-if="appt.status === 'pending'" class="approve-btn" @click="changeStatus(appt, 'approved')">Approve</button>
               <button v-if="appt.status === 'pending'" class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>
+              <button v-if="['pending','approved','in_progress'].includes(appt.status)" class="assign-btn" @click="openAssign(appt)">Assign</button>
               <button v-if="['approved','in_progress'].includes(appt.status)" class="reschedule-btn" @click="openReschedule(appt)">Reschedule</button>
               <button v-if="['approved','pending'].includes(appt.status)" class="cancel-btn" @click="changeStatus(appt, 'canceled')">Cancel</button>
             </td>
@@ -40,7 +41,7 @@
     </div>
 
     <!-- RESCHEDULE MODAL -->
-    <div v-if="showReschedule && rescheduleAppt" class="modal-overlay">
+    <div v-if="showReschedule && rescheduleAppt" class="modal-overlay" @click.self="showReschedule = false">
       <div class="modal">
         <div class="modal-header"><h3>Reschedule Appointment</h3><button class="close" @click="showReschedule = false">✕</button></div>
         <form class="form" @submit.prevent="submitReschedule">
@@ -52,6 +53,33 @@
           <p v-if="rsError" class="error-msg">{{ rsError }}</p>
           <button type="submit" class="save-btn" :disabled="rsSaving">{{ rsSaving ? 'Saving...' : 'Reschedule' }}</button>
         </form>
+      </div>
+    </div>
+
+    <!-- ASSIGN STAFF MODAL -->
+    <div v-if="showAssign && assignAppt" class="modal-overlay" @click.self="closeAssign">
+      <div class="modal">
+        <div class="modal-header"><h3>Assign Service Staff</h3><button class="close" @click="closeAssign">✕</button></div>
+        <p class="modal-sub">Appointment: <code>{{ assignAppt.appointment_code }}</code></p>
+        <div v-if="staffLoading" class="loading">Loading staff...</div>
+        <div v-else-if="!staffList.length" class="empty">No service staff found</div>
+        <div v-else class="staff-list">
+          <div
+            v-for="s in staffList" :key="s.user_code"
+            class="staff-item" :class="{ selected: selectedStaff === s.user_code }"
+            @click="selectedStaff = s.user_code"
+          >
+            <div class="staff-name">{{ s.first_name }} {{ s.last_name }}</div>
+            <div class="staff-meta">{{ s.user_code }}</div>
+          </div>
+        </div>
+        <p v-if="assignError" class="error-msg">{{ assignError }}</p>
+        <div class="modal-actions">
+          <button class="cancel-btn-sm" @click="closeAssign">Cancel</button>
+          <button class="save-btn" :disabled="!selectedStaff || assigning" @click="assignStaff">
+            {{ assigning ? 'Assigning...' : 'Assign' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -74,7 +102,15 @@ const rsForm = reactive({ appointment_start_date: '', appointment_end_date: '', 
 const rsError = ref('')
 const rsSaving = ref(false)
 
-async function fetch() {
+const showAssign = ref(false)
+const assignAppt = ref(null)
+const staffList = ref([])
+const staffLoading = ref(false)
+const selectedStaff = ref('')
+const assigning = ref(false)
+const assignError = ref('')
+
+async function fetchList() {
   loading.value = true
   error.value = ''
   try {
@@ -94,8 +130,10 @@ async function fetch() {
 async function changeStatus(appt, status) {
   try {
     await api.patch(`/appointments/${appt.appointment_code}/status`, { status })
-    await fetch()
-  } catch (_) {}
+    await fetchList()
+  } catch (err) {
+    alert(err.response?.data?.message || 'Action failed')
+  }
 }
 
 function openReschedule(appt) {
@@ -117,7 +155,7 @@ async function submitReschedule() {
     if (rsForm.reason) payload.reason = rsForm.reason
     await api.post(`/appointments/${rescheduleAppt.value.appointment_code}/reschedule`, payload)
     showReschedule.value = false
-    await fetch()
+    await fetchList()
   } catch (err) {
     rsError.value = err.response?.data?.message || 'Reschedule failed'
   } finally {
@@ -125,7 +163,47 @@ async function submitReschedule() {
   }
 }
 
-onMounted(fetch)
+async function openAssign(appt) {
+  assignAppt.value = appt
+  selectedStaff.value = ''
+  assignError.value = ''
+  showAssign.value = true
+  staffLoading.value = true
+  try {
+    const biz = authStore.user?.business_code
+    const res = await api.get('/users/get-user', { params: { business_code: biz, user_type: 'service_staff' } })
+    staffList.value = res.data.data || []
+  } catch (_) {
+    staffList.value = []
+  } finally {
+    staffLoading.value = false
+  }
+}
+
+function closeAssign() {
+  showAssign.value = false
+  assignAppt.value = null
+  assignError.value = ''
+}
+
+async function assignStaff() {
+  assigning.value = true
+  assignError.value = ''
+  try {
+    await api.post(`/appointments/${assignAppt.value.appointment_code}/participants`, {
+      user_code: selectedStaff.value,
+      user_type: 'service_staff',
+      user_role: 'service_staff',
+    })
+    closeAssign()
+  } catch (err) {
+    assignError.value = err.response?.data?.message || 'Assignment failed'
+  } finally {
+    assigning.value = false
+  }
+}
+
+onMounted(fetchList)
 </script>
 
 <style scoped>
@@ -148,6 +226,7 @@ onMounted(fetch)
 .badge.rejected { background: #fee2e2; color: #991b1b; }
 .badge.canceled { background: #f1f5f9; color: #475569; }
 .badge.rescheduled { background: #fce7f3; color: #9d174d; }
+.assign-btn { background: #e0e7ff; color: #3730a3; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 4px; }
 .approve-btn { background: #dcfce7; color: #166534; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 4px; }
 .reject-btn { background: #fee2e2; color: #dc2626; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 4px; }
 .reschedule-btn { background: #e0e7ff; color: #3730a3; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 4px; }
@@ -162,5 +241,15 @@ code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4p
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field label { font-size: 13px; font-weight: 600; color: #374151; }
 .field input, .field textarea { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; font-family: inherit; }
-.save-btn { background: #064e3b; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.save-btn { background: #6366f1; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.cancel-btn-sm { padding: 8px 16px; border-radius: 6px; background: #f1f5f9; color: #374151; border: none; font-size: 14px; cursor: pointer; }
+.modal-sub { margin: 0 0 14px; font-size: 13px; color: #64748b; }
+.staff-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; margin-bottom: 12px; }
+.staff-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: background 0.15s; }
+.staff-item:hover { background: #f8fafc; }
+.staff-item.selected { border-color: #6366f1; background: #eff0ff; }
+.staff-name { font-size: 14px; font-weight: 600; color: #1e293b; }
+.staff-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
 </style>

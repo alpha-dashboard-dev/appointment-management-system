@@ -32,10 +32,11 @@ class LocationService {
     }
 
     async getAll(filters: any = {}, actor?: any) {
-        // Non-admin actors can only see locations from their own business
-        if (actor && actor.userType !== ROLES.ADMIN) {
+        // Non-admin, non-client actors can only see locations from their own business
+        if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
             filters.business_code = actor.businessCode;
         }
+        // Clients pass business_code as query param; don't override it
         return await repo.findAll(filters);
     }
 

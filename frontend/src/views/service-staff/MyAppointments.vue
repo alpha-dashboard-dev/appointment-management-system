@@ -35,10 +35,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 
-const authStore = useAuthStore()
 const appointments = ref([])
 const loading = ref(true)
 const error = ref('')
@@ -48,9 +46,7 @@ async function fetch() {
   loading.value = true
   error.value = ''
   try {
-    const biz = authStore.user?.business_code
     const params = {}
-    if (biz) params.business_code = biz
     if (statusFilter.value) params.status = statusFilter.value
     const res = await api.get('/appointments', { params })
     appointments.value = res.data.data || []

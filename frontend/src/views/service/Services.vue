@@ -27,8 +27,8 @@
         <thead>
         <tr>
           <th>Name</th>
-          <th>Code</th>
-          <th>Duration (min)</th>
+          <th>Service Code</th>
+          <th>Description</th>
           <th>Price</th>
           <th>Status</th>
           <th width="160">Actions</th>
@@ -38,7 +38,7 @@
         <tr v-for="svc in filteredServices" :key="svc.service_code">
           <td>{{ svc.name }}</td>
           <td><code>{{ svc.service_code }}</code></td>
-          <td>{{ svc.duration_minutes }}</td>
+          <td>{{ svc.description }}</td>
           <td>{{ svc.price != null ? svc.price : '—' }}</td>
           <td><span :class="['badge', svc.status]">{{ svc.status }}</span></td>
           <td>

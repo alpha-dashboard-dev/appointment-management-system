@@ -23,7 +23,7 @@ router.get(
 router.get(
     "/get-business:businessCode",
     authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.CLIENT),
     controller.getByCode
 );
 

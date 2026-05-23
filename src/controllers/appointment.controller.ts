@@ -56,6 +56,16 @@ class AppointmentController {
         }
     }
 
+    async respondToReschedule(req: Request, res: Response) {
+        try {
+            const { action } = req.body;
+            const data = await service.respondToReschedule(String(req.params.appointmentCode), action, req.user);
+            return res.status(200).json({ success: true, message: `Reschedule ${action}`, data });
+        } catch (err: any) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
     async reschedule(req: Request, res: Response) {
         try {
             const data = await service.reschedule(String(req.params.appointmentCode), req.body, req.user);

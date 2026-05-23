@@ -17,8 +17,9 @@
       </select>
       <select v-model="statusFilter" @change="fetchInvoices">
         <option value="">All Status</option>
-        <option value="pending">Pending</option>
+        <option value="draft">Draft</option>
         <option value="paid">Paid</option>
+        <option value="issued">Issued</option>
         <option value="canceled">Canceled</option>
       </select>
     </div>
@@ -42,8 +43,8 @@
         <tr v-for="inv in invoices" :key="inv.id">
           <td><code>{{ inv.id }}</code></td>
           <td><code>{{ inv.appointment_code || '—' }}</code></td>
-          <td>{{ inv.total_amount != null ? inv.total_amount : '—' }}</td>
-          <td><span :class="['badge', inv.status]">{{ inv.status }}</span></td>
+          <td>{{ inv.total != null ? inv.total : '—' }}</td>
+          <td><span :class="['badge', inv.invoice_status]">{{ inv.invoice_status }}</span></td>
           <td>{{ formatDate(inv.created_at) }}</td>
           <td>
             <button class="view-btn" @click="openDetails(inv)">View</button>
@@ -66,8 +67,8 @@
         </div>
         <div class="detail-rows">
           <div class="detail-row"><span>Appointment</span><span>{{ selected?.appointment_code || '—' }}</span></div>
-          <div class="detail-row"><span>Total Amount</span><span>{{ selected?.total_amount }}</span></div>
-          <div class="detail-row"><span>Status</span><span :class="['badge', selected?.status]">{{ selected?.status }}</span></div>
+          <div class="detail-row"><span>Total Amount</span><span>{{ selected?.total}}</span></div>
+          <div class="detail-row"><span>Status</span><span :class="['badge', selected?.invoice_status]">{{ selected?.invoice_status }}</span></div>
           <div class="detail-row"><span>Created</span><span>{{ formatDate(selected?.created_at) }}</span></div>
         </div>
         <div class="modal-actions">
