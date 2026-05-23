@@ -48,6 +48,7 @@
           <div v-show="open.loc && !collapsed" class="submenu">
             <router-link to="/business/locations" class="sub-item">All Locations</router-link>
             <router-link to="/business/locations/create" class="sub-item">New Location</router-link>
+            <router-link to="/business/location-services" class="sub-item">Location Services</router-link>
           </div>
         </div>
 
@@ -140,6 +141,7 @@ const titleMap = {
   '/business/services/create': 'New Service',
   '/business/locations': 'Locations',
   '/business/locations/create': 'New Location',
+  '/business/location-services': 'Location Services',
   '/business/staff': 'Staff',
   '/business/staff/create': 'Add Staff',
   '/business/clients': 'Clients',
