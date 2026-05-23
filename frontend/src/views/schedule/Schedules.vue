@@ -9,7 +9,7 @@
       <button class="btn" @click="showCreateModal = true">+ New Schedule</button>
     </div>
 
-    <div class="filters">
+    <div v-if="isAdmin" class="filters">
       <select v-model="bizFilter" @change="fetchSchedules">
         <option value="">All Businesses</option>
         <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
@@ -73,7 +73,7 @@
           <button class="close" @click="showCreateModal = false">✕</button>
         </div>
         <form class="form" @submit.prevent="createSchedule">
-          <div class="field">
+          <div v-if="isAdmin" class="field">
             <label>Business *</label>
             <select v-model="createForm.business_code" required>
               <option value="">Select business</option>
@@ -122,9 +122,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.role === 'admin')
 const schedules = ref([])
 const businesses = ref([])
 const loading = ref(true)
@@ -180,7 +183,7 @@ async function createSchedule() {
     if (!payload.location_code) delete payload.location_code
     await api.post('/schedules/create-schedule', payload)
     showCreateModal.value = false
-    createForm.value = { business_code: '', user_code: '', working_days: '', employee_type: '', location_code: '', start_time: '', end_time: '' }
+    createForm.value = { business_code: isAdmin.value ? '' : (authStore.user?.business_code || ''), user_code: '', working_days: '', employee_type: '', location_code: '', start_time: '', end_time: '' }
     await fetchSchedules()
   } catch (err) {
     createError.value = err.response?.data?.message || 'Create failed'
@@ -190,6 +193,11 @@ async function createSchedule() {
 }
 
 onMounted(async () => {
+  if (!isAdmin.value) {
+    createForm.value.business_code = authStore.user?.business_code || ''
+    await fetchSchedules()
+    return
+  }
   const [_, bizRes] = await Promise.allSettled([fetchSchedules(), api.get('/businesses/get-business')])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })

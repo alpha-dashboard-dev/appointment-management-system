@@ -1,10 +1,16 @@
 import repo from "../repositories/client.repository";
 import userRepo from "../repositories/user.repository";
 import { validateClient } from "../utils/validator";
+import { ROLES } from "../utils/roles";
 
 class ClientService {
 
     async create(data: any, actor: any) {
+        // Non-admin actors can only create clients for their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            data.business_code = actor.businessCode;
+        }
+
         const { business_code, user_code, name, email, phone, address } = data;
 
         validateClient(data);
@@ -22,19 +28,40 @@ class ClientService {
         });
     }
 
-    async getAll(filters: any = {}) {
+    async getAll(filters: any = {}, actor?: any) {
+        // Non-admin actors can only list clients from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            filters.business_code = actor.businessCode;
+        }
         return await repo.findAll(filters);
     }
 
-    async getByUserCode(userCode: string) {
+    async getByUserCode(userCode: string, actor?: any) {
         const client = await repo.findByUserCode(userCode);
         if (!client) throw new Error("Client not found");
+
+        // Non-admin actors can only view clients from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const clientBusiness = client.dataValues?.business_code ?? client.business_code;
+            if (clientBusiness !== actor.businessCode) {
+                throw new Error("Access denied: client does not belong to your business");
+            }
+        }
+
         return client;
     }
 
     async update(userCode: string, data: any, actor: any) {
         const client = await repo.findByUserCode(userCode);
         if (!client) throw new Error("Client not found");
+
+        // Non-admin actors can only update clients from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const clientBusiness = client.dataValues?.business_code ?? client.business_code;
+            if (clientBusiness !== actor.businessCode) {
+                throw new Error("Access denied: client does not belong to your business");
+            }
+        }
 
         const allowed: any = {};
         const fields = ["name", "email", "phone", "address"];
@@ -48,6 +75,15 @@ class ClientService {
     async delete(userCode: string, actor: any) {
         const client = await repo.findByUserCode(userCode);
         if (!client) throw new Error("Client not found");
+
+        // Non-admin actors can only delete clients from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const clientBusiness = client.dataValues?.business_code ?? client.business_code;
+            if (clientBusiness !== actor.businessCode) {
+                throw new Error("Access denied: client does not belong to your business");
+            }
+        }
+
         return await repo.delete(userCode);
     }
 }

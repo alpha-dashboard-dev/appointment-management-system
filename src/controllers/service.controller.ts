@@ -15,7 +15,7 @@ class ServiceController {
     async getAll(req: Request, res: Response) {
         try {
             const filters = { business_code: req.query.business_code };
-            const data = await service.getAll(filters);
+            const data = await service.getAll(filters, req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -25,7 +25,7 @@ class ServiceController {
 
     async getByCode(req: Request, res: Response) {
         try {
-            const data = await service.getByCode(String(req.params.serviceCode));
+            const data = await service.getByCode(String(req.params.serviceCode), req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(404).json({ success: false, message: err.message });

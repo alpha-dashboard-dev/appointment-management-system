@@ -163,23 +163,24 @@ onMounted(async () => {
 .stat-icon.staff { background: #ffe4e6; }
 .stat-icon.inv { background: #f0fdf4; }
 .stat-icon.loc { background: #fce7f3; }
-.stat-label { margin: 0; font-size: 12px; color: #64748b; }
-.stat-value { margin: 4px 0 0; font-size: 24px; font-weight: 700; color: #1e293b; }
+.stat-label { margin: 0; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-value { margin: 4px 0 0; font-size: 26px; font-weight: 700; color: #1e293b; }
 .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.card-header h3 { margin: 0; font-size: 15px; color: #1e293b; }
+.card-header h3 { margin: 0; font-size: 16px; color: #1e293b; }
 .view-all { font-size: 13px; color: #6366f1; text-decoration: none; }
 .table { width: 100%; border-collapse: collapse; }
 .table th, .table td { text-align: left; padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
 .table th { color: #64748b; font-weight: 600; }
 .loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
-.badge { padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; text-transform: capitalize; }
-.badge.pending { background: #fef9c3; color: #854d0e; }
-.badge.approved { background: #dcfce7; color: #166534; }
-.badge.rejected { background: #fee2e2; color: #991b1b; }
-.badge.completed { background: #dbeafe; color: #1e40af; }
-.badge.canceled { background: #f1f5f9; color: #475569; }
-.badge.rescheduled { background: #ede9fe; color: #5b21b6; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; text-transform: capitalize; }
+.badge.pending { background: #fef3c7; color: #d97706; }
+.badge.approved { background: #dcfce7; color: #16a34a; }
+.badge.rejected { background: #fee2e2; color: #dc2626; }
+.badge.canceled { background: #fee2e2; color: #dc2626; }
+.badge.completed { background: #f0fdf4; color: #15803d; }
+.badge.rescheduled { background: #dbeafe; color: #2563eb; }
+.badge.in_progress { background: #e0f2fe; color: #0369a1; }
 .approve-btn { background: #dcfce7; color: #166534; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 4px; }
 .reject-btn { background: #fee2e2; color: #dc2626; border: none; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
 code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }

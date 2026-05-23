@@ -8,6 +8,7 @@ import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.rep
 import chargeRepo from "../repositories/charge.repository";
 import scheduleRepo from "../repositories/schedule.repository";
 import { generateCode } from "../utils/codeGenerator";
+import { ROLES } from "../utils/roles";
 import {
     validateAppointment,
     validateReschedule,
@@ -23,6 +24,11 @@ class AppointmentService {
 
 
     async create(data: any, actor: any) {
+        // Non-admin actors can only create appointments for their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            data.business_code = actor.businessCode;
+        }
+
         const { business_code, appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes, status, user_role } = data;
 
         validateAppointment(data);
@@ -65,20 +71,45 @@ class AppointmentService {
         return appointment;
     }
 
-    async getAll(filters: any = {}) {
+    async getAll(filters: any = {}, actor?: any) {
+        // Non-admin actors can only see appointments from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            filters.business_code = actor.businessCode;
+        }
+        // Service staff can only see appointments where they are a participant
+        if (actor && actor.userType === ROLES.SERVICE_STAFF) {
+            filters.user_code = actor.userCode;
+        }
         return await repo.findAll(filters);
     }
 
 
-    async getByCode(appointmentCode: string) {
+    async getByCode(appointmentCode: string, actor?: any) {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
+
+        // Non-admin actors can only view appointments from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
+
         return appointment;
     }
 
     async update(appointmentCode: string, data: any, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
+
+        // Non-admin actors can only update appointments from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
 
         const oldValue = { ...appointment.dataValues || appointment };
 
@@ -112,6 +143,14 @@ class AppointmentService {
 
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
+
+        // Non-admin actors can only change status for appointments in their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
 
         // Schedule conflict check when approving
         if (status === "approved") {
@@ -186,6 +225,14 @@ class AppointmentService {
     async reschedule(appointmentCode: string, data: any, actor: any) {
         const original = await repo.findByCode(appointmentCode);
         if (!original) throw new Error("Appointment not found");
+
+        // Non-admin actors can only reschedule appointments in their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = original.dataValues?.business_code ?? original.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
 
         const { appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes } = data;
 
@@ -366,6 +413,11 @@ class AppointmentService {
 
 
     async createRecurrence(data: any, actor: any) {
+        // Non-admin actors can only create recurrences for their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            data.business_code = actor.businessCode;
+        }
+
         const { business_code, service_code, recurrence_uom, recurrence_Value, auto_cancel_after_days, reschedule_after_days } = data;
 
         validateAppointmentRecurrence(data);
@@ -381,7 +433,11 @@ class AppointmentService {
         });
     }
 
-    async getAllRecurrences(filters: any = {}) {
+    async getAllRecurrences(filters: any = {}, actor?: any) {
+        // Non-admin actors can only see recurrences from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            filters.business_code = actor.businessCode;
+        }
         return await appointmentRecurrenceRepo.findAll(filters);
     }
 

@@ -9,7 +9,7 @@
       <button class="btn" @click="showCreateModal = true">+ New Charge</button>
     </div>
 
-    <div class="filters">
+    <div v-if="isAdmin" class="filters">
       <select v-model="bizFilter" @change="fetchCharges">
         <option value="">All Businesses</option>
         <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
@@ -71,7 +71,7 @@
           <button class="close" @click="showCreateModal = false">✕</button>
         </div>
         <form class="form" @submit.prevent="createCharge">
-          <div class="field">
+          <div v-if="isAdmin" class="field">
             <label>Business *</label>
             <select v-model="createForm.business_code" required>
               <option value="">Select business</option>
@@ -108,9 +108,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.role === 'admin')
 const charges = ref([])
 const businesses = ref([])
 const loading = ref(true)
@@ -164,7 +167,7 @@ async function createCharge() {
     if (!payload.description) delete payload.description
     await api.post('/charges/create-charge', payload)
     showCreateModal.value = false
-    createForm.value = { business_code: '', name: '', charge_uom: '', charge_value: '', description: '' }
+    createForm.value = { business_code: isAdmin.value ? '' : (authStore.user?.business_code || ''), name: '', charge_uom: '', charge_value: '', description: '' }
     await fetchCharges()
   } catch (err) {
     createError.value = err.response?.data?.message || 'Create failed'
@@ -174,6 +177,11 @@ async function createCharge() {
 }
 
 onMounted(async () => {
+  if (!isAdmin.value) {
+    createForm.value.business_code = authStore.user?.business_code || ''
+    await fetchCharges()
+    return
+  }
   const [_, bizRes] = await Promise.allSettled([fetchCharges(), api.get('/businesses/get-business')])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })

@@ -6,7 +6,7 @@ import {hashPassword} from "../utils/hashPassword";
 
 class BusinessService {
 
-    async create(data: any) {
+    async create(data: any, actor?: any) {
         const { organization_code, name, email, phone, address, timezone } = data;
         // console.log(data)
         validateBusiness(data);
@@ -57,7 +57,7 @@ class BusinessService {
         return business;
     }
 
-    async update(businessCode: string, data: any) {
+    async update(businessCode: string, data: any, actor?: any) {
         const business = await repo.findByCode(businessCode);
         if (!business) throw new Error("Business not found");
 
@@ -89,7 +89,7 @@ class BusinessService {
         return await repo.update(businessCode, { status });
     }
 
-    async delete(businessCode: string) {
+    async delete(businessCode: string, actor?: any) {
         const business = await repo.findByCode(businessCode);
         if (!business) throw new Error("Business not found");
         return await repo.delete(businessCode);

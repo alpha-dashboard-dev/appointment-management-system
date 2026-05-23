@@ -77,6 +77,7 @@ const routes = [
             { path: "schedules", component: () => import("@/views/operational-staff/Schedules.vue") },
             { path: "availability", component: () => import("@/views/operational-staff/Availability.vue") },
             { path: "clients", component: () => import("@/views/operational-staff/Clients.vue") },
+            { path: "clients/create", component: () => import("@/views/client/CreateClient.vue") },
         ],
     },
 

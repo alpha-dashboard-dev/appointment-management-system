@@ -3,7 +3,7 @@
 
     <div class="page-header">
       <h2>New Client</h2>
-      <router-link to="/clients" class="back-link">← Back</router-link>
+      <router-link :to="backLink" class="back-link">← Back</router-link>
     </div>
 
     <div class="card">
@@ -37,7 +37,7 @@
           </select>
         </div>
 
-        <div class="field">
+        <div v-if="isAdmin" class="field">
           <label>Business</label>
           <select v-model="form.business_code">
             <option value="">Select Business</option>
@@ -60,7 +60,7 @@
         <p v-if="error" class="error-msg">{{ error }}</p>
 
         <div class="form-actions">
-          <router-link to="/clients" class="cancel-btn">Cancel</router-link>
+          <router-link :to="backLink" class="cancel-btn">Cancel</router-link>
           <button type="submit" class="submit-btn" :disabled="loading">
             {{ loading ? 'Creating...' : 'Create Client' }}
           </button>
@@ -73,11 +73,19 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.role === 'admin')
+const backLink = computed(() => {
+  if (authStore.role === 'operational_staff') return '/operations/clients'
+  if (authStore.role === 'business_owner') return '/business/clients'
+  return '/clients'
+})
 
 const form = reactive({
   name: '',
@@ -93,6 +101,10 @@ const loading = ref(false)
 const error = ref('')
 
 onMounted(async () => {
+  if (!isAdmin.value) {
+    form.business_code = authStore.user?.business_code || ''
+    return
+  }
   try {
     const res = await api.get('/businesses/get-business')
     businesses.value = res.data.data || []
@@ -107,7 +119,7 @@ async function submit() {
     if (!payload.business_code) delete payload.business_code
     if (!payload.phone) delete payload.phone
     await api.post('/clients/create-client', payload)
-    router.push('/clients')
+    router.push(backLink.value)
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create client'
   } finally {

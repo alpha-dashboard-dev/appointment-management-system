@@ -10,7 +10,7 @@
     </div>
 
     <div class="filters">
-      <select v-model="bizFilter" @change="fetchMappings">
+      <select v-if="isAdmin" v-model="bizFilter" @change="fetchMappings">
         <option value="">All Businesses</option>
         <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
           {{ biz.name }}
@@ -70,7 +70,7 @@
           <button class="close" @click="showCreateModal = false">✕</button>
         </div>
         <form class="form" @submit.prevent="createMapping">
-          <div class="field">
+          <div v-if="isAdmin" class="field">
             <label>Business *</label>
             <select v-model="createForm.business_code" @change="onBizChange" required>
               <option value="">Select business</option>
@@ -155,7 +155,12 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.role === 'admin')
+const myBizCode = computed(() => authStore.user?.business_code || '')
 
 const mappings = ref([])
 const businesses = ref([])
@@ -211,7 +216,7 @@ function onBizChange() {
 }
 
 function openCreate() {
-  createForm.business_code = ''
+  createForm.business_code = isAdmin.value ? '' : myBizCode.value
   createForm.location_code = ''
   createForm.service_code = ''
   createForm.availability = 'available'
@@ -273,11 +278,14 @@ async function deleteMapping() {
 }
 
 onMounted(async () => {
+  const bizCode = myBizCode.value
+  const locParams = isAdmin.value ? {} : { business_code: bizCode }
+  const svcParams = isAdmin.value ? {} : { business_code: bizCode }
   const [_, bizRes, locRes, svcRes] = await Promise.allSettled([
     fetchMappings(),
-    api.get('/businesses/get-business'),
-    api.get('/locations/get-location'),
-    api.get('/services/get-service'),
+    isAdmin.value ? api.get('/businesses/get-business') : Promise.resolve({ data: { data: [] } }),
+    api.get('/locations/get-location', { params: locParams }),
+    api.get('/services/get-service', { params: svcParams }),
   ])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
   if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []
