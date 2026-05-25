@@ -24,8 +24,8 @@
             <tr v-for="appt in appointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
               <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
-              <td>{{ appt.start_time ?? '—' }}</td>
-              <td>{{ appt.end_time ?? '—' }}</td>
+              <td>{{ formatTime(appt.start_time) }}</td>
+              <td>{{ formatTime(appt.end_time) }}</td>
               <td>{{ appt.location_code ?? '—' }}</td>
               <td class="pe-3"><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
             </tr>
@@ -40,6 +40,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
 
 const appointments = ref([])
 const loading = ref(true)
