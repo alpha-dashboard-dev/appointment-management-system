@@ -36,57 +36,37 @@
           <!-- Charges preview -->
           <div v-if="selectedService" class="charges-box">
 
-            <div class="charges-title">
-              💳 Service Charges
-            </div>
+            <div class="charges-title">💳 Service Charges</div>
 
             <!-- Base Service Price -->
             <div class="charge-row">
               <span>{{ selectedService.name }}</span>
 
-              <span class="charge-val">
-      {{ selectedService.price }}
-      {{ selectedService.currency }}
-    </span>
+              <span class="charge-val">{{ selectedService.price }}{{ selectedService.currency }}</span>
             </div>
 
             <!-- Additional Charges -->
             <template v-if="selectedCharges.length">
 
-              <div
-                  v-for="ch in selectedCharges"
-                  :key="ch.charge_code"
-                  class="charge-row"
-              >
-                <span>{{ ch.name }}</span>
+              <div v-for="ch in selectedCharges" :key="ch.charge_code" class="charge-row">
+<!--         add if charge_uom is percentage then show % sign, otherwise show fixed-->
+                <span>{{ ch.name + " "  + ch.charge_value + " " + "%" }}</span>
 
-                <span class="charge-val">
-        {{ ch.charge_value }}
-        {{ ch.charge_uom }}
-      </span>
+                <span class="charge-val">{{ totalPrice }} {{selectedService?.currency }}</span>
               </div>
+<!--             Total amount after computed service price and business charge fixed or percentage -->
+<!--              <div class="charge-row fw-bold">-->
+<!--                <span>Total Price</span>-->
+<!--                <span class="charge-val">{{ totalPrice }} {{ selectedService?.currency }}</span>-->
+<!--              </div>-->
 
             </template>
 
-            <div
-                v-else
-                class="no-charges"
-            >
+            <div v-else class="no-charges">
               No additional charges
             </div>
 
           </div>
-<!--          <div v-if="selectedService" class="charges-box">-->
-<!--            <div class="charges-title">💳 Service Charges</div>-->
-
-<!--            <div v-if="selectedService.price" class="charges-list">-->
-<!--              <div class="charge-row">-->
-<!--                <span>{{ selectedService.name }}</span>-->
-<!--                <span class="charge-val">{{ selectedService.price }} {{ selectedService.currency }}</span>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <div v-else class="no-charges">No charges defined for this service</div>-->
-<!--          </div>-->
         </template>
 
         <div class="row">
@@ -132,11 +112,7 @@ const loading = ref(false)
 const error = ref('')
 
 // const selectedService = computed(() => services.value.find(s => s.service_code === form.service_code) || null)
-const selectedService = computed(() =>
-    services.value.find(
-        s => s.service_code === form.service_code
-    ) || null
-)
+const selectedService = computed(() => services.value.find(s => s.service_code === form.service_code) || null)
 
 const selectedCharges = computed(() => {
   if (!selectedService.value) return []
@@ -144,6 +120,25 @@ const selectedCharges = computed(() => {
   return charges.value.filter(
       ch => ch.business_code === selectedService.value.business_code
   )
+})
+
+const totalPrice = computed(() => {
+  if (!selectedService.value) return 0
+
+  let base = Number(selectedService.value.price || 0)
+
+  let fixedCharges = 0
+  let percentCharges = 0
+
+  selectedCharges.value.forEach(ch => {
+    if (ch.charge_uom === 'percentage') {
+      percentCharges += (base * Number(ch.charge_value)) / 100
+    } else {
+      fixedCharges += Number(ch.charge_value)
+    }
+  })
+
+  return base + fixedCharges + percentCharges
 })
 
 onMounted(async () => {

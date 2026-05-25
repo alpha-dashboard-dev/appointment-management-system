@@ -27,8 +27,8 @@
             <tr v-for="appt in appointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
               <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
-              <td>{{ appt.start_time ?? '—' }}</td>
-              <td>{{ appt.end_time ?? '—' }}</td>
+              <td>{{ formatTime(appt.start_time) }}</td>
+              <td>{{ formatTime(appt.end_time) }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
               <td class="pe-3">
                 <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(appt)">View</button>
@@ -59,7 +59,7 @@
             <div class="bg-light rounded p-3 mb-3 d-flex flex-wrap gap-3" v-if="selected">
               <div><span class="text-muted small">Code</span><div><code>{{ selected.appointment_code }}</code></div></div>
               <div><span class="text-muted small">Date</span><div>{{ selected.appointment_start_date?.split('T')[0] }}</div></div>
-              <div><span class="text-muted small">Time</span><div>{{ selected.start_time }} – {{ selected.end_time }}</div></div>
+              <div><span class="text-muted small">Time</span><div>{{ formatTime(selected.start_time) }} – {{ formatTime(selected.end_time) }}</div></div>
               <div><span class="text-muted small">Location</span><div>{{ selected.location_code || '—' }}</div></div>
             </div>
             <div v-if="availabilityLoading" class="text-center text-muted py-4">
@@ -160,8 +160,8 @@
             <dl class="row mb-3">
               <dt class="col-5 text-muted">Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
               <dt class="col-5 text-muted">Date</dt><dd class="col-7">{{ selected.appointment_start_date?.split('T')[0] ?? '—' }}</dd>
-              <dt class="col-5 text-muted">Start Time</dt><dd class="col-7">{{ selected.start_time ?? '—' }}</dd>
-              <dt class="col-5 text-muted">End Time</dt><dd class="col-7">{{ selected.end_time ?? '—' }}</dd>
+              <dt class="col-5 text-muted">Start Time</dt><dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
+              <dt class="col-5 text-muted">End Time</dt><dd class="col-7">{{ formatTime(selected.end_time) }}</dd>
               <dt class="col-5 text-muted">Location</dt><dd class="col-7">{{ selected.location_code || '—' }}</dd>
               <dt class="col-5 text-muted">Status</dt><dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
               <template v-if="selected.notes"><dt class="col-5 text-muted">Notes</dt><dd class="col-7">{{ selected.notes }}</dd></template>
@@ -266,6 +266,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
+
 
 const authStore = useAuthStore()
 const appointments = ref([])

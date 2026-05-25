@@ -7,14 +7,21 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Code</th><th>Date</th><th>Start</th><th>End</th><th>Location</th><th class="pe-3" style="width:240px">Actions</th></tr>
+            <tr>
+              <th class="ps-3">Appointment Code</th>
+              <th>Start ate</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Location</th>
+              <th class="pe-3" style="width:240px">Actions</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="appt in appointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
               <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
-              <td>{{ appt.start_time ?? '—' }}</td>
-              <td>{{ appt.end_time ?? '—' }}</td>
+              <td>{{ formatTime(appt.start_time) }}</td>
+              <td>{{ formatTime(appt.start_time)}}</td>
               <td>{{ appt.location_code ?? '—' }}</td>
               <td class="pe-3">
                 <button class="btn btn-sm btn-outline-primary me-1" @click="openAssignModal(appt)">Assign Staff</button>
@@ -66,6 +73,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
 
 const authStore = useAuthStore()
 const appointments = ref([])
@@ -125,6 +133,7 @@ function closeAssignModal() {
   assignAppt.value = null
   assignError.value = ''
 }
+
 
 async function assignStaff() {
   assigning.value = true

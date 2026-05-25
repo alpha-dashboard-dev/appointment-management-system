@@ -40,8 +40,8 @@
         <thead>
           <tr>
             <th>Code</th>
-            <th>Date</th>
-            <th>Client</th>
+            <th>Start Date</th>
+            <th>Start Time</th>
             <th>Location</th>
             <th>Status</th>
 <!--            <th>Actions</th>-->
@@ -51,7 +51,7 @@
           <tr v-for="appt in pendingAppts" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
             <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
-            <td>{{ appt.client_code ?? '—' }}</td>
+            <td>{{ formatTime(appt.start_time)}}</td>
             <td>{{ appt.location_code ?? '—' }}</td>
             <td><span class="badge pending">Pending</span></td>
 <!--            <td>-->
@@ -113,6 +113,15 @@ async function changeStatus(appt, status) {
     await fetchAppointments()
   } catch (_) {}
 }
+
+function formatTime(t) {
+  if (!t) return '—'
+  const [h, m] = t.split(':').map(Number)
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
 
 onMounted(fetchAppointments)
 </script>

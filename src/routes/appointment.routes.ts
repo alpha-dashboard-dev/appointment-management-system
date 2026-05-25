@@ -19,7 +19,7 @@ router.post(
 router.get(
     "/",
     authenticate,
-    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
+    authorizeRoles(...ALL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getAll
 );
 

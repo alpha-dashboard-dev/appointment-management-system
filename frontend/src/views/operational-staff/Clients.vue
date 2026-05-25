@@ -13,11 +13,11 @@
       <table v-else class="table">
         <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Code</th></tr></thead>
         <tbody>
-          <tr v-for="client in filtered" :key="client.client_code">
+          <tr v-for="client in filtered" :key="client.user_code">
             <td>{{ client.name }}</td>
             <td>{{ client.email }}</td>
             <td>{{ client.phone || '—' }}</td>
-            <td><code>{{ client.client_code }}</code></td>
+            <td><code>{{ client.user_code }}</code></td>
           </tr>
           <tr v-if="filtered.length === 0"><td colspan="4" class="empty">No clients found</td></tr>
         </tbody>

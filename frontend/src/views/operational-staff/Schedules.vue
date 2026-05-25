@@ -10,8 +10,8 @@
           <tr v-for="s in schedules" :key="s.id">
             <td><code>{{ s.user_code }}</code></td>
             <td>{{ s.working_days }}</td>
-            <td>{{ s.start_time }}</td>
-            <td>{{ s.end_time }}</td>
+            <td>{{ formatTime(s.start_time) }}</td>
+            <td>{{ formatTime(s.end_time) }}</td>
             <td>{{ s.employee_type || '—' }}</td>
             <td>{{ s.location_code || '—' }}</td>
           </tr>
@@ -26,6 +26,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
 
 const authStore = useAuthStore()
 const schedules = ref([])
@@ -45,6 +46,7 @@ async function fetchSchedules() {
     loading.value = false
   }
 }
+
 
 onMounted(fetchSchedules)
 </script>
