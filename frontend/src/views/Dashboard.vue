@@ -114,6 +114,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
+import formatTime from "../utils/formatTime.js";
 
 const loading = ref(true)
 const recentAppointments = ref([])
@@ -129,13 +130,6 @@ const stats = ref({
   locations: 0,
 })
 
-function formatTime(t) {
-  if (!t) return '—'
-  const [h, m] = t.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
-}
 
 onMounted(async () => {
   try {
