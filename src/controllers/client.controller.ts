@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import service from "../services/client.service";
+import service from "../services/user.service";
 
 class ClientController {
 
@@ -14,7 +14,10 @@ class ClientController {
 
     async getAll(req: Request, res: Response) {
         try {
-            const filters = { business_code: req.query.business_code };
+            const filters = {
+                business_code: req.query.business_code,
+                user_type: "client",
+            };
             const data = await service.getAll(filters);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
@@ -24,7 +27,7 @@ class ClientController {
 
     async getByCode(req: Request, res: Response) {
         try {
-            const data = await service.getByUserCode(String(req.params.userCode));
+            const data = await service.getByCode(String(req.params.userCode));
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(404).json({ success: false, message: err.message });

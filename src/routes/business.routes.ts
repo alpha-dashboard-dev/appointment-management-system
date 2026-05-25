@@ -7,42 +7,42 @@ import { ROLES } from "../utils/roles";
 const router = Router();
 
 router.post(
-    "/",
+    "/create-business",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.create
 );
 
 router.get(
-    "/",
+    "/get-business",
     authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.CLIENT),
     controller.getAll
 );
 
 router.get(
-    "/:businessCode",
+    "/get-business:businessCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.getByCode
 );
 
 router.put(
-    "/:businessCode",
+    "/update-business:businessCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.patch(
-    "/:businessCode/status",
+    "/update-business-status:businessCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.changeStatus
 )
 
 router.delete(
-    "/:businessCode",
+    "/delete-business:businessCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.delete

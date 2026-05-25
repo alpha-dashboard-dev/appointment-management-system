@@ -8,8 +8,8 @@ module.exports = {
 
         const hashAdmin = await bcrypt.hash("123456", 12);
         const hashPass = await bcrypt.hash("password123", 12);
-
-        // 1. Organization
+        //
+        // // 1. Organization
         await queryInterface.bulkInsert("organizations", [
             {
                 organization_code: "ORG00001",

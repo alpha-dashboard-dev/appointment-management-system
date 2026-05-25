@@ -6,6 +6,7 @@ import appointmentChargeRepo from "../repositories/appointmentCharge.repository"
 import appointmentDiscountRepo from "../repositories/appointmentDiscount.repository";
 import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.repository";
 import chargeRepo from "../repositories/charge.repository";
+import scheduleRepo from "../repositories/schedule.repository";
 import { generateCode } from "../utils/codeGenerator";
 import {
     validateAppointment,
@@ -111,6 +112,35 @@ class AppointmentService {
 
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
+
+        // Schedule conflict check when approving
+        if (status === "approved") {
+            if (!appointment.location_code) {
+                throw new Error("Cannot approve appointment without a location");
+            }
+            if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time) {
+                throw new Error("Appointment is missing date or time information");
+            }
+
+            const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+            const parsed = new Date(appointment.appointment_start_date);
+            if (isNaN(parsed.getTime())) throw new Error("Appointment has invalid date");
+            const workingDay = days[parsed.getDay()];
+
+            const availableStaff = await scheduleRepo.findAvailableStaff(
+                appointment.business_code,
+                appointment.location_code,
+                workingDay,
+                appointment.start_time,
+                appointment.end_time
+            );
+
+            if (!availableStaff || availableStaff.length === 0) {
+                throw new Error(
+                    `No available staff for this appointment time slot (${workingDay} ${appointment.start_time}–${appointment.end_time} at location ${appointment.location_code})`
+                );
+            }
+        }
 
         const oldStatus = appointment.status;
 

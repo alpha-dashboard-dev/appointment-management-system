@@ -7,42 +7,42 @@ import { ROLES } from "../utils/roles";
 const router = Router();
 
 router.post(
-    "/",
+    "/create-location",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.create
 );
 
 router.get(
-    "/",
+    "/get-location",
     authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.CLIENT),
     controller.getAll
 );
 
 router.get(
-    "/:locationCode",
+    "/get-location:locationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getByCode
 );
 
 router.put(
-    "/:locationCode",
+    "/update-location:locationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.patch(
-    "/:locationCode/status",
+    "/update-location-status:locationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.delete(
-    "/:locationCode",
+    "/delete-location:locationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete

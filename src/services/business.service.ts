@@ -62,7 +62,7 @@ class BusinessService {
         if (!business) throw new Error("Business not found");
 
         const allowed: any = {};
-        const fields = ["name", "email", "phone", "address", "timezone", "user_code"];
+        const fields = ["name", "email", "phone", "address", "timezone", "user_code", "status"];
         for (const f of fields) {
             if (data[f] !== undefined) allowed[f] = data[f];
         }

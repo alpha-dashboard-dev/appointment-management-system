@@ -6,7 +6,6 @@ class LocationService {
 
     async create(data: any, actor: any) {
         const { business_code, location_type, address, street, apartment, city, postal_code, province, country } = data;
-        // console.log(location_type);
 
         validateLocation(data);
 

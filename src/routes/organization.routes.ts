@@ -7,35 +7,35 @@ import { ROLES } from "../utils/roles";
 const router = Router();
 
 router.post(
-    "/",
+    "/create-organization",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.create
 );
 
 router.get(
-    "/",
+    "/get-organization",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.getAll
 );
 
 router.get(
-    "/:organizationCode",
+    "/get-organization:organizationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.getByCode
 );
 
 router.put(
-    "/:organizationCode",
+    "/update-organization:organizationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.update
 );
 
 router.patch(
-    "/:organizationCode/status",
+    "/update-organization-status:organizationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.changeStatus

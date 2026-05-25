@@ -7,35 +7,35 @@ import { ROLES } from "../utils/roles";
 const router = Router();
 
 router.post(
-    "/",
+    "/create-charge",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.create
 );
 
 router.get(
-    "/",
+    "/get-charge",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.getAll
 );
 
 router.get(
-    "/:chargeCode",
+    "/get-charge:chargeCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.getByCode
 );
 
 router.put(
-    "/:chargeCode",
+    "/update-charge:chargeCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.delete(
-    "/:chargeCode",
+    "/delete-charge:chargeCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete

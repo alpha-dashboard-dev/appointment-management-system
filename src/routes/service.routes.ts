@@ -7,7 +7,7 @@ import { ROLES } from "../utils/roles";
 const router = Router();
 
 router.post(
-    "/",
+    "/create-service",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.create
@@ -22,35 +22,35 @@ router.get(
 );
 
 router.get(
-    "/",
+    "/get-service",
     authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF),
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getAll
 );
 
 router.get(
-    "/:serviceCode",
+    "/get-service:serviceCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getByCode
 );
 
 router.put(
-    "/:serviceCode",
+    "/update-service:serviceCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.patch(
-    "/:serviceCode/status",
+    "/update-service-status:serviceCode/status",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.changeStatus
 );
 
 router.delete(
-    "/:serviceCode",
+    "/delete-service:serviceCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete
