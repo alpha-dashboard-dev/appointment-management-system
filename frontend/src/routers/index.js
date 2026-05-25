@@ -11,6 +11,10 @@ import { useAuthStore } from "@/stores/auth.store";
 const routes = [
     { path: "/", redirect: "/dashboard" },
     { path: "/login", component: () => import("@/views/auth/Login.vue") },
+    { path: '/forgot-password', component: () => import("@/views/auth/ForgotPassword.vue") },
+    { path: '/settings', component: () => import("@/views/settings/SettingsView.vue") },
+    { path: '/notifications', component: () => import("@/views/notifications/NotificationsPage.vue") },
+    { path: '/profile', component: () => import("@/views/settings/SettingsView.vue") },
 
     {
         path: "/",
@@ -74,6 +78,7 @@ const routes = [
             { path: "schedules", component: () => import("@/views/operational-staff/Schedules.vue") },
             { path: "availability", component: () => import("@/views/operational-staff/Availability.vue") },
             { path: "clients", component: () => import("@/views/operational-staff/Clients.vue") },
+            { path: "clients/create", component: () => import("@/views/client/CreateClient.vue") },
         ],
     },
 

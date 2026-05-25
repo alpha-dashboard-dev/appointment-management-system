@@ -12,13 +12,26 @@ class ScheduleController {
         }
     }
 
+    async bulkCreate(req: Request, res: Response) {
+        try {
+            const entries = req.body;
+            if (!Array.isArray(entries) || entries.length === 0) {
+                return res.status(400).json({ success: false, message: "Request body must be a non-empty array" });
+            }
+            const data = await service.bulkCreate(entries, req.user);
+            return res.status(201).json({ success: true, message: "Schedules created", data });
+        } catch (err: any) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
     async getAll(req: Request, res: Response) {
         try {
             const filters = {
                 business_code: req.query.business_code,
                 user_code: req.query.user_code,
             };
-            const data = await service.getAll(filters);
+            const data = await service.getAll(filters, req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -27,7 +40,7 @@ class ScheduleController {
 
     async getById(req: Request, res: Response) {
         try {
-            const data = await service.getById(Number(req.params.id));
+            const data = await service.getById(Number(req.params.id), req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(404).json({ success: false, message: err.message });

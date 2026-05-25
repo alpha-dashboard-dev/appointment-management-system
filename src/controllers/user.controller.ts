@@ -30,7 +30,7 @@ class UserController {
                 is_active: req.query.is_active,
             };
 
-            const data = await service.getAll(filters);
+            const data = await service.getAll(filters, req.user);
 
             return res.status(200).json({
                 success: true,
@@ -49,7 +49,7 @@ class UserController {
         try {
             const userCode = String(req.params.userCode);
 
-            const data = await service.getByCode(userCode);
+            const data = await service.getByCode(userCode, req.user);
 
             return res.status(200).json({
                 success: true,

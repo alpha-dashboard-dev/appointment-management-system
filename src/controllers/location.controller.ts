@@ -18,7 +18,7 @@ class LocationController {
                 business_code: req.query.business_code,
                 location_type: req.query.location_type,
             };
-            const data = await service.getAll(filters);
+            const data = await service.getAll(filters, req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -27,7 +27,7 @@ class LocationController {
 
     async getByCode(req: Request, res: Response) {
         try {
-            const data = await service.getByCode(String(req.params.locationCode));
+            const data = await service.getByCode(String(req.params.locationCode), req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(404).json({ success: false, message: err.message });

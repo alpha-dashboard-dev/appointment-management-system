@@ -6,8 +6,10 @@ import appointmentChargeRepo from "../repositories/appointmentCharge.repository"
 import appointmentDiscountRepo from "../repositories/appointmentDiscount.repository";
 import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.repository";
 import chargeRepo from "../repositories/charge.repository";
+import invoiceRepo from "../repositories/invoice.repository";
 import scheduleRepo from "../repositories/schedule.repository";
 import { generateCode } from "../utils/codeGenerator";
+import { ROLES } from "../utils/roles";
 import {
     validateAppointment,
     validateReschedule,
@@ -23,7 +25,25 @@ class AppointmentService {
 
 
     async create(data: any, actor: any) {
-        const { business_code, appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes, status, user_role } = data;
+        // Clients always book under the given business_code (not their own)
+        // Non-client, non-admin actors can only book for their own business
+        if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
+            data.business_code = actor.businessCode;
+        }
+
+        const {
+            business_code,
+            appointment_start_date,
+            appointment_end_date,
+            start_time,
+            end_time,
+            location_code,
+            notes,
+            status,
+            user_role,
+            service_codes,   // optional array: ["SVC12345", ...]  for clients to attach services at booking
+            client_code,     // optional: explicit client to book for (ops staff on behalf of client)
+        } = data;
 
         validateAppointment(data);
 
@@ -37,7 +57,7 @@ class AppointmentService {
             start_time,
             end_time,
             location_code: location_code || null,
-            status,
+            status: status || "pending",
             created_by: actor?.userCode,
             notes: notes || null,
         });
@@ -51,6 +71,7 @@ class AppointmentService {
             new_value: { appointment_code, status: "pending" },
         });
 
+        // Add the booking actor as a participant
         if (actor?.userCode) {
             await participantRepo.create({
                 business_code,
@@ -62,23 +83,100 @@ class AppointmentService {
             });
         }
 
+        // When ops staff books on behalf of a client, also add the client as participant
+        if (client_code && client_code !== actor?.userCode) {
+            await participantRepo.create({
+                business_code,
+                appointment_code,
+                user_code: client_code,
+                user_type: ROLES.CLIENT,
+                user_role: null,
+                status: "active",
+            });
+        }
+
+        // Attach services immediately if provided (client booking flow)
+        if (Array.isArray(service_codes) && service_codes.length > 0) {
+            for (const service_code of service_codes) {
+                await appointmentServiceRepo.create({
+                    business_code,
+                    service_code,
+                    appointment_code,
+                });
+            }
+        }
+
         return appointment;
     }
 
-    async getAll(filters: any = {}) {
+    async getAll(filters: any = {}, actor?: any) {
+        // Non-admin actors can only see appointments from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            filters.business_code = actor.businessCode;
+        }
+
+        // Service staff can only see appointments where they are a participant
+        if (actor && actor.userType === ROLES.SERVICE_STAFF) {
+            const participantCodes = await participantRepo.findAppointmentCodesByUser(actor.userCode);
+            return repo.findByParticipantCodes(participantCodes, { business_code: filters.business_code, status: filters.status });
+        }
+
+        // Client can filter by their own user_code (created_by)
+        if (actor && actor.userType === ROLES.CLIENT) {
+            filters.user_code = actor.userCode;
+        }
+
         return await repo.findAll(filters);
     }
 
 
-    async getByCode(appointmentCode: string) {
+    async getByCode(appointmentCode: string, actor?: any) {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
-        return appointment;
+
+        // Non-admin actors can only view appointments from their own business
+        // Clients can view any appointment they created
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            if (actor.userType === ROLES.CLIENT) {
+                const apptCreator = appointment.dataValues?.created_by ?? appointment.created_by;
+                if (apptCreator !== actor.userCode) {
+                    throw new Error("Access denied: this appointment does not belong to you");
+                }
+            } else {
+                const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+                if (apptBusiness !== actor.businessCode) {
+                    throw new Error("Access denied: appointment does not belong to your business");
+                }
+            }
+        }
+
+        const result: any = appointment.dataValues ? { ...appointment.dataValues } : { ...appointment };
+
+        // If the appointment was rescheduled, look up the new appointment so clients can see the offer
+        if (result.status === "rescheduled" && result.appointment_code) {
+            const rescheduledTo = await repo.findAll({
+                rescheduled_from: result.appointment_code,
+            } as any);
+            if (rescheduledTo.length > 0) {
+                const r: any = rescheduledTo[0];
+                result.reschedule_offer = r.dataValues ? { ...r.dataValues } : { ...r };
+            }
+        }
+
+        return result;
     }
 
     async update(appointmentCode: string, data: any, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
+
+        // Non-admin actors can only update appointments from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
 
         const oldValue = { ...appointment.dataValues || appointment };
 
@@ -112,6 +210,14 @@ class AppointmentService {
 
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
+
+        // Non-admin actors can only change status for appointments in their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
 
         // Schedule conflict check when approving
         if (status === "approved") {
@@ -149,15 +255,18 @@ class AppointmentService {
         if (status === "canceled") updateData.cancelled_by = actor?.userCode || null;
 
         const actionMap: Record<string, string> = {
-            APPROVED: "assigned",
-            CANCELLED: "canceled",
-            RESCHEDULED: "rescheduled",
-            UPDATED: "updated",
+            approved: "approved",
+            rejected: "rejected",
+            canceled: "canceled",
+            rescheduled: "rescheduled",
+            completed: "completed",
+            in_progress: "in_progress",
         };
 
         await repo.update(appointmentCode, updateData);
 
         if (status === "approved") {
+            // Apply all active business charges to this appointment
             const activeCharges = await chargeRepo.findActiveByBusiness(appointment.business_code);
             for (const charge of activeCharges) {
                 const chargeData = charge.dataValues || charge;
@@ -169,6 +278,17 @@ class AppointmentService {
                     charge_value: chargeData.charge_value,
                 });
             }
+
+            // Auto-generate a draft invoice
+            await invoiceRepo.create({
+                business_code: appointment.business_code,
+                appointment_code: appointmentCode,
+                subtotal: null,
+                total: null,
+                invoice_status: "draft",
+                date: new Date().toISOString().split("T")[0],
+                updated_by: actor?.userCode || null,
+            });
         }
 
         await historyRepo.create({
@@ -186,6 +306,14 @@ class AppointmentService {
     async reschedule(appointmentCode: string, data: any, actor: any) {
         const original = await repo.findByCode(appointmentCode);
         if (!original) throw new Error("Appointment not found");
+
+        // Non-admin actors can only reschedule appointments in their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = original.dataValues?.business_code ?? original.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
 
         const { appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes } = data;
 
@@ -222,6 +350,90 @@ class AppointmentService {
         return newAppointment;
     }
 
+    // Client accepts or rejects a reschedule offer
+    async respondToReschedule(originalAppointmentCode: string, action: string, actor: any) {
+        if (!["accepted", "rejected"].includes(action)) {
+            throw new Error("Action must be 'accepted' or 'rejected'");
+        }
+
+        const original = await repo.findByCode(originalAppointmentCode);
+        if (!original) throw new Error("Original appointment not found");
+
+        // Only the client who created the original appointment can respond
+        if (actor.userType !== ROLES.CLIENT) {
+            throw new Error("Only the client can respond to a reschedule offer");
+        }
+        const originalCreator = original.dataValues?.created_by ?? original.created_by;
+        if (originalCreator !== actor.userCode) {
+            throw new Error("Access denied: this appointment does not belong to you");
+        }
+
+        if ((original.dataValues?.status ?? original.status) !== "rescheduled") {
+            throw new Error("No reschedule offer on this appointment");
+        }
+
+        // Find the new (rescheduled) appointment linked to this one
+        const candidates = await repo.findAll({ rescheduled_from: originalAppointmentCode } as any);
+        if (!candidates.length) throw new Error("Reschedule offer not found");
+        const rescheduledAppointment = candidates[0];
+        const rescheduledCode = rescheduledAppointment.dataValues?.appointment_code ?? rescheduledAppointment.appointment_code;
+        const business_code = original.dataValues?.business_code ?? original.business_code;
+
+        if (action === "accepted") {
+            // Approve the new appointment + generate charges & draft invoice
+            const activeCharges = await chargeRepo.findActiveByBusiness(business_code);
+            for (const charge of activeCharges) {
+                const chargeData = charge.dataValues || charge;
+                await appointmentChargeRepo.create({
+                    business_code,
+                    appointment_code: rescheduledCode,
+                    charge_code: chargeData.charge_code,
+                    charge_uom: chargeData.charge_uom,
+                    charge_value: chargeData.charge_value,
+                });
+            }
+
+            await repo.update(rescheduledCode, { status: "approved" });
+
+            await invoiceRepo.create({
+                business_code,
+                appointment_code: rescheduledCode,
+                subtotal: null,
+                total: null,
+                invoice_status: "draft",
+                date: new Date().toISOString().split("T")[0],
+                updated_by: actor.userCode,
+            });
+
+            await historyRepo.create({
+                business_code,
+                appointment_code: rescheduledCode,
+                action: "approved",
+                changed_by: actor.userCode,
+                old_value: { status: "pending" },
+                new_value: { status: "approved" },
+            });
+
+            return { originalAppointmentCode, rescheduledCode, action: "accepted" };
+        } else {
+            // Client rejected — cancel the new appointment
+            await repo.update(rescheduledCode, { status: "canceled", cancelled_by: actor.userCode });
+            // Restore original to pending so it can be re-processed
+            await repo.update(originalAppointmentCode, { status: "pending" });
+
+            await historyRepo.create({
+                business_code,
+                appointment_code: rescheduledCode,
+                action: "canceled",
+                changed_by: actor.userCode,
+                old_value: { status: "pending" },
+                new_value: { status: "canceled" },
+            });
+
+            return { originalAppointmentCode, rescheduledCode, action: "rejected" };
+        }
+    }
+
 
     async addParticipant(appointmentCode: string, data: any, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
@@ -233,6 +445,31 @@ class AppointmentService {
             user_code,
             user_type,
         });
+
+        // Double-booking conflict check for service staff assignment
+        if (user_type === ROLES.SERVICE_STAFF) {
+            if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time) {
+                throw new Error("Appointment is missing date or time — cannot check for conflicts");
+            }
+
+            const dateStr = new Date(appointment.appointment_start_date).toISOString().split("T")[0];
+
+            const conflicts = await participantRepo.findConflictsForStaff(
+                user_code,
+                dateStr,
+                appointment.start_time,
+                appointment.end_time,
+                appointmentCode
+            );
+
+            if (conflicts.length > 0) {
+                const conflictCodes = conflicts.map((c: any) => c.appointment_code).join(", ");
+                throw new Error(
+                    `Conflict detected: staff ${user_code} is already assigned to appointment(s) [${conflictCodes}] ` +
+                    `that overlap with ${dateStr} ${appointment.start_time}–${appointment.end_time}`
+                );
+            }
+        }
 
         return await participantRepo.create({
             business_code: appointment.business_code,
@@ -366,6 +603,11 @@ class AppointmentService {
 
 
     async createRecurrence(data: any, actor: any) {
+        // Non-admin actors can only create recurrences for their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            data.business_code = actor.businessCode;
+        }
+
         const { business_code, service_code, recurrence_uom, recurrence_Value, auto_cancel_after_days, reschedule_after_days } = data;
 
         validateAppointmentRecurrence(data);
@@ -381,7 +623,11 @@ class AppointmentService {
         });
     }
 
-    async getAllRecurrences(filters: any = {}) {
+    async getAllRecurrences(filters: any = {}, actor?: any) {
+        // Non-admin actors can only see recurrences from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            filters.business_code = actor.businessCode;
+        }
         return await appointmentRecurrenceRepo.findAll(filters);
     }
 

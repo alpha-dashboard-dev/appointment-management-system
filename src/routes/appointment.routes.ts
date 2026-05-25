@@ -7,7 +7,7 @@ import { ROLES } from "../utils/roles";
 const router = Router();
 
 const ALL_STAFF = [ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF];
-const MANAGERS = [ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF];
+const MANAGERS = [ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF];
 
 router.post(
     "/",
@@ -49,6 +49,13 @@ router.post(
     authenticate,
     authorizeRoles(...MANAGERS),
     controller.reschedule
+);
+
+router.patch(
+    "/:appointmentCode/reschedule/respond",
+    authenticate,
+    authorizeRoles(ROLES.CLIENT),
+    controller.respondToReschedule
 );
 
 router.get(
@@ -113,7 +120,7 @@ router.post(
 router.get(
     "/:appointmentCode/charges",
     authenticate,
-    authorizeRoles(...MANAGERS),
+    authorizeRoles(...MANAGERS, ROLES.CLIENT),
     controller.getCharges
 );
 

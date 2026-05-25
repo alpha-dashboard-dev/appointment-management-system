@@ -54,6 +54,60 @@ body {
   margin: 0;
 }
 
+/* ─── AMS Brand & Bootstrap Overrides ─── */
+:root { --ams-indigo: #6366f1; }
+
+.ams-page { display: flex; flex-direction: column; gap: 1rem; }
+
+.btn-ams, .btn-ams:active, .btn-ams:focus {
+  background-color: var(--ams-indigo) !important;
+  border-color: var(--ams-indigo) !important;
+  color: #fff !important;
+}
+.btn-ams:hover { background-color: #4f46e5 !important; border-color: #4f46e5 !important; }
+.btn-ams:disabled { opacity: 0.65; cursor: not-allowed; }
+
+/* Status badges — soft palette */
+.ams-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.ams-badge.active, .ams-badge.available, .ams-badge.paid    { background: #dcfce7; color: #16a34a; }
+.ams-badge.inactive, .ams-badge.not_available, .ams-badge.rejected,
+.ams-badge.cancelled, .ams-badge.canceled                   { background: #fee2e2; color: #dc2626; }
+.ams-badge.pending                                           { background: #fef3c7; color: #d97706; }
+.ams-badge.approved, .ams-badge.completed                   { background: #dcfce7; color: #16a34a; }
+.ams-badge.rescheduled                                       { background: #dbeafe; color: #2563eb; }
+.ams-badge.in_progress                                       { background: #dbeafe; color: #1d4ed8; }
+.ams-badge.draft                                             { background: #f1f5f9; color: #64748b; }
+.ams-badge.created                                           { background: #dcfce7; color: #16a34a; }
+.ams-badge.updated                                           { background: #f1f5f9; color: #64748b; }
+.ams-badge.assigned                                          { background: #ede9fe; color: #5b21b6; }
+.ams-badge.issued, .ams-badge.sent                          { background: #dbeafe; color: #2563eb; }
+
+/* AMS table helpers */
+.ams-table th  { color: #64748b; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.ams-table td  { font-size: 13px; vertical-align: middle; }
+.ams-table code {
+  font-size: 11px;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #374151;
+}
+
+/* Staff picker used in assign-staff modals */
+.staff-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: background .15s; }
+.staff-item:hover { background: #f8fafc; }
+.staff-item.selected { border-color: #6366f1; background: #eff0ff; }
+.staff-name { font-size: 14px; font-weight: 600; color: #1e293b; }
+.staff-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+
 h1,
 h2 {
   font-family: var(--heading);

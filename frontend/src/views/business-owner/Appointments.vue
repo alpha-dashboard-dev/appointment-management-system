@@ -1,16 +1,16 @@
 <template>
-  <div class="page">
-    <div class="header">
+  <div class="ams-page">
+    <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h2>Appointments</h2>
-        <p class="sub">Manage appointment requests for your business</p>
+        <h2 class="mb-0">Appointments</h2>
+        <p class="text-muted small mb-0">Manage appointment requests for your business</p>
       </div>
-      <router-link to="/business/appointments/create" class="btn">+ New Appointment</router-link>
+      <router-link to="/business/appointments/create" class="btn btn-ams">+ New Appointment</router-link>
     </div>
 
     <!-- FILTERS -->
-    <div class="filters">
-      <select v-model="statusFilter">
+    <div class="d-flex gap-2 flex-wrap">
+      <select v-model="statusFilter" class="form-select" style="max-width:180px">
         <option value="">All Status</option>
         <option value="pending">Pending</option>
         <option value="approved">Approved</option>
@@ -19,95 +19,124 @@
         <option value="completed">Completed</option>
         <option value="canceled">Canceled</option>
       </select>
-      <input v-model="search" placeholder="Search by code..." />
+      <input v-model="search" class="form-control" style="max-width:260px" placeholder="Search by code..." />
     </div>
 
-    <div class="card">
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else-if="error" class="error-msg">{{ error }}</div>
-      <table v-else class="table">
-        <thead>
-          <tr>
-            <th>Code</th><th>Date</th><th>Start</th><th>End</th><th>Location</th><th>Status</th><th width="260">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="appt in filteredAppointments" :key="appt.appointment_code">
-            <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.appointment_start_date }}</td>
-            <td>{{ appt.start_time }}</td>
-            <td>{{ appt.end_time }}</td>
-            <td>{{ appt.location_code || '—' }}</td>
-            <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
-            <td>
-              <button class="view-btn" @click="openDetails(appt)">View</button>
-              <button class="approve-btn" @click="changeStatus(appt, 'approved')" :disabled="appt.status === 'approved'">Approve</button>
-              <button class="reschedule-btn" @click="openReschedule(appt)">Reschedule</button>
-              <button class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>
-            </td>
-          </tr>
-          <tr v-if="filteredAppointments.length === 0">
-            <td colspan="7" class="empty">No appointments found</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0 overflow-auto">
+        <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
+        <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
+        <table v-else class="table table-hover ams-table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Code</th><th>Date</th><th>Start</th><th>End</th><th>Location</th><th>Status</th><th class="pe-3" style="width:280px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="appt in filteredAppointments" :key="appt.appointment_code">
+              <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
+              <td>{{ appt.appointment_start_date }}</td>
+              <td>{{ appt.start_time }}</td>
+              <td>{{ appt.end_time }}</td>
+              <td>{{ appt.location_code || '—' }}</td>
+              <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
+              <td class="pe-3">
+                <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(appt)">View</button>
+                <button v-if="appt.status === 'pending'" class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'approved')">Approve</button>
+                <button v-if="appt.status === 'approved'" class="btn btn-sm btn-outline-info me-1" @click="changeStatus(appt, 'in_progress')">Start</button>
+                <button v-if="appt.status === 'in_progress'" class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'completed')">Complete</button>
+                <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-primary me-1" @click="openReschedule(appt)">Reschedule</button>
+                <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-danger" @click="changeStatus(appt, 'rejected')">Reject</button>
+              </td>
+            </tr>
+            <tr v-if="filteredAppointments.length === 0">
+              <td colspan="7" class="text-center text-muted py-4">No appointments found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- DETAILS MODAL -->
-    <div v-if="showDetails" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Appointment Details</h3>
-          <button class="close" @click="showDetails = false">✕</button>
-        </div>
-        <div class="details" v-if="selected">
-          <div class="detail-row"><span>Code</span><code>{{ selected.appointment_code }}</code></div>
-          <div class="detail-row"><span>Business</span><span>{{ selected.business_code }}</span></div>
-          <div class="detail-row"><span>Date</span><span>{{ selected.appointment_start_date }}</span></div>
-          <div class="detail-row"><span>Start Time</span><span>{{ selected.start_time }}</span></div>
-          <div class="detail-row"><span>End Time</span><span>{{ selected.end_time }}</span></div>
-          <div class="detail-row"><span>Location</span><span>{{ selected.location_code || '—' }}</span></div>
-          <div class="detail-row"><span>Status</span><span :class="['badge', selected.status]">{{ selected.status }}</span></div>
-          <div v-if="selected.notes" class="detail-row"><span>Notes</span><span>{{ selected.notes }}</span></div>
-        </div>
-        <div class="modal-actions">
-          <button v-if="selected?.status === 'pending'" class="approve-btn" @click="changeStatus(selected, 'approved'); showDetails = false">Approve</button>
-          <button v-if="selected?.status === 'pending'" class="reject-btn" @click="changeStatus(selected, 'rejected'); showDetails = false">Reject</button>
+    <div v-if="showDetails" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Appointment Details</h5>
+            <button type="button" class="btn-close" @click="showDetails = false"></button>
+          </div>
+          <div class="modal-body" v-if="selected">
+            <dl class="row mb-3">
+              <dt class="col-5 text-muted">Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
+              <dt class="col-5 text-muted">Business</dt><dd class="col-7">{{ selected.business_code }}</dd>
+              <dt class="col-5 text-muted">Date</dt><dd class="col-7">{{ selected.appointment_start_date }}</dd>
+              <dt class="col-5 text-muted">Start Time</dt><dd class="col-7">{{ selected.start_time }}</dd>
+              <dt class="col-5 text-muted">End Time</dt><dd class="col-7">{{ selected.end_time }}</dd>
+              <dt class="col-5 text-muted">Location</dt><dd class="col-7">{{ selected.location_code || '—' }}</dd>
+              <dt class="col-5 text-muted">Status</dt><dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
+              <template v-if="selected.notes"><dt class="col-5 text-muted">Notes</dt><dd class="col-7">{{ selected.notes }}</dd></template>
+            </dl>
+            <hr class="my-2" />
+            <div class="fw-semibold mb-2" style="font-size:13px">History</div>
+            <div v-if="historyLoading" class="text-muted small text-center py-2">Loading...</div>
+            <ul v-else-if="appointmentHistory.length" class="list-unstyled mb-0">
+              <li v-for="h in appointmentHistory" :key="h.id" class="d-flex gap-2 align-items-center mb-1 flex-wrap">
+                <span class="text-muted" style="font-size:11px;min-width:80px">{{ h.created_at?.split('T')[0] }}</span>
+                <span :class="['ams-badge', h.action]">{{ h.action }}</span>
+                <span class="text-muted small">by {{ h.changed_by || '—' }}</span>
+              </li>
+            </ul>
+            <p v-else class="text-muted small mb-0">No history yet</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showDetails = false">Close</button>
+            <button v-if="selected?.status === 'pending'" class="btn btn-success" @click="changeStatus(selected, 'approved'); showDetails = false">Approve</button>
+            <button v-if="selected?.status === 'pending'" class="btn btn-danger" @click="changeStatus(selected, 'rejected'); showDetails = false">Reject</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- RESCHEDULE MODAL -->
-    <div v-if="showReschedule" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Reschedule Appointment</h3>
-          <button class="close" @click="showReschedule = false">✕</button>
+    <div v-if="showReschedule" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Reschedule Appointment</h5>
+            <button type="button" class="btn-close" @click="showReschedule = false"></button>
+          </div>
+          <form @submit.prevent="submitReschedule">
+            <div class="modal-body">
+              <div class="row g-3">
+                <div class="col-6">
+                  <label class="form-label fw-semibold">New Start Date *</label>
+                  <input type="date" v-model="rescheduleForm.appointment_start_date" class="form-control" required />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold">New End Date *</label>
+                  <input type="date" v-model="rescheduleForm.appointment_end_date" class="form-control" required />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold">Start Time *</label>
+                  <input type="time" v-model="rescheduleForm.start_time" class="form-control" required />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold">End Time *</label>
+                  <input type="time" v-model="rescheduleForm.end_time" class="form-control" required />
+                </div>
+              </div>
+              <div class="mt-3">
+                <label class="form-label fw-semibold">Reason</label>
+                <textarea v-model="rescheduleForm.reason" class="form-control" rows="3" placeholder="Reason for reschedule"></textarea>
+              </div>
+              <p v-if="rescheduleError" class="text-danger small mt-2 mb-0">{{ rescheduleError }}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showReschedule = false">Cancel</button>
+              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Submit Reschedule' }}</button>
+            </div>
+          </form>
         </div>
-        <form class="form" @submit.prevent="submitReschedule">
-          <div class="field">
-            <label>New Start Date *</label>
-            <input type="date" v-model="rescheduleForm.appointment_start_date" required />
-          </div>
-          <div class="field">
-            <label>New End Date *</label>
-            <input type="date" v-model="rescheduleForm.appointment_end_date" required />
-          </div>
-          <div class="field">
-            <label>Start Time *</label>
-            <input type="time" v-model="rescheduleForm.start_time" required />
-          </div>
-          <div class="field">
-            <label>End Time *</label>
-            <input type="time" v-model="rescheduleForm.end_time" required />
-          </div>
-          <div class="field">
-            <label>Reason</label>
-            <textarea v-model="rescheduleForm.reason" rows="3" placeholder="Reason for reschedule"></textarea>
-          </div>
-          <p v-if="rescheduleError" class="error-msg">{{ rescheduleError }}</p>
-          <button type="submit" class="submit-btn" :disabled="saving">{{ saving ? 'Saving...' : 'Submit Reschedule' }}</button>
-        </form>
       </div>
     </div>
   </div>
@@ -129,6 +158,8 @@ const statusFilter = ref('')
 const showDetails = ref(false)
 const showReschedule = ref(false)
 const selected = ref(null)
+const historyLoading = ref(false)
+const appointmentHistory = ref([])
 
 const rescheduleForm = reactive({
   appointment_start_date: '',
@@ -160,7 +191,19 @@ async function fetchAppointments() {
   }
 }
 
-function openDetails(appt) { selected.value = appt; showDetails.value = true }
+async function openDetails(appt) {
+  selected.value = appt
+  appointmentHistory.value = []
+  showDetails.value = true
+  historyLoading.value = true
+  try {
+    const res = await api.get(`/appointments/${appt.appointment_code}/history`)
+    appointmentHistory.value = res.data.data || []
+  } catch (_) {
+  } finally {
+    historyLoading.value = false
+  }
+}
 
 function openReschedule(appt) {
   selected.value = appt
@@ -199,44 +242,4 @@ async function submitReschedule() {
 onMounted(fetchAppointments)
 </script>
 
-<style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
-.header { display: flex; align-items: center; justify-content: space-between; }
-.header h2 { margin: 0; color: #1e293b; }
-.sub { margin: 2px 0 0; font-size: 13px; color: #64748b; }
-.filters { display: flex; gap: 12px; flex-wrap: wrap; }
-.filters select, .filters input { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; outline: none; min-width: 160px; }
-.btn { background: #0f172a; color: white; border: none; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; text-decoration: none; }
-.card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.table { width: 100%; border-collapse: collapse; }
-.table th, .table td { text-align: left; padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-.table th { color: #64748b; font-weight: 600; }
-.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
-.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
-.badge { padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; text-transform: capitalize; }
-.badge.pending { background: #fef9c3; color: #854d0e; }
-.badge.approved { background: #dcfce7; color: #166534; }
-.badge.rejected { background: #fee2e2; color: #991b1b; }
-.badge.completed { background: #dbeafe; color: #1e40af; }
-.badge.canceled { background: #f1f5f9; color: #475569; }
-.badge.rescheduled { background: #ede9fe; color: #5b21b6; }
-.view-btn { background: #f1f5f9; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 3px; }
-.approve-btn { background: #dcfce7; color: #166534; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 3px; }
-.reschedule-btn { background: #ede9fe; color: #5b21b6; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 3px; }
-.reject-btn { background: #fee2e2; color: #dc2626; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: white; border-radius: 10px; padding: 24px; width: 480px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
-.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.modal-header h3 { margin: 0; }
-.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
-.details { display: flex; flex-direction: column; gap: 10px; }
-.detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
-.detail-row span:first-child { font-weight: 600; color: #374151; }
-.modal-actions { display: flex; gap: 10px; margin-top: 16px; }
-.form { display: flex; flex-direction: column; gap: 14px; }
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field label { font-size: 13px; font-weight: 600; color: #374151; }
-.field input, .field select, .field textarea { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; font-family: inherit; }
-.submit-btn { background: #0f172a; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
-</style>
+

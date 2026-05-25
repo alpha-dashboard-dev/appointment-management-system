@@ -13,6 +13,13 @@ router.post(
     controller.create
 );
 
+router.post(
+    "/bulk-create-schedule",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.bulkCreate
+);
+
 router.get(
     "/get-schedule",
     authenticate,

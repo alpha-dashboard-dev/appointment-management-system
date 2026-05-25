@@ -1,6 +1,9 @@
 <template>
   <div class="page">
-    <div class="header"><h2>Clients</h2></div>
+    <div class="header">
+      <h2>Clients</h2>
+      <router-link to="/operations/clients/create" class="btn">+ New Client</router-link>
+    </div>
     <div class="search-bar">
       <input v-model="searchQuery" placeholder="Search by name or email..." />
     </div>
@@ -59,7 +62,9 @@ onMounted(fetchClients)
 
 <style scoped>
 .page { display: flex; flex-direction: column; gap: 16px; }
+.header { display: flex; align-items: center; justify-content: space-between; }
 .header h2 { margin: 0; color: #1e293b; }
+.btn { background: #6366f1; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; }
 .search-bar input { padding: 9px 14px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; width: 100%; max-width: 320px; }
 .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 .table { width: 100%; border-collapse: collapse; }

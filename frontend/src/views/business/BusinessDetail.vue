@@ -35,12 +35,12 @@
         <div v-if="tabLoading" class="loading">Loading...</div>
         <table v-else class="table">
           <thead>
-          <tr><th>Name</th><th>Duration (min)</th><th>Price</th><th>Status</th></tr>
+          <tr><th>Name</th><th>Description</th><th>Price</th><th>Status</th></tr>
           </thead>
           <tbody>
           <tr v-for="svc in services" :key="svc.service_code">
             <td>{{ svc.name }}</td>
-            <td>{{ svc.duration_minutes }}</td>
+            <td>{{ svc.description }}</td>
             <td>{{ svc.price ?? '—' }}</td>
             <td><span :class="['badge', svc.status]">{{ svc.status }}</span></td>
           </tr>
@@ -53,7 +53,7 @@
       <div v-if="activeTab === 'Staff'" class="card">
         <div class="card-header">
           <h3>Staff Members</h3>
-          <router-link to="/users/create" class="primary-btn">+ Add Staff</router-link>
+          <router-link to="/users/create?staffOnly=true" class="primary-btn">+ Add Staff</router-link>
         </div>
         <div v-if="tabLoading" class="loading">Loading...</div>
         <table v-else class="table">
@@ -81,13 +81,23 @@
         <div v-if="tabLoading" class="loading">Loading...</div>
         <table v-else class="table">
           <thead>
-          <tr><th>Name</th><th>Type</th><th>Address</th></tr>
+          <tr>
+            <th>Business Code</th>
+            <th>Location Code</th>
+            <th>Location Type</th>
+            <th>Status</th>
+            <th>Address</th>
+            
+          </tr>
           </thead>
           <tbody>
           <tr v-for="loc in locations" :key="loc.location_code">
-            <td>{{ loc.name }}</td>
+            <td>{{ loc.business_code }}</td>
+            <td>{{ loc.location_code }}</td>
             <td>{{ loc.location_type }}</td>
-            <td>{{ loc.address || '—' }}</td>
+            <td>{{ loc.status }}</td>
+            <td>{{ loc.address + " " + loc.street + " " + loc.city + " " + loc.country }}</td>
+            
           </tr>
           <tr v-if="locations.length === 0"><td colspan="3" class="empty">No locations</td></tr>
           </tbody>
@@ -102,12 +112,12 @@
         <div v-if="tabLoading" class="loading">Loading...</div>
         <table v-else class="table">
           <thead>
-          <tr><th>Code</th><th>Date</th><th>Status</th></tr>
+          <tr><th>Appointment Code</th><th>Start Date</th><th>Status</th></tr>
           </thead>
           <tbody>
           <tr v-for="appt in appointments" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.appointment_date }}</td>
+            <td>{{ appt.appointment_start_date }}</td>
             <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
           </tr>
           <tr v-if="appointments.length === 0"><td colspan="3" class="empty">No appointments</td></tr>
@@ -154,13 +164,14 @@ async function loadTab(tab) {
   tabLoading.value = true
   try {
     if (tab === 'Services') {
-      const res = await api.get('/services/get-services', { params: { business_code: businessCode } })
+      const res = await api.get('/services/get-service', { params: { business_code: businessCode } })
       services.value = res.data.data || []
     } else if (tab === 'Staff') {
       const res = await api.get('/users/get-users', { params: { business_code: businessCode } })
-      staff.value = res.data.data || []
+      const allUsers = res.data.data || []
+      staff.value = allUsers.filter(u => u.user_type === 'operational_staff' || u.user_type === 'service_staff')
     } else if (tab === 'Locations') {
-      const res = await api.get('/locations/get-locations', { params: { business_code: businessCode } })
+      const res = await api.get('/locations/get-location', { params: { business_code: businessCode } })
       locations.value = res.data.data || []
     } else if (tab === 'Appointments') {
       const res = await api.get('/appointments', { params: { business_code: businessCode } })

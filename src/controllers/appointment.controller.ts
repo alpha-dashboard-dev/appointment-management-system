@@ -21,7 +21,7 @@ class AppointmentController {
                 status: req.query.status,
                 user_code: req.query.user_code,
             };
-            const data = await service.getAll(filters);
+            const data = await service.getAll(filters, req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -30,7 +30,7 @@ class AppointmentController {
 
     async getByCode(req: Request, res: Response) {
         try {
-            const data = await service.getByCode(String(req.params.appointmentCode));
+            const data = await service.getByCode(String(req.params.appointmentCode), req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(404).json({ success: false, message: err.message });
@@ -51,6 +51,16 @@ class AppointmentController {
             const { status } = req.body;
             const data = await service.changeStatus(String(req.params.appointmentCode), status, req.user);
             return res.status(200).json({ success: true, message: "Status updated", data });
+        } catch (err: any) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
+    async respondToReschedule(req: Request, res: Response) {
+        try {
+            const { action } = req.body;
+            const data = await service.respondToReschedule(String(req.params.appointmentCode), action, req.user);
+            return res.status(200).json({ success: true, message: `Reschedule ${action}`, data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });
         }
@@ -198,7 +208,7 @@ class AppointmentController {
                 service_code: req.query.service_code,
                 status: req.query.status,
             };
-            const data = await service.getAllRecurrences(filters);
+            const data = await service.getAllRecurrences(filters, req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });

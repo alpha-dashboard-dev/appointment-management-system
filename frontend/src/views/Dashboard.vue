@@ -82,19 +82,21 @@
       <table v-else class="table">
         <thead>
         <tr>
-          <th>Code</th>
-          <th>Client</th>
-          <th>Service</th>
-          <th>Date</th>
+          <th>Appointment Code</th>
+          <th>Business Code</th>
+          <th>Appointment Notes</th>
+          <th>Start Date</th>
+          <th>Start Time</th>
           <th>Status</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="appt in recentAppointments" :key="appt.appointment_code">
           <td>{{ appt.appointment_code }}</td>
-          <td>{{ appt.client_name || '—' }}</td>
-          <td>{{ appt.service_name || '—' }}</td>
+          <td>{{ appt.business_code}}</td>
+          <td>{{ appt.notes || '—' }}</td>
           <td>{{ appt.appointment_start_date }}</td>
+          <td>{{ appt.start_time }}</td>
           <td>
             <span :class="['badge', appt.status]">{{ appt.status }}</span>
           </td>
@@ -263,18 +265,21 @@ onMounted(async () => {
 }
 
 .badge {
-  padding: 3px 8px;
+  display: inline-block;
+  padding: 3px 10px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
   text-transform: capitalize;
 }
 
-.badge.pending    { background: #fef3c7; color: #d97706; }
-.badge.approved   { background: #dcfce7; color: #16a34a; }
-.badge.rejected   { background: #fee2e2; color: #dc2626; }
+.badge.pending     { background: #fef3c7; color: #d97706; }
+.badge.approved    { background: #dcfce7; color: #16a34a; }
+.badge.rejected    { background: #fee2e2; color: #dc2626; }
+.badge.canceled    { background: #fee2e2; color: #dc2626; }
 .badge.rescheduled { background: #dbeafe; color: #2563eb; }
-.badge.completed  { background: #f0fdf4; color: #15803d; }
+.badge.completed   { background: #f0fdf4; color: #15803d; }
+.badge.in_progress { background: #e0f2fe; color: #0369a1; }
 
 .loading, .empty {
   text-align: center;

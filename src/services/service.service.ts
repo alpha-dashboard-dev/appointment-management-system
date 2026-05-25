@@ -4,13 +4,17 @@ import locationServiceRepo from "../repositories/locationService.repository";
 import chargeRepo from "../repositories/charge.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateService } from "../utils/validator";
+import { ROLES } from "../utils/roles";
 
 class ServiceService {
 
     async create(data: any, actor: any) {
+        // Non-admin actors can only create services for their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            data.business_code = actor.businessCode;
+        }
 
         const { name, business_code, description, price, cost, currency, duration_uom, duration_value, status } = data;
-        // console.log(data);
 
         validateService(data);
 
@@ -30,13 +34,27 @@ class ServiceService {
         });
     }
 
-    async getAll(filters: any = {}) {
+    async getAll(filters: any = {}, actor?: any) {
+        // Non-admin, non-client actors can only see services from their own business
+        if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
+            filters.business_code = actor.businessCode;
+        }
+        // Clients pass business_code as a query param; don't override it
         return await repo.findAll(filters);
     }
 
-    async getByCode(serviceCode: string) {
+    async getByCode(serviceCode: string, actor?: any) {
         const service = await repo.findByCode(serviceCode);
         if (!service) throw new Error("Service not found");
+
+        // Non-admin actors can only view services from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const serviceBusiness = service.dataValues?.business_code ?? service.business_code;
+            if (serviceBusiness !== actor.businessCode) {
+                throw new Error("Access denied: service does not belong to your business");
+            }
+        }
+
         return service;
     }
 
@@ -44,8 +62,15 @@ class ServiceService {
         const service = await repo.findByCode(serviceCode);
         if (!service) throw new Error("Service not found");
 
+        // Non-admin actors can only update services from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const serviceBusiness = service.dataValues?.business_code ?? service.business_code;
+            if (serviceBusiness !== actor.businessCode) {
+                throw new Error("Access denied: service does not belong to your business");
+            }
+        }
+
         const allowed: any = {};
-        console.log(allowed)
         if (data.name !== undefined)
             allowed.name = data.name;
         if (data.description !== undefined)
@@ -67,23 +92,39 @@ class ServiceService {
     }
 
     async changeStatus(serviceCode: string, status: string, user: any) {
-        // console.log(user.userType, serviceCode, status)
-
-        if(!user && user.userType !== "admin" || user.userType !== "business_owner") {
-            throw new Error("only admin and business owner can change service status");
+        if (!user || (user.userType !== ROLES.ADMIN && user.userType !== ROLES.BUSINESS_OWNER)) {
+            throw new Error("Only admin and business owner can change service status");
         }
         if (!["active", "inactive"].includes(status)) {
             throw new Error("Invalid status");
         }
 
-        return await repo.update(serviceCode, {
-            status: status,
-        });
+        const service = await repo.findByCode(serviceCode);
+        if (!service) throw new Error("Service not found");
+
+        // Business owners can only change status of their own services
+        if (user.userType === ROLES.BUSINESS_OWNER) {
+            const serviceBusiness = service.dataValues?.business_code ?? service.business_code;
+            if (serviceBusiness !== user.businessCode) {
+                throw new Error("Access denied: service does not belong to your business");
+            }
+        }
+
+        return await repo.update(serviceCode, { status });
     }
 
     async delete(serviceCode: string, actor: any) {
         const service = await repo.findByCode(serviceCode);
         if (!service) throw new Error("Service not found");
+
+        // Non-admin actors can only delete services from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const serviceBusiness = service.dataValues?.business_code ?? service.business_code;
+            if (serviceBusiness !== actor.businessCode) {
+                throw new Error("Access denied: service does not belong to your business");
+            }
+        }
+
         return await repo.delete(serviceCode);
     }
     async getServicesForClient(businessCode: string, locationCode?: string) {

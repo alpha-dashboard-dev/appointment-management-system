@@ -12,7 +12,7 @@
 
       <!-- DASHBOARD -->
       <router-link to="/dashboard" class="item">
-        <i class="icon">📊</i>
+        <i class="bi bi-speedometer2 icon"></i>
         <span v-if="!collapsed">Dashboard</span>
       </router-link>
 
@@ -22,7 +22,7 @@
             class="group-title"
             @click="handleGroupClick('org', '/organizations')"
         >
-          <i class="icon">🏢</i>
+          <i class="bi bi-building icon"></i>
 
           <span v-if="!collapsed">Organizations</span>
 
@@ -52,7 +52,7 @@
             class="group-title"
             @click="handleGroupClick('biz', '/businesses')"
         >
-          <i class="icon">🏪</i>
+          <i class="bi bi-shop icon"></i>
 
           <span v-if="!collapsed">Businesses</span>
 
@@ -82,7 +82,7 @@
             class="group-title"
             @click="handleGroupClick('client', '/clients')"
         >
-          <i class="icon">👥</i>
+          <i class="bi bi-people icon"></i>
 
           <span v-if="!collapsed">Clients</span>
 
@@ -112,7 +112,7 @@
             class="group-title"
             @click="handleGroupClick('app', '/appointments')"
         >
-          <i class="icon">📅</i>
+          <i class="bi bi-calendar-check icon"></i>
 
           <span v-if="!collapsed">Appointments</span>
 
@@ -142,7 +142,7 @@
             class="group-title"
             @click="handleGroupClick('svc', '/services')"
         >
-          <i class="icon">⚕️</i>
+          <i class="bi bi-clipboard-pulse icon"></i>
 
           <span v-if="!collapsed">Services</span>
 
@@ -168,8 +168,11 @@
 
       <!-- LOCATIONS -->
       <div class="group">
-        <div class="group-title" @click="handleGroupClick('loc', '/locations')">
-          <i class="icon">📍</i>
+        <div
+            class="group-title"
+            @click="handleGroupClick('loc', '/locations')"
+        >
+          <i class="bi bi-geo-alt icon"></i>
 
           <span v-if="!collapsed">Locations</span>
 
@@ -199,19 +202,19 @@
 
       <!-- SCHEDULES -->
       <router-link to="/schedules" class="item">
-        <i class="icon">🗓️</i>
+        <i class="bi bi-calendar3 icon"></i>
         <span v-if="!collapsed">Schedules</span>
       </router-link>
 
       <!-- CHARGES -->
       <router-link to="/charges" class="item">
-        <i class="icon">💰</i>
+        <i class="bi bi-cash-coin icon"></i>
         <span v-if="!collapsed">Charges</span>
       </router-link>
 
       <!-- INVOICES -->
       <router-link to="/invoices" class="item">
-        <i class="icon">🧾</i>
+        <i class="bi bi-receipt icon"></i>
         <span v-if="!collapsed">Invoices</span>
       </router-link>
 
@@ -221,7 +224,7 @@
             class="group-title"
             @click="handleGroupClick('usr', '/users')"
         >
-          <i class="icon">👤</i>
+          <i class="bi bi-person icon"></i>
 
           <span v-if="!collapsed">Users</span>
 
@@ -250,7 +253,7 @@
     <!-- LOGOUT -->
     <div class="logout-section">
       <button class="logout-btn" @click="handleLogout">
-        <i class="icon">🚪</i>
+        <i class="bi bi-box-arrow-right icon"></i>
         <span v-if="!collapsed">Logout</span>
       </button>
     </div>
