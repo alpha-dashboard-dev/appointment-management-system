@@ -31,9 +31,9 @@
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
             <tr>
-              <th class="ps-3">Code</th>
-              <th>Client</th>
-              <th>Service</th>
+              <th class="ps-3">Appointment Code</th>
+              <th>Business Code</th>
+              <th>Notes</th>
               <th>Date</th>
               <th>Start Time</th>
               <th>Status</th>
@@ -43,8 +43,8 @@
           <tbody>
             <tr v-for="appt in filteredAppointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
-              <td>{{ appt.client_name || appt.client_code || '—' }}</td>
-              <td>{{ appt.service_name || appt.service_code || '—' }}</td>
+              <td>{{ appt.business_code || '—' }}</td>
+              <td>{{ appt.notes || '—' }}</td>
               <td>{{ appt.appointment_start_date }}</td>
               <td>{{ appt.start_time }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>

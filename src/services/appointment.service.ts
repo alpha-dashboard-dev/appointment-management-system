@@ -71,8 +71,8 @@ class AppointmentService {
             new_value: { appointment_code, status: "pending" },
         });
 
-        // Add the booking actor as a participant
-        if (actor?.userCode) {
+        // Add the booking actor as a participant (admins are system-wide and not added as participants)
+        if (actor?.userCode && actor.userType !== ROLES.ADMIN) {
             await participantRepo.create({
                 business_code,
                 appointment_code,
