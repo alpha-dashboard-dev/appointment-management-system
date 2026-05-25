@@ -16,6 +16,10 @@
   --shadow-card:  0 1px 4px rgba(0,0,0,0.06);
 
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --color-nav:      white;
+  --color-input-bg: white;
+  --color-dropdown: white;
 }
 
 /* ── Reset / Base ───────────────────────────────────────────────── */
@@ -32,23 +36,44 @@ body {
 h1, h2, h3, h4 { margin: 0; }
 
 /* ── Shared badge system ────────────────────────────────────────── */
-.badge {
+.badge,
+.ams-badge {
   display: inline-block;
   padding: 3px 10px;
   border-radius: var(--radius-badge);
   font-size: 12px;
   font-weight: 500;
   text-transform: capitalize;
+  white-space: nowrap;
 }
-.badge.active      { background: #dcfce7; color: #16a34a; }
-.badge.inactive    { background: #fee2e2; color: #dc2626; }
-.badge.pending     { background: #fef3c7; color: #d97706; }
-.badge.approved    { background: #dcfce7; color: #16a34a; }
-.badge.rejected    { background: #fee2e2; color: #dc2626; }
-.badge.canceled    { background: #fee2e2; color: #dc2626; }
-.badge.completed   { background: #f0fdf4; color: #15803d; }
-.badge.rescheduled { background: #dbeafe; color: #2563eb; }
-.badge.in_progress { background: #e0f2fe; color: #0369a1; }
+.badge.active,      .ams-badge.active,
+.ams-badge.available, .ams-badge.paid  { background: #dcfce7; color: #16a34a; }
+.badge.inactive,    .ams-badge.inactive,
+.ams-badge.not_available, .ams-badge.rejected,
+.ams-badge.cancelled, .ams-badge.canceled { background: #fee2e2; color: #dc2626; }
+.badge.pending,     .ams-badge.pending   { background: #fef3c7; color: #d97706; }
+.badge.approved,    .ams-badge.approved,
+.badge.completed,   .ams-badge.completed { background: #dcfce7; color: #16a34a; }
+.badge.rejected                          { background: #fee2e2; color: #dc2626; }
+.badge.canceled                          { background: #fee2e2; color: #dc2626; }
+.badge.rescheduled, .ams-badge.rescheduled { background: #dbeafe; color: #2563eb; }
+.badge.in_progress, .ams-badge.in_progress { background: #dbeafe; color: #1d4ed8; }
+.ams-badge.draft                           { background: #f1f5f9; color: #64748b; }
+.ams-badge.created                         { background: #dcfce7; color: #16a34a; }
+.ams-badge.updated                         { background: #f1f5f9; color: #64748b; }
+.ams-badge.assigned                        { background: #ede9fe; color: #5b21b6; }
+.ams-badge.issued, .ams-badge.sent         { background: #dbeafe; color: #2563eb; }
+
+/* ── AMS primary button ─────────────────────────────────────────── */
+.btn-ams,
+.btn-ams:active,
+.btn-ams:focus {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: #fff !important;
+}
+.btn-ams:hover            { background-color: #4f46e5 !important; border-color: #4f46e5 !important; }
+.btn-ams:disabled         { opacity: 0.65; cursor: not-allowed; }
 
 /* ── Shared table ───────────────────────────────────────────────── */
 .table { width: 100%; border-collapse: collapse; }
@@ -104,3 +129,103 @@ code {
 }
 .btn-primary:hover { opacity: 0.88; }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Dark Mode ─────────────────────────────────────────────────── */
+body.dark-mode {
+  --color-bg:           #0f172a;
+  --color-surface:      #1e293b;
+  --color-border:       #334155;
+  --color-border-light: #1e293b;
+  --color-text:         #e2e8f0;
+  --color-muted:        #94a3b8;
+  --color-placeholder:  #64748b;
+  --color-nav:          #1e293b;
+  --color-input-bg:     #273349;
+  --color-dropdown:     #1e293b;
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Bootstrap component overrides for dark mode */
+body.dark-mode .card {
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text);
+}
+body.dark-mode .modal-content {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+  border-color: var(--color-border);
+}
+body.dark-mode .modal-header .btn-close,
+body.dark-mode .btn-close { filter: invert(1) grayscale(1); }
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+  background-color: var(--color-input-bg);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+body.dark-mode .form-control:focus,
+body.dark-mode .form-select:focus {
+  background-color: var(--color-input-bg);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.2);
+}
+body.dark-mode .form-control::placeholder { color: var(--color-placeholder); }
+body.dark-mode .form-label { color: var(--color-text); }
+body.dark-mode .input-group-text {
+  background-color: var(--color-input-bg);
+  border-color: var(--color-border);
+  color: var(--color-muted);
+}
+body.dark-mode .table-light,
+body.dark-mode thead.table-light tr {
+  --bs-table-bg: #273349;
+  background-color: #273349 !important;
+  color: var(--color-muted) !important;
+}
+body.dark-mode .table {
+  --bs-table-color: var(--color-text);
+  --bs-table-bg: transparent;
+  --bs-table-border-color: var(--color-border);
+  color: var(--color-text);
+}
+body.dark-mode .table-hover > tbody > tr:hover > * { background-color: #273349 !important; }
+body.dark-mode .table > :not(caption) > * > * { border-color: var(--color-border); }
+body.dark-mode .text-muted { color: var(--color-muted) !important; }
+body.dark-mode .text-dark  { color: var(--color-text)  !important; }
+body.dark-mode code {
+  background: #273349 !important;
+  color: #94a3b8 !important;
+}
+body.dark-mode .alert-danger {
+  background: #2d1515;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+}
+body.dark-mode hr { border-color: var(--color-border); }
+body.dark-mode .dropdown-menu {
+  background-color: var(--color-dropdown);
+  border-color: var(--color-border);
+}
+body.dark-mode .dropdown-item {
+  color: var(--color-text);
+}
+body.dark-mode .dropdown-item:hover {
+  background-color: var(--color-border-light);
+}
+body.dark-mode .list-group-item {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+body.dark-mode .badge.draft,
+body.dark-mode .ams-badge.draft,
+body.dark-mode .ams-badge.updated {
+  background: #273349;
+  color: #94a3b8;
+}

@@ -28,11 +28,13 @@
               v-model="form.email"
               type="email"
               class="custom-input"
+              :class="{ 'input-error': errors.email }"
               placeholder="Enter your email"
-              required
+              @blur="validateField('email')"
           />
 
         </div>
+        <p v-if="errors.email" class="field-error">{{ errors.email }}</p>
 
         <!-- PASSWORD -->
 
@@ -44,8 +46,9 @@
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               class="custom-input"
+              :class="{ 'input-error': errors.password }"
               placeholder="Enter your password"
-              required
+              @blur="validateField('password')"
           />
 
           <i
@@ -55,6 +58,7 @@
           ></i>
 
         </div>
+        <p v-if="errors.password" class="field-error">{{ errors.password }}</p>
 
         <div
             class="d-flex justify-content-between align-items-center"
@@ -125,6 +129,7 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import { validateLoginForm } from '@/utils/validator'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -136,6 +141,7 @@ const form = reactive({
 
 const loading = ref(false)
 const error = ref('')
+const errors = reactive({})
 const showPassword = ref(false)
 const rememberMe = ref(false)
 
@@ -143,7 +149,21 @@ function togglePassword() {
   showPassword.value = !showPassword.value
 }
 
+function validateField(field) {
+  const result = validateLoginForm(form)
+  if (result[field]) {
+    errors[field] = result[field]
+  } else {
+    delete errors[field]
+  }
+}
+
 async function submit() {
+  Object.assign(errors, validateLoginForm(form))
+  const validationErrors = validateLoginForm(form)
+  Object.keys(errors).forEach(k => delete errors[k])
+  Object.assign(errors, validationErrors)
+  if (Object.keys(errors).length > 0) return
 
   loading.value = true
   error.value = ''
@@ -279,6 +299,16 @@ async function submit() {
   border-color: #6366f1;
 
   box-shadow: none;
+}
+
+.custom-input.input-error {
+  border-color: #ef4444;
+}
+
+.field-error {
+  color: #ef4444;
+  font-size: 12px;
+  margin: -12px 0 0 4px;
 }
 
 .password-toggle {

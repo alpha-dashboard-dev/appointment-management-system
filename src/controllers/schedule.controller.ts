@@ -12,6 +12,19 @@ class ScheduleController {
         }
     }
 
+    async bulkCreate(req: Request, res: Response) {
+        try {
+            const entries = req.body;
+            if (!Array.isArray(entries) || entries.length === 0) {
+                return res.status(400).json({ success: false, message: "Request body must be a non-empty array" });
+            }
+            const data = await service.bulkCreate(entries, req.user);
+            return res.status(201).json({ success: true, message: "Schedules created", data });
+        } catch (err: any) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
     async getAll(req: Request, res: Response) {
         try {
             const filters = {

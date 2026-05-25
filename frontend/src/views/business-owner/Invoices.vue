@@ -1,10 +1,10 @@
 <template>
-  <div class="page">
-    <div class="header">
-      <div><h2>Invoices</h2><p class="sub">View and manage invoices</p></div>
+  <div class="ams-page">
+    <div class="d-flex align-items-center justify-content-between">
+      <div><h2 class="mb-0">Invoices</h2><p class="text-muted small mb-0">View and manage invoices</p></div>
     </div>
-    <div class="filters">
-      <select v-model="statusFilter" @change="fetchInvoices">
+    <div class="d-flex gap-2">
+      <select v-model="statusFilter" @change="fetchInvoices" class="form-select" style="max-width:200px">
         <option value="">All Statuses</option>
         <option value="draft">Draft</option>
         <option value="sent">Sent</option>
@@ -12,44 +12,61 @@
         <option value="cancelled">Cancelled</option>
       </select>
     </div>
-    <div class="card">
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else-if="error" class="error-msg">{{ error }}</div>
-      <table v-else class="table">
-        <thead><tr><th>ID</th><th>Total</th><th>Status</th><th>Created</th><th width="120">Actions</th></tr></thead>
-        <tbody>
-          <tr v-for="inv in invoices" :key="inv.id">
-            <td>#{{ inv.id }}</td>
-            <td>{{ inv.total_amount ?? '—' }}</td>
-            <td><span :class="['badge', inv.status]">{{ inv.status }}</span></td>
-            <td>{{ formatDate(inv.created_at) }}</td>
-            <td><button class="view-btn" @click="openView(inv)">View</button></td>
-          </tr>
-          <tr v-if="invoices.length === 0"><td colspan="5" class="empty">No invoices found</td></tr>
-        </tbody>
-      </table>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
+        <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
+        <table v-else class="table table-hover ams-table mb-0">
+          <thead class="table-light">
+            <tr><th class="ps-3">ID</th><th>Total</th><th>Status</th><th>Created</th><th class="pe-3" style="width:100px">Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="inv in invoices" :key="inv.id">
+              <td class="ps-3">#{{ inv.id }}</td>
+              <td>{{ inv.total_amount ?? '—' }}</td>
+              <td><span :class="['ams-badge', inv.status]">{{ inv.status }}</span></td>
+              <td>{{ formatDate(inv.created_at) }}</td>
+              <td class="pe-3"><button class="btn btn-sm btn-outline-primary" @click="openView(inv)">View</button></td>
+            </tr>
+            <tr v-if="invoices.length === 0"><td colspan="5" class="text-center text-muted py-4">No invoices found</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- VIEW MODAL -->
-    <div v-if="showViewModal && selected" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header"><h3>Invoice #{{ selected.id }}</h3><button class="close" @click="showViewModal = false">✕</button></div>
-        <div class="detail-grid">
-          <div class="d-row"><span>Status</span><span :class="['badge', selected.status]">{{ selected.status }}</span></div>
-          <div class="d-row"><span>Total</span><strong>{{ selected.total_amount }}</strong></div>
-          <div class="d-row"><span>Created</span><span>{{ formatDate(selected.created_at) }}</span></div>
+    <div v-if="showViewModal && selected" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Invoice #{{ selected.id }}</h5>
+            <button type="button" class="btn-close" @click="showViewModal = false"></button>
+          </div>
+          <div class="modal-body">
+            <dl class="row mb-3">
+              <dt class="col-5 text-muted">Status</dt>
+              <dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
+              <dt class="col-5 text-muted">Total</dt>
+              <dd class="col-7"><strong>{{ selected.total_amount }}</strong></dd>
+              <dt class="col-5 text-muted">Created</dt>
+              <dd class="col-7">{{ formatDate(selected.created_at) }}</dd>
+            </dl>
+            <div class="d-flex align-items-center gap-2">
+              <label class="form-label fw-semibold mb-0">Update Status</label>
+              <select v-model="newStatus" class="form-select form-select-sm">
+                <option value="draft">Draft</option>
+                <option value="sent">Sent</option>
+                <option value="paid">Paid</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <button class="btn btn-ams btn-sm" @click="updateStatus" :disabled="saving">{{ saving ? '...' : 'Update' }}</button>
+            </div>
+            <p v-if="formError" class="text-danger small mt-2 mb-0">{{ formError }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showViewModal = false">Close</button>
+          </div>
         </div>
-        <div class="status-update">
-          <label>Update Status</label>
-          <select v-model="newStatus">
-            <option value="draft">Draft</option>
-            <option value="sent">Sent</option>
-            <option value="paid">Paid</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          <button class="save-btn" @click="updateStatus" :disabled="saving">{{ saving ? '...' : 'Update' }}</button>
-        </div>
-        <p v-if="formError" class="error-msg">{{ formError }}</p>
       </div>
     </div>
   </div>
@@ -115,34 +132,4 @@ async function updateStatus() {
 onMounted(fetchInvoices)
 </script>
 
-<style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
-.header { display: flex; align-items: center; justify-content: space-between; }
-.header h2 { margin: 0; color: #1e293b; }
-.sub { margin: 2px 0 0; font-size: 13px; color: #64748b; }
-.filters { display: flex; gap: 12px; }
-.filters select { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; outline: none; min-width: 160px; }
-.card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.table { width: 100%; border-collapse: collapse; }
-.table th, .table td { text-align: left; padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-.table th { color: #64748b; font-weight: 600; }
-.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
-.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
-.badge { padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
-.badge.draft { background: #f1f5f9; color: #475569; }
-.badge.sent { background: #dbeafe; color: #1d4ed8; }
-.badge.paid { background: #dcfce7; color: #166534; }
-.badge.cancelled { background: #fee2e2; color: #991b1b; }
-.view-btn { background: #ede9fe; color: #5b21b6; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: white; border-radius: 10px; padding: 24px; width: 420px; max-width: 90%; }
-.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.modal-header h3 { margin: 0; }
-.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
-.detail-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-.d-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
-.status-update { display: flex; gap: 10px; align-items: center; }
-.status-update label { font-size: 13px; font-weight: 600; color: #374151; }
-.status-update select { flex: 1; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; outline: none; }
-.save-btn { background: #0f172a; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; }
-</style>
+

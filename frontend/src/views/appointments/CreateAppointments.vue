@@ -11,32 +11,34 @@
 
         <div class="field">
           <label>Business *</label>
-          <select v-model="form.business_code" required @change="onBusinessChange">
+          <select v-model="form.business_code" :class="{ 'field-input-error': errors.business_code }" @change="onBusinessChange">
             <option value="">Select business</option>
             <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
               {{ biz.name }}
             </option>
           </select>
+          <p v-if="errors.business_code" class="field-error">{{ errors.business_code }}</p>
         </div>
 
         <div class="field">
-          <label>Client </label>
-          <select v-model="form.user_type" required>
-            <option value="">Select client</option>
-            <option v-for="client in clients" :key="client.user_type" :value="client.user_type">
-              {{ client.name }}  <!--({{ client.email }}) -->
+          <label>Client</label>
+          <select v-model="form.client_code">
+            <option value="">Select client (optional)</option>
+            <option v-for="client in clients" :key="client.user_code" :value="client.user_code">
+              {{ client.name }}
             </option>
           </select>
         </div>
 
         <div class="field">
           <label>Service *</label>
-          <select v-model="form.service_code" required>
+          <select v-model="form.service_code" :class="{ 'field-input-error': errors.service_code }" @change="validateField('service_code')">
             <option value="">Select service</option>
             <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">
               {{ svc.name }}
             </option>
           </select>
+          <p v-if="errors.service_code" class="field-error">{{ errors.service_code }}</p>
         </div>
 
 
@@ -50,32 +52,26 @@
           </select>
         </div>
 
-        <div class="field">
-          <label>Status *</label>
-          <select v-model="form.status" required>
-            <option value="">Select Status</option>
-            <option v-for="status in statuses" :key="status" :value="status">
-              {{ status }}
-            </option>
-          </select>
-        </div>
-
         <div class="row two-columns">
           <div class="field">
             <label>Start Date *</label>
-            <input type="date" v-model="form.appointment_start_date" required />
+            <input type="date" v-model="form.appointment_start_date" :class="{ 'field-input-error': errors.appointment_start_date }" @change="validateField('appointment_start_date')" />
+            <p v-if="errors.appointment_start_date" class="field-error">{{ errors.appointment_start_date }}</p>
           </div>
           <div class="field">
             <label>End Date *</label>
-            <input type="date" v-model="form.appointment_end_date" required />
+            <input type="date" v-model="form.appointment_end_date" :class="{ 'field-input-error': errors.appointment_end_date }" @change="validateField('appointment_end_date')" />
+            <p v-if="errors.appointment_end_date" class="field-error">{{ errors.appointment_end_date }}</p>
           </div>
           <div class="field">
             <label>Start Time *</label>
-            <input type="time" v-model="form.start_time" required />
+            <input type="time" v-model="form.start_time" :class="{ 'field-input-error': errors.start_time }" @change="validateField('start_time')" />
+            <p v-if="errors.start_time" class="field-error">{{ errors.start_time }}</p>
           </div>
           <div class="field">
             <label>End Time *</label>
-            <input type="time" v-model="form.end_time" required />
+            <input type="time" v-model="form.end_time" :class="{ 'field-input-error': errors.end_time }" @change="validateField('end_time')" />
+            <p v-if="errors.end_time" class="field-error">{{ errors.end_time }}</p>
           </div>
         </div>
 
@@ -103,10 +99,9 @@
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/utils/api'
+import { validateAppointmentForm } from '@/utils/validator'
 
 const router = useRouter()
-
-const statuses = ['pending', 'approved', 'rejected', 'completed', 'in_progress', 'canceled', 'rescheduled']
 
 const form = reactive({
   business_code: '',
@@ -118,7 +113,6 @@ const form = reactive({
   start_time: '',
   end_time: '',
   notes: '',
-  status: '',
 })
 
 const businesses = ref([])
@@ -127,6 +121,12 @@ const services = ref([])
 const locations = ref([])
 const loading = ref(false)
 const error = ref('')
+const errors = reactive({})
+
+function validateField(field) {
+  const result = validateAppointmentForm(form)
+  if (result[field]) { errors[field] = result[field] } else { delete errors[field] }
+}
 
 onMounted(async () => {
   const [bizRes, clientRes] = await Promise.allSettled([
@@ -144,6 +144,7 @@ onMounted(async () => {
 })
 
 async function onBusinessChange() {
+  validateField('business_code')
   form.service_code = ''
   form.location_code = ''
   if (!form.business_code) { services.value = []; locations.value = []; return }
@@ -156,12 +157,18 @@ async function onBusinessChange() {
 }
 
 async function submit() {
+  const validationErrors = validateAppointmentForm(form)
+  Object.keys(errors).forEach(k => delete errors[k])
+  Object.assign(errors, validationErrors)
+  if (Object.keys(errors).length > 0) return
+
   loading.value = true
   error.value = ''
   try {
-    const payload = { ...form }
+    const payload = { ...form, status: 'pending' }
     if (!payload.location_code) delete payload.location_code
     if (!payload.notes) delete payload.notes
+    if (!payload.client_code) delete payload.client_code
     await api.post('/appointments', payload)
     router.push('/appointments')
   } catch (err) {
@@ -205,6 +212,9 @@ async function submit() {
   font-family: inherit;
 }
 .field input:focus, .field select:focus, .field textarea:focus { border-color: #6366f1; }
+
+.field-input-error { border-color: #ef4444 !important; }
+.field-error { color: #ef4444; font-size: 12px; margin: 2px 0 0; }
 
 .error-msg { color: #ef4444; font-size: 13px; margin: 0; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; }

@@ -13,7 +13,7 @@ const VALID_DISCOUNT_UOMS = ["fixed", "percentage"];
 const VALID_INVOICE_STATUSES = ["draft", "issued", "paid", "canceled"];
 const VALID_LOCATION_TYPES = ["business", "client"];
 const VALID_AVAILABILITY = ["available", "not_available"];
-const VALID_PARTICIPANT_USER_TYPES = ["owner", "staff", "client"];
+const VALID_PARTICIPANT_USER_TYPES = ["admin", "business_owner", "operational_staff", "service_staff", "client"];
 const VALID_ABILITY_USER_TYPES = ["admin", "business_owner", "staff", "client"];
 const VALID_ABILITY_STATUSES = ["active", "inactive"];
 const VALID_ORG_STATUSES = ["active", "inactive"];
@@ -178,7 +178,7 @@ export const validateLocationService = (data: any) => {
 
 
 export const validateSchedule = (data: any) => {
-    const { business_code, user_code, working_days, employee_type, location_code, start_time, end_time } = data;
+    const { business_code, user_code, working_days, employee_type, location_code, start_time, end_time, status } = data;
 
     if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
@@ -208,7 +208,8 @@ export const validateSchedule = (data: any) => {
         throw new Error("Invalid endTime format. Use HH:MM (e.g. 17:00)");
     }
 
-    if (start_time >= end_time) {
+    // Only enforce time ordering for active (working) days
+    if ((!status || status === 'active') && start_time >= end_time) {
         throw new Error("startTime must be earlier than endTime");
     }
 };
@@ -337,17 +338,17 @@ export const validateAppointmentStatus = (data: any) => {
 
 
 export const validateAppointmentParticipant = (data: any) => {
-    const { business_code, userCode, userType } = data;
+    const { business_code, user_code, user_type } = data;
 
     if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!userCode || !isValidCode(userCode)) {
+    if (!user_code || !isValidCode(user_code)) {
         throw new Error("Valid 8-character userCode is required");
     }
 
-    if (!userType || !VALID_PARTICIPANT_USER_TYPES.includes(userType)) {
+    if (!user_type || !VALID_PARTICIPANT_USER_TYPES.includes(user_type)) {
         throw new Error("Invalid userType. Must be one of: " + VALID_PARTICIPANT_USER_TYPES.join(", "));
     }
 };

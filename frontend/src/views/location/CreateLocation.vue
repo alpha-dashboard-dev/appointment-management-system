@@ -11,20 +11,22 @@
 
         <div v-if="isAdmin" class="field">
           <label>Business *</label>
-          <select v-model="form.business_code" required>
+          <select v-model="form.business_code" :class="{ 'field-input-error': errors.business_code }" @change="validateField('business_code')">
             <option value="">Select business</option>
             <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
               {{ biz.name }}
             </option>
           </select>
+          <p v-if="errors.business_code" class="field-error">{{ errors.business_code }}</p>
         </div>
 
         <div class="field">
           <label>Type *</label>
-          <select v-model="form.location_type" required>
+          <select v-model="form.location_type" :class="{ 'field-input-error': errors.location_type }" @change="validateField('location_type')">
             <option value="business">Business</option>
             <option value="client">Client</option>
           </select>
+          <p v-if="errors.location_type" class="field-error">{{ errors.location_type }}</p>
         </div>
 
         <div class="field">
@@ -62,16 +64,6 @@
           <input v-model="form.country" placeholder="Country" />
         </div>
 
-        <div class="field">
-          <label>Status *</label>
-          <select v-model="form.status" required>
-            <option value="">Select Status</option>
-            <option v-for="status in statuses" :key="status" :value="status">
-              {{ status }}
-            </option>
-          </select>
-        </div>
-
         <p v-if="error" class="error-msg">{{ error }}</p>
 
         <div class="form-actions">
@@ -92,18 +84,24 @@ import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import { validateLocationForm } from '@/utils/validator'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.role === 'admin')
 const backLink = computed(() => isAdmin.value ? '/locations' : '/business/locations')
 
-const statuses = ['active', 'inactive']
 const form = reactive({ business_code: '', location_type: 'business', street: '', address: '', apartment: '', city: '',
-  province: '', postal_code: '', country: '', status: '' })
+  province: '', postal_code: '', country: '', status: 'active' })
 const businesses = ref([])
 const loading = ref(false)
 const error = ref('')
+const errors = reactive({})
+
+function validateField(field) {
+  const result = validateLocationForm(form)
+  if (result[field]) { errors[field] = result[field] } else { delete errors[field] }
+}
 
 onMounted(async () => {
   if (!isAdmin.value) {
@@ -117,6 +115,11 @@ onMounted(async () => {
 })
 
 async function submit() {
+  const validationErrors = validateLocationForm(form)
+  Object.keys(errors).forEach(k => delete errors[k])
+  Object.assign(errors, validationErrors)
+  if (Object.keys(errors).length > 0) return
+
   loading.value = true
   error.value = ''
   try {
@@ -144,6 +147,8 @@ async function submit() {
 .field label { font-size: 13px; font-weight: 600; color: #374151; }
 .field input, .field select { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; }
 .field input:focus, .field select:focus { border-color: #6366f1; }
+.field-input-error { border-color: #ef4444 !important; }
+.field-error { color: #ef4444; font-size: 12px; margin: 2px 0 0; }
 .error-msg { color: #ef4444; font-size: 13px; margin: 0; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .cancel-btn { padding: 9px 16px; border-radius: 6px; background: #f1f5f9; color: #64748b; text-decoration: none; font-size: 14px; }

@@ -2,6 +2,8 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from "../../stores/auth.store.js"
+import NotificationDropdown from '@/components/notifications/Notification.vue'
+import ProfileDropdown from '@/components/layout/Profile.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -133,9 +135,7 @@ onBeforeUnmount(() => {
         </button>
 
         <div v-if="showNotifications" class="notification-popup">
-          <div class="popup-card">
-            <p>No new notifications</p>
-          </div>
+          <NotificationDropdown />
         </div>
 
       </div>
@@ -157,28 +157,7 @@ onBeforeUnmount(() => {
 
         </button>
 
-        <div v-if="showProfile" class="profile-dropdown">
-
-          <div class="profile-header">
-            <strong>{{ user.name }}</strong>
-            <small>{{ user.role }}</small>
-          </div>
-
-          <button class="dropdown-item" @click="goToProfile">
-            <i class="bi bi-person"></i> Profile
-          </button>
-
-          <button class="dropdown-item" @click="goToSettings">
-            <i class="bi bi-gear"></i> Settings
-          </button>
-
-          <div class="divider"></div>
-
-          <button class="dropdown-item logout" @click="logout">
-            <i class="bi bi-box-arrow-right"></i> Logout
-          </button>
-
-        </div>
+        <ProfileDropdown v-if="showProfile" :user="user" />
 
       </div>
 
@@ -190,12 +169,13 @@ onBeforeUnmount(() => {
 <style scoped>
 .custom-navbar {
   height: 75px;
-  background: white;
+  background: var(--color-nav, white);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 30px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 /* SEARCH */
@@ -207,10 +187,13 @@ onBeforeUnmount(() => {
 .search-input {
   width: 100%;
   height: 44px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding-left: 42px;
   outline: none;
+  background: var(--color-surface, white);
+  color: var(--color-text);
+  transition: border-color .2s;
 }
 
 .search-input:focus {
@@ -218,12 +201,14 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 3px rgba(13,110,253,.12);
 }
 
+.search-input::placeholder { color: var(--color-placeholder); }
+
 .search-icon {
   position: absolute;
   left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: var(--color-muted);
 }
 
 /* RIGHT */
@@ -238,7 +223,8 @@ onBeforeUnmount(() => {
   height: 42px;
   border: none;
   border-radius: 12px;
-  background: #f3f4f6;
+  background: var(--color-border-light, #f3f4f6);
+  color: var(--color-text);
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -247,7 +233,7 @@ onBeforeUnmount(() => {
 }
 
 .nav-icon-btn:hover {
-  background: #e5e7eb;
+  background: var(--color-border);
 }
 
 .nav-icon-btn i {
@@ -266,21 +252,15 @@ onBeforeUnmount(() => {
   z-index: 9999;
 }
 
-.popup-card {
-  background: white;
-  padding: 12px;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
 .notification-dot {
   width: 10px;
   height: 10px;
-  background: red;
+  background: #ef4444;
   border-radius: 50%;
   position: absolute;
   top: 8px;
   right: 8px;
+  pointer-events: none;
 }
 
 /* PROFILE */
@@ -310,46 +290,6 @@ onBeforeUnmount(() => {
 
 .avatar-fallback {
   font-weight: 600;
-}
-
-.profile-dropdown {
-  position: absolute;
-  right: 0;
-  top: 55px;
-  width: 200px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
-  overflow: hidden;
-}
-
-.profile-header {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-}
-
-.dropdown-item {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  gap: 8px;
-}
-
-.dropdown-item:hover {
-  background: #f3f4f6;
-}
-
-.logout {
-  color: red;
-}
-
-.divider {
-  height: 1px;
-  background: #eee;
 }
 </style>
 <!--<template>-->

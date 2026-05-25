@@ -8,17 +8,17 @@
 
       <nav class="menu">
         <router-link to="/client/dashboard" class="item">
-          <i class="icon">🏠</i>
+          <i class="bi bi-house icon"></i>
           <span v-if="!collapsed">Home</span>
         </router-link>
 
         <router-link to="/client/book" class="item">
-          <i class="icon">📅</i>
+          <i class="bi bi-calendar-plus icon"></i>
           <span v-if="!collapsed">Book Appointment</span>
         </router-link>
 
         <router-link to="/client/appointments" class="item">
-          <i class="icon">📋</i>
+          <i class="bi bi-list-check icon"></i>
           <span v-if="!collapsed">My Appointments</span>
         </router-link>
       </nav>
@@ -29,7 +29,7 @@
           <span class="user-role">Client</span>
         </div>
         <button class="logout-btn" @click="handleLogout">
-          <i class="icon">🚪</i>
+          <i class="bi bi-box-arrow-right icon"></i>
           <span v-if="!collapsed">Logout</span>
         </button>
       </div>
@@ -89,11 +89,11 @@ async function handleLogout() {
 .user-role { display: block; font-size: 11px; color: #94a3b8; margin-top: 2px; }
 .logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border-radius: 6px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 13px; transition: all 0.15s; }
 .logout-btn:hover { background: #334155; color: #f87171; }
-.main { flex: 1; background: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-.topbar { height: 60px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
-.page-title { margin: 0; font-size: 18px; font-weight: 600; color: #1e293b; }
+.main { flex: 1; background: var(--color-bg); min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { height: 60px; background: var(--color-nav, white); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-bottom: 1px solid var(--color-border); flex-shrink: 0; }
+.page-title { margin: 0; font-size: 18px; font-weight: 600; color: var(--color-text); }
 .topbar-right { display: flex; flex-direction: column; align-items: flex-end; }
-.tb-name { font-size: 14px; font-weight: 600; color: #1e293b; }
-.tb-role { font-size: 12px; color: #64748b; text-transform: capitalize; }
-.content { padding: 20px; flex: 1; }
+.tb-name { font-size: 14px; font-weight: 600; color: var(--color-text); }
+.tb-role { font-size: 12px; color: var(--color-muted); text-transform: capitalize; }
+.content { padding: 20px; flex: 1; background: var(--color-bg); }
 </style>

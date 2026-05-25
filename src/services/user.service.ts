@@ -5,7 +5,7 @@ import { generateCode } from "../utils/codeGenerator";
 import { ROLES } from "../utils/roles";
 
 // user_types a business owner is allowed to create
-const STAFF_USER_TYPES = [ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF];
+const STAFF_USER_TYPES = [ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT];
 
 class UserService {
 
@@ -19,7 +19,7 @@ class UserService {
             }
             data.business_code = actor.businessCode;
         } else if (actor.userType === ROLES.BUSINESS_OWNER) {
-            // Business owners can only create operational_staff or service_staff
+            // Business owners can create operational_staff, service_staff, or client
             if (!STAFF_USER_TYPES.includes(data.user_type)) {
                 throw new Error(
                     `Business owner can only create users with user_type: ${STAFF_USER_TYPES.join(", ")}`

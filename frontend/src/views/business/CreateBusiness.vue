@@ -11,22 +11,25 @@
 
         <div class="field">
           <label>Business Name *</label>
-          <input type="text" v-model="form.name" placeholder="Enter business name" required />
+          <input type="text" v-model="form.name" placeholder="Enter business name" :class="{ 'field-input-error': errors.name }" @blur="validateField('name')" />
+          <p v-if="errors.name" class="field-error">{{ errors.name }}</p>
         </div>
 
         <div class="field">
           <label>Business Email *</label>
-          <input type="email" v-model="form.email" placeholder="Enter business email" required />
+          <input type="email" v-model="form.email" placeholder="Enter business email" :class="{ 'field-input-error': errors.email }" @blur="validateField('email')" />
+          <p v-if="errors.email" class="field-error">{{ errors.email }}</p>
         </div>
 
         <div class="field">
           <label>Phone Number *</label>
-          <input type="text" v-model="form.phone" placeholder="Enter phone number" required />
+          <input type="text" v-model="form.phone" placeholder="Enter phone number" :class="{ 'field-input-error': errors.phone }" @blur="validateField('phone')" />
+          <p v-if="errors.phone" class="field-error">{{ errors.phone }}</p>
         </div>
 
         <div class="field">
           <label>Address *</label>
-          <input type="text" v-model="form.address" placeholder="Enter address" required />
+          <input type="text" v-model="form.address" placeholder="Enter address" />
         </div>
 
         <div class="field">
@@ -42,23 +45,14 @@
         </div>
 
         <div class="field">
-          <label>Status *</label>
-          <select v-model="form.status" required>
-            <option value="">Select status</option>
-            <option v-for="status in ['active', 'inactive']" :key="status" :value="status">
-              {{ status }}
-            </option>
-          </select>
-        </div>
-
-        <div class="field">
           <label>Organization *</label>
-          <select v-model="form.organization_code" required>
+          <select v-model="form.organization_code" :class="{ 'field-input-error': errors.organization_code }" @change="validateField('organization_code')">
             <option value="">Select organization</option>
             <option v-for="org in organizations" :key="org.organization_code" :value="org.organization_code">
               {{ org.name }}
             </option>
           </select>
+          <p v-if="errors.organization_code" class="field-error">{{ errors.organization_code }}</p>
         </div>
 
         <p v-if="error" class="error-msg">{{ error }}</p>
@@ -80,9 +74,10 @@
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/utils/api'
+import { validateBusinessForm } from '@/utils/validator'
 
 const router = useRouter();
-const form = reactive({ name: '', organization_code: '', email: '', timezone: '', status: '', phone: '' })
+const form = reactive({ name: '', organization_code: '', email: '', timezone: '', status: 'active', phone: '' })
 const timezones = [
   'Asia/Karachi',
   'Asia/Dubai',
@@ -94,6 +89,12 @@ const timezones = [
 const organizations = ref([])
 const loading = ref(false)
 const error = ref('')
+const errors = reactive({})
+
+function validateField(field) {
+  const result = validateBusinessForm(form)
+  if (result[field]) { errors[field] = result[field] } else { delete errors[field] }
+}
 
 onMounted(async () => {
   try {
@@ -103,6 +104,11 @@ onMounted(async () => {
 })
 
 async function submit() {
+  const validationErrors = validateBusinessForm(form)
+  Object.keys(errors).forEach(k => delete errors[k])
+  Object.assign(errors, validationErrors)
+  if (Object.keys(errors).length > 0) return
+
   loading.value = true
   error.value = ''
   try {
@@ -146,6 +152,9 @@ async function submit() {
   outline: none;
 }
 .field input:focus, .field select:focus { border-color: #6366f1; }
+
+.field-input-error { border-color: #ef4444 !important; }
+.field-error { color: #ef4444; font-size: 12px; margin: 2px 0 0; }
 
 .error-msg { color: #ef4444; font-size: 13px; margin: 0; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; }

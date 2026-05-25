@@ -1,59 +1,61 @@
 <template>
-  <div class="page">
-    <div class="header"><h2>Pending Requests</h2></div>
-    <div class="card">
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else-if="error" class="error-msg">{{ error }}</div>
-      <table v-else class="table">
-        <thead><tr><th>Code</th><th>Date</th><th>Start</th><th>End</th><th>Location</th><th width="220">Actions</th></tr></thead>
-        <tbody>
-          <tr v-for="appt in appointments" :key="appt.appointment_code">
-            <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
-            <td>{{ appt.start_time ?? '—' }}</td>
-            <td>{{ appt.end_time ?? '—' }}</td>
-            <td>{{ appt.location_code ?? '—' }}</td>
-            <td>
-              <button class="assign-btn" @click="openAssignModal(appt)">Assign Staff</button>
-              <button class="approve-btn" @click="changeStatus(appt, 'approved')">Approve</button>
-              <button class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>
-            </td>
-          </tr>
-          <tr v-if="appointments.length === 0"><td colspan="6" class="empty">No pending requests</td></tr>
-        </tbody>
-      </table>
+  <div class="ams-page">
+    <div><h2 class="mb-0">Pending Requests</h2></div>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
+        <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
+        <table v-else class="table table-hover ams-table mb-0">
+          <thead class="table-light">
+            <tr><th class="ps-3">Code</th><th>Date</th><th>Start</th><th>End</th><th>Location</th><th class="pe-3" style="width:240px">Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="appt in appointments" :key="appt.appointment_code">
+              <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
+              <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
+              <td>{{ appt.start_time ?? '—' }}</td>
+              <td>{{ appt.end_time ?? '—' }}</td>
+              <td>{{ appt.location_code ?? '—' }}</td>
+              <td class="pe-3">
+                <button class="btn btn-sm btn-outline-primary me-1" @click="openAssignModal(appt)">Assign Staff</button>
+                <button class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'approved')">Approve</button>
+                <button class="btn btn-sm btn-outline-danger" @click="changeStatus(appt, 'rejected')">Reject</button>
+              </td>
+            </tr>
+            <tr v-if="appointments.length === 0"><td colspan="6" class="text-center text-muted py-4">No pending requests</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- ASSIGN STAFF MODAL -->
-    <div v-if="showAssignModal && assignAppt" class="modal-overlay" @click.self="closeAssignModal">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Assign Service Staff</h3>
-          <button class="close" @click="closeAssignModal">✕</button>
-        </div>
-        <p class="modal-sub">Appointment: <code>{{ assignAppt.appointment_code }}</code></p>
-
-        <div v-if="staffLoading" class="loading">Loading staff...</div>
-        <div v-else-if="!staffList.length" class="empty">No service staff found in your business</div>
-        <div v-else class="staff-list">
-          <div
-            v-for="s in staffList"
-            :key="s.user_code"
-            class="staff-item"
-            :class="{ selected: selectedStaff === s.user_code }"
-            @click="selectedStaff = s.user_code"
-          >
-            <div class="staff-name">{{ s.first_name }} {{ s.last_name }}</div>
-            <div class="staff-meta">{{ s.user_code }}</div>
+    <div v-if="showAssignModal && assignAppt" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Assign Service Staff</h5>
+            <button type="button" class="btn-close" @click="closeAssignModal"></button>
           </div>
-        </div>
-
-        <p v-if="assignError" class="error-msg">{{ assignError }}</p>
-        <div class="modal-actions">
-          <button class="cancel-btn" @click="closeAssignModal">Cancel</button>
-          <button class="save-btn" :disabled="!selectedStaff || assigning" @click="assignStaff">
-            {{ assigning ? 'Assigning...' : 'Assign' }}
-          </button>
+          <div class="modal-body">
+            <p class="text-muted small mb-3">Appointment: <code>{{ assignAppt.appointment_code }}</code></p>
+            <div v-if="staffLoading" class="text-center text-muted py-3">Loading staff...</div>
+            <div v-else-if="!staffList.length" class="text-center text-muted py-3">No service staff found in your business</div>
+            <div v-else class="d-flex flex-column gap-2" style="max-height:240px;overflow-y:auto">
+              <div
+                v-for="s in staffList" :key="s.user_code"
+                :class="['staff-item', { selected: selectedStaff === s.user_code }]"
+                @click="selectedStaff = s.user_code"
+              >
+                <div class="fw-semibold">{{ s.first_name }} {{ s.last_name }}</div>
+                <div class="text-muted small">{{ s.user_code }}</div>
+              </div>
+            </div>
+            <p v-if="assignError" class="text-danger small mt-2 mb-0">{{ assignError }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="closeAssignModal">Cancel</button>
+            <button class="btn btn-ams" :disabled="!selectedStaff || assigning" @click="assignStaff">{{ assigning ? 'Assigning...' : 'Assign' }}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -145,33 +147,4 @@ async function assignStaff() {
 onMounted(fetchList)
 </script>
 
-<style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
-.header h2 { margin: 0; color: #1e293b; }
-.card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.table { width: 100%; border-collapse: collapse; }
-.table th, .table td { text-align: left; padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-.table th { color: #64748b; font-weight: 600; }
-.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
-.error-msg { color: #ef4444; font-size: 13px; margin: 4px 0; }
-.assign-btn { background: #e0e7ff; color: #3730a3; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 4px; }
-.approve-btn { background: #dcfce7; color: #166534; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 4px; }
-.reject-btn { background: #fee2e2; color: #dc2626; border: none; padding: 4px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: white; border-radius: 10px; padding: 24px; width: 460px; max-width: 92%; }
-.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-.modal-header h3 { margin: 0; }
-.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
-.modal-sub { margin: 0 0 14px; font-size: 13px; color: #64748b; }
-.staff-list { display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; margin-bottom: 12px; }
-.staff-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; cursor: pointer; transition: background 0.15s; }
-.staff-item:hover { background: #f8fafc; }
-.staff-item.selected { border-color: #6366f1; background: #eff0ff; }
-.staff-name { font-size: 14px; font-weight: 600; color: #1e293b; }
-.staff-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
-.cancel-btn { padding: 8px 16px; border-radius: 6px; background: #f1f5f9; color: #374151; border: none; font-size: 14px; cursor: pointer; }
-.save-btn { background: #6366f1; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
-.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-</style>
+

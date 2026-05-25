@@ -4,7 +4,6 @@ import BusinessOwnerLayout from "@/components/layout/BusinessOwnerLayout.vue";
 import OperationalStaffLayout from "@/components/layout/OperationalStaffLayout.vue";
 import ServiceStaffLayout from "@/components/layout/ServiceStaffLayout.vue";
 import ClientLayout from "@/components/layout/ClientLayout.vue";
-import Notification from "@/components/notifications/Notification.vue"
 import Dashboard from "@/views/Dashboard.vue";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -12,13 +11,10 @@ import { useAuthStore } from "@/stores/auth.store";
 const routes = [
     { path: "/", redirect: "/dashboard" },
     { path: "/login", component: () => import("@/views/auth/Login.vue") },
-    { path: '/reset-password', component: () => import("@/views/auth/ForgotPassword.vue") },
-    { path: '/settings', component: () => import("@/views/settings/SettingsView.vue")},
-    { path:'/notifications', component: Notification},
-
-    { path:'/profile', component: () => import("@/views/settings/SettingsView.vue")},
-
-    { path:'/settings',component: () => import("@/views/settings/SettingsView.vue")},
+    { path: '/forgot-password', component: () => import("@/views/auth/ForgotPassword.vue") },
+    { path: '/settings', component: () => import("@/views/settings/SettingsView.vue") },
+    { path: '/notifications', component: () => import("@/views/notifications/NotificationsPage.vue") },
+    { path: '/profile', component: () => import("@/views/settings/SettingsView.vue") },
 
     // ── Admin ──────────────────────────────────────────────────────────
     {

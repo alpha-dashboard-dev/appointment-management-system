@@ -53,7 +53,7 @@
       <div v-if="activeTab === 'Staff'" class="card">
         <div class="card-header">
           <h3>Staff Members</h3>
-          <router-link to="/users/create" class="primary-btn">+ Add Staff</router-link>
+          <router-link to="/users/create?staffOnly=true" class="primary-btn">+ Add Staff</router-link>
         </div>
         <div v-if="tabLoading" class="loading">Loading...</div>
         <table v-else class="table">
@@ -168,7 +168,8 @@ async function loadTab(tab) {
       services.value = res.data.data || []
     } else if (tab === 'Staff') {
       const res = await api.get('/users/get-users', { params: { business_code: businessCode } })
-      staff.value = res.data.data || []
+      const allUsers = res.data.data || []
+      staff.value = allUsers.filter(u => u.user_type === 'operational_staff' || u.user_type === 'service_staff')
     } else if (tab === 'Locations') {
       const res = await api.get('/locations/get-location', { params: { business_code: businessCode } })
       locations.value = res.data.data || []

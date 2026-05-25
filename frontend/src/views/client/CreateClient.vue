@@ -11,22 +11,26 @@
 
         <div class="field">
           <label>Full Name *</label>
-          <input v-model="form.name" placeholder="Enter full name" required />
+          <input v-model="form.name" placeholder="Enter full name" :class="{ 'field-input-error': errors.name }" @blur="validateField('name')" />
+          <p v-if="errors.name" class="field-error">{{ errors.name }}</p>
         </div>
 
         <div class="field">
           <label>Email *</label>
-          <input v-model="form.email" type="email" placeholder="Enter email" required />
+          <input v-model="form.email" type="email" placeholder="Enter email" :class="{ 'field-input-error': errors.email }" @blur="validateField('email')" />
+          <p v-if="errors.email" class="field-error">{{ errors.email }}</p>
         </div>
 
         <div class="field">
           <label>Phone</label>
-          <input v-model="form.phone" placeholder="Enter phone number" />
+          <input v-model="form.phone" placeholder="Enter phone number" :class="{ 'field-input-error': errors.phone }" @blur="validateField('phone')" />
+          <p v-if="errors.phone" class="field-error">{{ errors.phone }}</p>
         </div>
 
         <div class="field">
           <label>Password *</label>
-          <input v-model="form.password" type="password" placeholder="Enter password" required />
+          <input v-model="form.password" type="password" placeholder="Enter password" :class="{ 'field-input-error': errors.password }" @blur="validateField('password')" />
+          <p v-if="errors.password" class="field-error">{{ errors.password }}</p>
         </div>
 
         <div class="field">
@@ -77,6 +81,7 @@ import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import { validateClientForm } from '@/utils/validator'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -99,6 +104,12 @@ const form = reactive({
 const businesses = ref([])
 const loading = ref(false)
 const error = ref('')
+const errors = reactive({})
+
+function validateField(field) {
+  const result = validateClientForm(form)
+  if (result[field]) { errors[field] = result[field] } else { delete errors[field] }
+}
 
 onMounted(async () => {
   if (!isAdmin.value) {
@@ -112,6 +123,11 @@ onMounted(async () => {
 })
 
 async function submit() {
+  const validationErrors = validateClientForm(form)
+  Object.keys(errors).forEach(k => delete errors[k])
+  Object.assign(errors, validationErrors)
+  if (Object.keys(errors).length > 0) return
+
   loading.value = true
   error.value = ''
   try {
@@ -152,6 +168,9 @@ async function submit() {
   outline: none;
 }
 .field input:focus, .field select:focus { border-color: #6366f1; }
+
+.field-input-error { border-color: #ef4444 !important; }
+.field-error { color: #ef4444; font-size: 12px; margin: 2px 0 0; }
 
 .error-msg { color: #ef4444; font-size: 13px; margin: 0; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; }

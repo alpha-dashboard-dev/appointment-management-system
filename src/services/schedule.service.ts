@@ -10,7 +10,7 @@ class ScheduleService {
             data.business_code = actor.businessCode;
         }
 
-        const { business_code, user_code, working_days, employee_type, location_code, start_time, end_time } = data;
+        const { business_code, user_code, working_days, employee_type, location_code, start_time, end_time, status } = data;
 
         validateSchedule(data);
 
@@ -22,7 +22,30 @@ class ScheduleService {
             location_code,
             start_time,
             end_time,
+            status: status || 'active',
         });
+    }
+
+    async bulkCreate(entries: any[], actor?: any) {
+        const results = [];
+        for (const entry of entries) {
+            if (actor && actor.userType !== ROLES.ADMIN) {
+                entry.business_code = actor.businessCode;
+            }
+            validateSchedule(entry);
+            const result = await repo.create({
+                business_code: entry.business_code,
+                user_code: entry.user_code,
+                working_days: entry.working_days,
+                employee_type: entry.employee_type,
+                location_code: entry.location_code || null,
+                start_time: entry.start_time,
+                end_time: entry.end_time,
+                status: entry.status || 'active',
+            });
+            results.push(result);
+        }
+        return results;
     }
 
     async getAll(filters: any = {}, actor?: any) {
@@ -61,9 +84,13 @@ class ScheduleService {
         }
 
         const allowed: any = {};
-        const fields = ["working_days", "employee_type", "location_code", "start_time", "end_time"];
+        const fields = ["working_days", "employee_type", "location_code", "start_time", "end_time", "status"];
         for (const f of fields) {
             if (data[f] !== undefined) allowed[f] = data[f];
+        }
+
+        if (allowed.status && !['active', 'inactive'].includes(allowed.status)) {
+            throw new Error("Invalid status. Must be 'active' or 'inactive'");
         }
 
         const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;

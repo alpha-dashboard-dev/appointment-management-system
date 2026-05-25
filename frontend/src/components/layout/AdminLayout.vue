@@ -42,7 +42,7 @@ import Topbar from '@/components/layout/Topbar.vue'
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  background: #f1f5f9;
+  background: var(--color-bg);
 }
 
 </style>

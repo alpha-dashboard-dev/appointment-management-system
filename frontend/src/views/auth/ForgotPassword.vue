@@ -30,11 +30,14 @@
               v-model="email"
               type="email"
               class="custom-input"
+              :class="{ 'input-error': emailError }"
               placeholder="Enter your email"
-              required
+              @blur="validateEmail"
           />
 
         </div>
+
+        <p v-if="emailError" class="field-error">{{ emailError }}</p>
 
         <!-- BUTTON -->
 
@@ -70,15 +73,19 @@
 
 <script setup>
 import { ref } from 'vue'
+import { isValidEmail } from '@/utils/validator'
 
 const email = ref('')
+const emailError = ref('')
+
+function validateEmail() {
+  emailError.value = email.value && isValidEmail(email.value) ? '' : 'A valid email address is required'
+}
 
 function resetPassword() {
-
-  console.log({
-    email: email.value,
-  })
-
+  validateEmail()
+  if (emailError.value) return
+  console.log({ email: email.value })
 }
 </script>
 
@@ -88,7 +95,7 @@ function resetPassword() {
 
   min-height: 100vh;
 
-  background: #f4f6f9;
+  background: var(--color-bg, #f4f6f9);
 
   display: flex;
   justify-content: center;
@@ -102,7 +109,7 @@ function resetPassword() {
   width: 100%;
   max-width: 500px;
 
-  background: white;
+  background: var(--color-surface, white);
 
   padding: 50px;
 
@@ -123,14 +130,14 @@ function resetPassword() {
   font-size: 30px;
   font-weight: 700;
 
-  color: #111827;
+  color: var(--color-text, #111827);
 
   margin-bottom: 10px;
 }
 
 .forgot-header p {
 
-  color: #6b7280;
+  color: var(--color-muted, #6b7280);
 
   margin: 0;
 }
@@ -171,13 +178,16 @@ function resetPassword() {
 
   padding-left: 45px;
 
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border, #d1d5db);
 
   border-radius: 12px;
 
   font-size: 14px;
 
   outline: none;
+
+  background: var(--color-input-bg, white);
+  color: var(--color-text);
 
   transition: border-color 0.2s;
 }
@@ -187,6 +197,16 @@ function resetPassword() {
   border-color: #6366f1;
 
   box-shadow: none;
+}
+
+.custom-input.input-error {
+  border-color: #ef4444;
+}
+
+.field-error {
+  color: #ef4444;
+  font-size: 12px;
+  margin: -12px 0 0 4px;
 }
 
 .submit-btn {
