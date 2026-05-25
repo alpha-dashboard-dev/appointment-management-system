@@ -245,6 +245,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.role === 'admin')
@@ -265,14 +266,6 @@ const selected = ref(null)
 
 const editForm = ref({ working_days: '', employee_type: '', location_code: '', start_time: '', end_time: '', status: 'active' })
 const editError = ref('')
-
-function formatTime(t) {
-  if (!t) return '—'
-  const [h, m] = t.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
-}
 
 function openEdit(schedule) {
   selected.value = schedule

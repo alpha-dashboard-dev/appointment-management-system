@@ -73,8 +73,8 @@
           <tr>
             <th>Code</th>
             <th>Date</th>
-            <th>Start</th>
-            <th>End</th>
+            <th>Start Time</th>
+            <th>End Time</th>
             <th>Status</th>
 <!--            <th>Actions</th>-->
           </tr>
@@ -83,8 +83,8 @@
           <tr v-for="appt in pendingAppointments" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
             <td>{{ appt.appointment_start_date }}</td>
-            <td>{{ appt.start_time }}</td>
-            <td>{{ appt.end_time }}</td>
+            <td>{{ formatTime(appt.start_time) }}</td>
+            <td>{{ formatTime(appt.end_time) }}</td>
             <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
 <!--            <td>-->
 <!--              <button class="approve-btn" @click="changeStatus(appt, 'approved')">Approve</button>-->
@@ -105,6 +105,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
 
 const authStore = useAuthStore()
 const loading = ref(true)
