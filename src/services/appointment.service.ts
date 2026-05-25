@@ -471,7 +471,7 @@ class AppointmentService {
             }
         }
 
-        return await participantRepo.create({
+        const participant = await participantRepo.create({
             business_code: appointment.business_code,
             appointment_code: appointmentCode,
             user_code: user_code,
@@ -479,6 +479,17 @@ class AppointmentService {
             user_role: user_role || null,
             status: "active",
         });
+
+        await historyRepo.create({
+            business_code: appointment.business_code,
+            appointment_code: appointmentCode,
+            action: "assigned",
+            changed_by: actor?.userCode,
+            old_value: null,
+            new_value: { user_code, user_type, user_role: user_role || null },
+        });
+
+        return participant;
     }
 
     async getParticipants(appointmentCode: string) {

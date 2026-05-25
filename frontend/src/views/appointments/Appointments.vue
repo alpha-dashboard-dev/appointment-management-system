@@ -19,6 +19,7 @@
         <option value="rejected">Rejected</option>
         <option value="rescheduled">Rescheduled</option>
         <option value="completed">Completed</option>
+        <option value="canceled">Canceled</option>
       </select>
       <input v-model="search" class="form-control" style="max-width:260px" placeholder="Search by code or client..." />
     </div>
@@ -54,7 +55,8 @@
                 <button v-if="appt.status === 'approved'" class="btn btn-sm btn-outline-info me-1" @click="changeStatus(appt, 'in_progress')">Start</button>
                 <button v-if="appt.status === 'in_progress'" class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'completed')">Complete</button>
                 <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-primary me-1" @click="openReschedule(appt)">Reschedule</button>
-                <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-danger" @click="changeStatus(appt, 'rejected')">Reject</button>
+                <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-danger me-1" @click="changeStatus(appt, 'rejected')">Reject</button>
+                <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-secondary" @click="changeStatus(appt, 'canceled')">Cancel</button>
               </td>
             </tr>
             <tr v-if="filteredAppointments.length === 0">

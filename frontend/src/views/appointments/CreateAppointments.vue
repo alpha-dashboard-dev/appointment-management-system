@@ -3,13 +3,14 @@
 
     <div class="page-header">
       <h2>New Appointment</h2>
-      <router-link to="/appointments" class="back-link">← Back</router-link>
+      <a class="back-link" style="cursor:pointer" @click="router.back()">← Back</a>
     </div>
 
     <div class="card">
       <form class="form" @submit.prevent="submit">
 
-        <div class="field">
+        <!-- Business selector: admin only; other roles use their own business automatically -->
+        <div v-if="isAdmin" class="field">
           <label>Business *</label>
           <select v-model="form.business_code" :class="{ 'field-input-error': errors.business_code }" @change="onBusinessChange">
             <option value="">Select business</option>
@@ -96,12 +97,15 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/utils/api'
 import { validateAppointmentForm } from '@/utils/validator'
+import { useAuthStore } from '@/stores/auth.store'
 
 const router = useRouter()
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.user?.user_type === 'admin')
 
 const form = reactive({
   business_code: '',
@@ -135,11 +139,23 @@ onMounted(async () => {
   ])
 
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
-  // if (clientRes.status === 'fulfilled') clients.value = clientRes.value.data.data || []
   if (clientRes.status === 'fulfilled') {
     clients.value = (clientRes.value.data.data || []).filter(
         c => c.user_type === 'client'
     )
+  }
+
+  // For non-admin roles, business is fixed — auto-set and load services/locations immediately
+  if (!isAdmin.value) {
+    form.business_code = authStore.user?.business_code || ''
+    if (form.business_code) {
+      const [svcRes, locRes] = await Promise.allSettled([
+        api.get('/services/get-service', { params: { business_code: form.business_code } }),
+        api.get('/locations/get-location', { params: { business_code: form.business_code } }),
+      ])
+      if (svcRes.status === 'fulfilled') services.value = svcRes.value.data.data || []
+      if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []
+    }
   }
 })
 
