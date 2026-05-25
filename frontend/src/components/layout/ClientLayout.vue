@@ -17,6 +17,7 @@
           <span v-if="!collapsed">Book Appointment</span>
         </router-link>
 
+
         <router-link to="/client/appointments" class="item">
           <i class="bi bi-list-check icon"></i>
           <span v-if="!collapsed">My Appointments</span>

@@ -21,7 +21,7 @@
           </div>
           <div v-show="open.app && !collapsed" class="submenu">
             <router-link to="/operations/appointments" class="sub-item">All Requests</router-link>
-            <router-link to="/operations/appointments/pending" class="sub-item">Pending Requests</router-link>
+            <router-link to="/operations/pending" class="sub-item">Pending Requests</router-link>
           </div>
         </div>
 
@@ -106,7 +106,6 @@ async function handleLogout() {
   router.push('/login')
 }
 </script>
-
 <style scoped>
 .layout { display: flex; }
 .sidebar { width: 260px; height: 100vh; background: #1e293b; color: white; display: flex; flex-direction: column; position: sticky; top: 0; transition: 0.3s; overflow-y: auto; }

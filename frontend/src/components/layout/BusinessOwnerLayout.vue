@@ -12,7 +12,6 @@
           <span v-if="!collapsed">Dashboard</span>
         </router-link>
 
-        <!-- APPOINTMENTS -->
         <div class="group">
           <div class="group-title" @click="toggle('app')">
             <i class="bi bi-calendar-check icon"></i>
@@ -25,7 +24,7 @@
           </div>
         </div>
 
-        <!-- SERVICES -->
+
         <div class="group">
           <div class="group-title" @click="toggle('svc')">
             <i class="bi bi-clipboard-pulse icon"></i>
@@ -38,7 +37,7 @@
           </div>
         </div>
 
-        <!-- LOCATIONS -->
+
         <div class="group">
           <div class="group-title" @click="toggle('loc')">
             <i class="bi bi-geo-alt icon"></i>
@@ -52,7 +51,6 @@
           </div>
         </div>
 
-        <!-- STAFF (USERS) -->
         <div class="group">
           <div class="group-title" @click="toggle('staff')">
             <i class="bi bi-person icon"></i>
@@ -65,7 +63,6 @@
           </div>
         </div>
 
-        <!-- CLIENTS -->
         <div class="group">
           <div class="group-title" @click="toggle('client')">
             <i class="bi bi-people icon"></i>
@@ -78,19 +75,17 @@
           </div>
         </div>
 
-        <!-- SCHEDULES -->
         <router-link to="/business/schedules" class="item">
           <i class="bi bi-calendar3 icon"></i>
           <span v-if="!collapsed">Schedules</span>
         </router-link>
 
-        <!-- CHARGES -->
+
         <router-link to="/business/charges" class="item">
           <i class="bi bi-cash-coin icon"></i>
           <span v-if="!collapsed">Charges</span>
         </router-link>
 
-        <!-- INVOICES -->
         <router-link to="/business/invoices" class="item">
           <i class="bi bi-receipt icon"></i>
           <span v-if="!collapsed">Invoices</span>

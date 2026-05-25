@@ -15,6 +15,7 @@
       <input v-model="search" class="form-control" style="max-width:300px" placeholder="Search by name or email..." />
     </div>
 
+
     <!-- TABLE CARD -->
     <div class="card shadow-sm border-0">
       <div class="card-body p-0">
