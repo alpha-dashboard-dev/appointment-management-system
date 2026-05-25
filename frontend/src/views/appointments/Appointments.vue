@@ -29,7 +29,7 @@
       <div class="card-body p-0 overflow-auto">
         <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
-        <table v-else class="table table-hover ams-table mb-0">
+        <table v-else class="table table-hover ams-table mb-0 align-middle">
           <thead class="table-light">
             <tr>
               <th class="ps-3">Appointment Code</th>
@@ -38,7 +38,7 @@
               <th>Date</th>
               <th>Start Time</th>
               <th>Status</th>
-              <th class="pe-3" style="width:280px">Actions</th>
+              <th class="pe-3 text-center" style="min-width:220px">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -47,9 +47,10 @@
               <td>{{ appt.business_code || '—' }}</td>
               <td>{{ appt.notes || '—' }}</td>
               <td>{{ appt.appointment_start_date }}</td>
-              <td>{{ appt.start_time }}</td>
+              <td>{{ formatTime(appt.start_time) }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
               <td class="pe-3">
+                <div class="d-flex flex-wrap justify-content-center gap-1">
                 <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(appt)">View</button>
                 <button v-if="appt.status === 'pending'" class="btn btn-sm btn-success me-1" @click="openApprovalDialog(appt)">Approve</button>
                 <button v-if="appt.status === 'approved'" class="btn btn-sm btn-outline-info me-1" @click="changeStatus(appt, 'in_progress')">Start</button>
@@ -57,6 +58,7 @@
                 <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-primary me-1" @click="openReschedule(appt)">Reschedule</button>
                 <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-danger me-1" @click="changeStatus(appt, 'rejected')">Reject</button>
                 <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-secondary" @click="changeStatus(appt, 'canceled')">Cancel</button>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredAppointments.length === 0">
@@ -77,18 +79,18 @@
           </div>
           <div class="modal-body" v-if="selected">
             <dl class="row mb-3">
-              <dt class="col-5 text-muted">Code</dt>
+              <dt class="col-5 text-muted">Appointment Code</dt>
               <dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
-              <dt class="col-5 text-muted">Client</dt>
-              <dd class="col-7">{{ selected.client_name || selected.client_code }}</dd>
-              <dt class="col-5 text-muted">Service</dt>
-              <dd class="col-7">{{ selected.service_name || selected.service_code }}</dd>
-              <dt class="col-5 text-muted">Date</dt>
+              <dt class="col-5 text-muted">Business Code</dt>
+              <dd class="col-7"><code>{{ selected.business_code }}</code></dd>
+              <dt class="col-5 text-muted">Start Date</dt>
               <dd class="col-7">{{ selected.appointment_start_date }}</dd>
-              <dt class="col-5 text-muted">Start</dt>
-              <dd class="col-7">{{ selected.start_time }}</dd>
-              <dt class="col-5 text-muted">End</dt>
-              <dd class="col-7">{{ selected.end_time }}</dd>
+              <dt class="col-5 text-muted">End Date</dt>
+              <dd class="col-7">{{ selected.appointment_end_date }}</dd>
+              <dt class="col-5 text-muted">Start Time</dt>
+              <dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
+              <dt class="col-5 text-muted">End Time</dt>
+              <dd class="col-7">{{ formatTime(selected.end_time) }}</dd>
               <dt class="col-5 text-muted">Status</dt>
               <dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
               <template v-if="selected.notes">
@@ -170,10 +172,10 @@
 
             <!-- Appointment summary -->
             <div class="bg-light rounded p-3 mb-3 d-flex flex-wrap gap-3" v-if="selected">
-              <div><span class="text-muted small">Code</span><div><code>{{ selected.appointment_code }}</code></div></div>
-              <div><span class="text-muted small">Date</span><div>{{ selected.appointment_start_date }}</div></div>
+              <div><span class="text-muted small">Appointment Code</span><div><code>{{ selected.appointment_code }}</code></div></div>
+              <div><span class="text-muted small">Start Date</span><div>{{ selected.appointment_start_date }}</div></div>
               <div><span class="text-muted small">Time</span><div>{{ selected.start_time }} – {{ selected.end_time }}</div></div>
-              <div><span class="text-muted small">Location</span><div>{{ selected.location_code || '—' }}</div></div>
+              <div><span class="text-muted small">Location Code</span><div>{{ selected.location_code || '—' }}</div></div>
             </div>
 
             <!-- Loading -->
@@ -456,6 +458,14 @@ async function submitApproveWithStaff() {
   } finally {
     approvalSaving.value = false
   }
+}
+
+function formatTime(t) {
+  if (!t) return '—'
+  const [h, m] = t.split(':').map(Number)
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
 }
 
 async function submitApprovalReschedule() {

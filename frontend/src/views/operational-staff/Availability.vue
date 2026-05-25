@@ -15,7 +15,15 @@
       <div v-if="error" class="error-msg">{{ error }}</div>
       <div v-else-if="available.length === 0" class="empty">No available staff found</div>
       <table v-else class="table">
-        <thead><tr><th>Staff Code</th><th>Employee Type</th><th>Working Days</th><th>Start Time</th><th>End Time</th></tr></thead>
+        <thead>
+        <tr>
+          <th>Staff Code</th>
+          <th>Employee Type</th>
+          <th>Working Days</th>
+          <th>Start Time</th>
+          <th>End Time</th>
+        </tr>
+        </thead>
         <tbody>
           <tr v-for="s in available" :key="s.id">
             <td><code>{{ s.user_code }}</code></td>

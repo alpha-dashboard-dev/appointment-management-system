@@ -44,7 +44,7 @@
             <th>Client</th>
             <th>Location</th>
             <th>Status</th>
-            <th>Actions</th>
+<!--            <th>Actions</th>-->
           </tr>
         </thead>
         <tbody>
@@ -54,14 +54,14 @@
             <td>{{ appt.client_code ?? '—' }}</td>
             <td>{{ appt.location_code ?? '—' }}</td>
             <td><span class="badge pending">Pending</span></td>
-            <td>
-              <button class="approve-btn" @click="changeStatus(appt, 'approved')">Approve</button>
-              <button class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>
-            </td>
+<!--            <td>-->
+<!--              <button class="approve-btn" @click="changeStatus(appt, 'approved')">Approve</button>-->
+<!--              <button class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>-->
+<!--            </td>-->
           </tr>
-          <tr v-if="pendingAppts.length === 0">
-            <td colspan="6" class="empty">No pending requests</td>
-          </tr>
+<!--          <tr v-if="pendingAppts.length === 0">-->
+<!--            <td colspan="6" class="empty">No pending requests</td>-->
+<!--          </tr>-->
         </tbody>
       </table>
     </div>
@@ -72,7 +72,7 @@
       </div>
       <div class="action-row">
         <router-link to="/operations/appointments" class="action-btn">All Appointments</router-link>
-        <router-link to="/operations/appointments/pending" class="action-btn">Pending Requests</router-link>
+        <router-link to="/operations/pending" class="action-btn">Pending Requests</router-link>
         <router-link to="/operations/availability" class="action-btn">Check Availability</router-link>
       </div>
     </div>

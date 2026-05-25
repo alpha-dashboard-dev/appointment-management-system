@@ -46,8 +46,9 @@ class InvoiceController {
 
     async changeStatus(req: Request, res: Response) {
         try {
-            const { status } = req.body;
-            const data = await service.changeStatus(Number(req.params.id), status, req.user);
+            const { invoice_status } = req.body;
+            // console.log(invoice_status);
+            const data = await service.changeStatus(Number(req.params.id), invoice_status, req.user);
             return res.status(200).json({ success: true, message: "Invoice status updated", data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });

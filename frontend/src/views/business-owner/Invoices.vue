@@ -110,7 +110,7 @@ async function fetchInvoices() {
 
 function openView(inv) {
   selected.value = inv
-  newStatus.value = inv.status
+  newStatus.value = inv.invoice_status
   formError.value = ''
   showViewModal.value = true
 }
@@ -119,7 +119,8 @@ async function updateStatus() {
   saving.value = true
   formError.value = ''
   try {
-    await api.patch(`/invoices/update-invoice-status${selected.value.id}`, { status: newStatus.value })
+    console.log(newStatus.value)
+    await api.patch(`/invoices/update-invoice-status${selected.value.id}`, { invoice_status: newStatus.value })
     showViewModal.value = false
     await fetchInvoices()
   } catch (err) {

@@ -47,12 +47,13 @@ class InvoiceService {
     }
 
     async changeStatus(id: number, status: string, actor: any) {
+        // console.log(status);
         validateInvoiceStatus({ status });
         const invoice = await repo.findById(id);
         if (!invoice) throw new Error("Invoice not found");
 
         return await repo.update(id, {
-            status,
+            invoice_status: status,
             updatedBy: actor?.userCode || null,
         });
     }

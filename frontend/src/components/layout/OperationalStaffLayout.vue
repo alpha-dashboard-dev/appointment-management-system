@@ -21,7 +21,7 @@
           </div>
           <div v-show="open.app && !collapsed" class="submenu">
             <router-link to="/operations/appointments" class="sub-item">All Requests</router-link>
-            <router-link to="/operations/appointments/pending" class="sub-item">Pending Requests</router-link>
+            <router-link to="/operations/pending" class="sub-item">Pending Requests</router-link>
           </div>
         </div>
 
@@ -51,26 +51,27 @@
         </div>
       </nav>
 
-      <div class="logout-section">
-        <div v-if="!collapsed" class="user-info">
-          <span class="user-name">{{ authStore.user?.name || authStore.user?.email }}</span>
-          <span class="user-role">Operational Staff</span>
-        </div>
-        <button class="logout-btn" @click="handleLogout">
-          <i class="bi bi-box-arrow-right icon"></i>
-          <span v-if="!collapsed">Logout</span>
-        </button>
-      </div>
+<!--      <div class="logout-section">-->
+<!--        <div v-if="!collapsed" class="user-info">-->
+<!--          <span class="user-name">{{ authStore.user?.name || authStore.user?.email }}</span>-->
+<!--          <span class="user-role">Operational Staff</span>-->
+<!--        </div>-->
+<!--        <button class="logout-btn" @click="handleLogout">-->
+<!--          <i class="bi bi-box-arrow-right icon"></i>-->
+<!--          <span v-if="!collapsed">Logout</span>-->
+<!--        </button>-->
+<!--      </div>-->
     </aside>
 
     <div class="main">
-      <header class="topbar">
-        <h3 class="page-title">{{ pageTitle }}</h3>
-        <div class="topbar-right">
-          <span class="tb-name">{{ authStore.user?.name || authStore.user?.email }}</span>
-          <span class="tb-role">Operational Staff</span>
-        </div>
-      </header>
+      <Topbar />
+<!--      <header class="topbar">-->
+<!--        <h3 class="page-title">{{ pageTitle }}</h3>-->
+<!--        <div class="topbar-right">-->
+<!--          <span class="tb-name">{{ authStore.user?.name || authStore.user?.email }}</span>-->
+<!--          <span class="tb-role">Operational Staff</span>-->
+<!--        </div>-->
+<!--      </header>-->
       <div class="content">
         <router-view />
       </div>
@@ -82,6 +83,7 @@
 import { reactive, ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import Topbar from "./Topbar.vue";
 
 const router = useRouter()
 const route = useRoute()
@@ -94,17 +96,17 @@ function toggle(key) { open[key] = !open[key] }
 const titleMap = {
   '/operations/dashboard': 'Dashboard',
   '/operations/appointments': 'Appointments',
-  '/operations/appointments/pending': 'Pending Appointments',
+  '/operations/pending': 'Pending Appointments',
   '/operations/schedules': 'Staff Schedules',
   '/operations/availability': 'Check Staff Availability',
   '/operations/clients': 'Clients',
 }
 const pageTitle = computed(() => titleMap[route.path] || 'Operations')
 
-async function handleLogout() {
-  await authStore.logout()
-  router.push('/login')
-}
+// async function handleLogout() {
+//   await authStore.logout()
+//   router.push('/login')
+// }
 </script>
 
 <style scoped>

@@ -19,7 +19,7 @@
             <label>Location</label>
             <select v-model="form.location_code" @change="onLocationChange">
               <option value="">Select location (optional)</option>
-              <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">{{ loc.name }}</option>
+              <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">{{ loc.address + " " + loc.street + " " + loc.city }}</option>
             </select>
           </div>
 
@@ -28,22 +28,65 @@
             <select v-model="form.service_code" @change="onServiceChange" required>
               <option value="">Select service</option>
               <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">
-                {{ svc.name }} ({{ svc.duration_value }} {{ svc.duration_unit || 'min' }})
+                {{ svc.name }} {{ svc.duration_value }} {{ svc.duration_uom}}
               </option>
             </select>
           </div>
 
           <!-- Charges preview -->
           <div v-if="selectedService" class="charges-box">
-            <div class="charges-title">💳 Service Charges</div>
-            <div v-if="selectedService.charges && selectedService.charges.length" class="charges-list">
-              <div v-for="ch in selectedService.charges" :key="ch.charge_code" class="charge-row">
-                <span>{{ ch.charge_name }}</span>
-                <span class="charge-val">{{ ch.charge_value }} / {{ ch.charge_uom }}</span>
-              </div>
+
+            <div class="charges-title">
+              💳 Service Charges
             </div>
-            <div v-else class="no-charges">No charges defined for this service</div>
+
+            <!-- Base Service Price -->
+            <div class="charge-row">
+              <span>{{ selectedService.name }}</span>
+
+              <span class="charge-val">
+      {{ selectedService.price }}
+      {{ selectedService.currency }}
+    </span>
+            </div>
+
+            <!-- Additional Charges -->
+            <template v-if="selectedCharges.length">
+
+              <div
+                  v-for="ch in selectedCharges"
+                  :key="ch.charge_code"
+                  class="charge-row"
+              >
+                <span>{{ ch.name }}</span>
+
+                <span class="charge-val">
+        {{ ch.charge_value }}
+        {{ ch.charge_uom }}
+      </span>
+              </div>
+
+            </template>
+
+            <div
+                v-else
+                class="no-charges"
+            >
+              No additional charges
+            </div>
+
           </div>
+<!--          <div v-if="selectedService" class="charges-box">-->
+<!--            <div class="charges-title">💳 Service Charges</div>-->
+
+<!--            <div v-if="selectedService.price" class="charges-list">-->
+<!--              <div class="charge-row">-->
+<!--                <span>{{ selectedService.name }}</span>-->
+<!--                <span class="charge-val">{{ selectedService.price }} {{ selectedService.currency }}</span>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--            <div v-else class="no-charges">No charges defined for this service</div>-->
+<!--          </div>-->
         </template>
 
         <div class="row">
@@ -84,10 +127,24 @@ const form = reactive({
 const businesses = ref([])
 const services = ref([])
 const locations = ref([])
+const charges = ref([])
 const loading = ref(false)
 const error = ref('')
 
-const selectedService = computed(() => services.value.find(s => s.service_code === form.service_code) || null)
+// const selectedService = computed(() => services.value.find(s => s.service_code === form.service_code) || null)
+const selectedService = computed(() =>
+    services.value.find(
+        s => s.service_code === form.service_code
+    ) || null
+)
+
+const selectedCharges = computed(() => {
+  if (!selectedService.value) return []
+
+  return charges.value.filter(
+      ch => ch.business_code === selectedService.value.business_code
+  )
+})
 
 onMounted(async () => {
   try {
@@ -101,14 +158,17 @@ async function onBusinessChange() {
   form.location_code = ''
   services.value = []
   locations.value = []
+  charges.value = []
   if (!form.business_code) return
   try {
     const [svcRes, locRes] = await Promise.all([
       api.get('/services/client-view', { params: { business_code: form.business_code } }),
       api.get('/locations/get-location', { params: { business_code: form.business_code } }),
+        // api.get('/charges/get-charge', { params: { business_code: form.business_code } }),
     ])
-    services.value = svcRes.data.data || []
+    services.value = svcRes.data.data.services || []
     locations.value = locRes.data.data || []
+    charges.value = svcRes.data.data.charges || []
   } catch (_) {}
 }
 
@@ -119,7 +179,7 @@ async function onLocationChange() {
     const params = { business_code: form.business_code }
     if (form.location_code) params.location_code = form.location_code
     const svcRes = await api.get('/services/client-view', { params })
-    services.value = svcRes.data.data || []
+    services.value = svcRes.data.data.services || []
   } catch (_) {}
 }
 

@@ -90,12 +90,12 @@
                 <div class="col-6">
                   <label class="form-label fw-semibold">Start Time *</label>
                   <input type="time" v-model="editForm.start_time" class="form-control" :required="editForm.status === 'active'" :disabled="editForm.status === 'inactive'" />
-                  <small class="text-muted">{{ formatTime(editForm.start_time) }}</small>
+<!--                  <small class="text-muted">{{ formatTime(editForm.start_time) }}</small>-->
                 </div>
                 <div class="col-6">
                   <label class="form-label fw-semibold">End Time *</label>
                   <input type="time" v-model="editForm.end_time" class="form-control" :required="editForm.status === 'active'" :disabled="editForm.status === 'inactive'" />
-                  <small class="text-muted">{{ formatTime(editForm.end_time) }}</small>
+<!--                  <small class="text-muted">{{ formatTime(editForm.end_time) }}</small>-->
                 </div>
               </div>
               <div class="mt-3">

@@ -96,7 +96,7 @@
           <td>{{ appt.business_code}}</td>
           <td>{{ appt.notes || '—' }}</td>
           <td>{{ appt.appointment_start_date }}</td>
-          <td>{{ appt.start_time }}</td>
+          <td>{{ formatTime(appt.start_time) }}</td>
           <td>
             <span :class="['badge', appt.status]">{{ appt.status }}</span>
           </td>
@@ -128,6 +128,14 @@ const stats = ref({
   invoices: 0,
   locations: 0,
 })
+
+function formatTime(t) {
+  if (!t) return '—'
+  const [h, m] = t.split(':').map(Number)
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
+}
 
 onMounted(async () => {
   try {

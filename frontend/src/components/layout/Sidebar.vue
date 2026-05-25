@@ -251,12 +251,12 @@
     </nav>
 
     <!-- LOGOUT -->
-    <div class="logout-section">
-      <button class="logout-btn" @click="handleLogout">
-        <i class="bi bi-box-arrow-right icon"></i>
-        <span v-if="!collapsed">Logout</span>
-      </button>
-    </div>
+<!--    <div class="logout-section">-->
+<!--      <button class="logout-btn" @click="handleLogout">-->
+<!--        <i class="bi bi-box-arrow-right icon"></i>-->
+<!--        <span v-if="!collapsed">Logout</span>-->
+<!--      </button>-->
+<!--    </div>-->
   </aside>
 </template>
 
@@ -292,10 +292,10 @@ function handleGroupClick(key, route) {
   }
 }
 
-async function handleLogout() {
-  await authStore.logout()
-  router.push('/login')
-}
+// async function handleLogout() {
+//   await authStore.logout()
+//   router.push('/login')
+// }
 </script>
 
 <style scoped>

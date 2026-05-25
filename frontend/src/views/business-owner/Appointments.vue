@@ -26,10 +26,16 @@
       <div class="card-body p-0 overflow-auto">
         <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
-        <table v-else class="table table-hover ams-table mb-0">
+        <table v-else class="table table-hover ams-table mb-0 align-middle">
           <thead class="table-light">
             <tr>
-              <th class="ps-3">Code</th><th>Date</th><th>Start</th><th>End</th><th>Location</th><th>Status</th><th class="pe-3" style="width:280px">Actions</th>
+              <th class="ps-3">Appointment Code</th>
+              <th>Start Date</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Location Code</th>
+              <th>Status</th>
+              <th class="pe-3 text-center" style="min-width:220px">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -41,6 +47,7 @@
               <td>{{ appt.location_code || '—' }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
               <td class="pe-3">
+                <div class="d-flex flex-wrap justify-content-center">
                 <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(appt)">View</button>
                 <button v-if="appt.status === 'pending'" class="btn btn-sm btn-success me-1" @click="openApprovalDialog(appt)">Approve</button>
                 <button v-if="appt.status === 'approved'" class="btn btn-sm btn-outline-info me-1" @click="changeStatus(appt, 'in_progress')">Start</button>
@@ -49,6 +56,7 @@
                 <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-primary me-1" @click="openReschedule(appt)">Reschedule</button>
                 <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-danger me-1" @click="changeStatus(appt, 'rejected')">Reject</button>
                 <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-secondary" @click="changeStatus(appt, 'canceled')">Cancel</button>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredAppointments.length === 0">
@@ -134,7 +142,7 @@
                   >
                     <input type="radio" :value="s.user_code" v-model="approvalSelectedStaff" class="form-check-input mt-0" />
                     <div>
-                      <div class="fw-semibold">{{ s.user_name || s.user_code }}</div>
+                      <div class="fw-semibold">{{ s.user_code }}</div>
                       <small class="text-muted">{{ s.working_days }} &bull; {{ s.start_time }}–{{ s.end_time }}</small>
                     </div>
                   </label>
