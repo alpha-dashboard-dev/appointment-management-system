@@ -57,7 +57,7 @@ class AppointmentService {
             start_time,
             end_time,
             location_code: location_code || null,
-            status: status || "pending",
+            status: "pending",   // always pending regardless of creator role
             created_by: actor?.userCode,
             notes: notes || null,
         });
@@ -654,6 +654,156 @@ class AppointmentService {
         const recurrence = await appointmentRecurrenceRepo.findById(id);
         if (!recurrence) throw new Error("Recurrence not found");
         return await appointmentRecurrenceRepo.delete(id);
+    }
+
+    // ─── Approval Flow ───────────────────────────────────────────────────────────
+
+    /**
+     * Returns the list of service-staff members whose shift schedule covers
+     * the appointment's date, time window, and location — without changing anything.
+     */
+    async checkAvailability(appointmentCode: string, actor: any) {
+        const appointment = await repo.findByCode(appointmentCode);
+        if (!appointment) throw new Error("Appointment not found");
+
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
+
+        if (!appointment.location_code)
+            throw new Error("Appointment has no location assigned — cannot check staff availability");
+        if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time)
+            throw new Error("Appointment is missing date or time information");
+
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const parsed = new Date(appointment.appointment_start_date);
+        if (isNaN(parsed.getTime())) throw new Error("Appointment has invalid date");
+        const workingDay = days[parsed.getDay()];
+
+        const availableStaff = await scheduleRepo.findAvailableStaff(
+            appointment.business_code,
+            appointment.location_code,
+            workingDay,
+            appointment.start_time,
+            appointment.end_time
+        );
+
+        return {
+            appointment_code: appointmentCode,
+            date: appointment.appointment_start_date,
+            start_time: appointment.start_time,
+            end_time: appointment.end_time,
+            location_code: appointment.location_code,
+            working_day: workingDay,
+            available_staff: availableStaff || [],
+        };
+    }
+
+    /**
+     * Approves an appointment and assigns the chosen service-staff member.
+     * Validates that the staff member is actually available for the slot,
+     * applies business charges, and generates a draft invoice — same as the
+     * existing changeStatus("approved") path.
+     */
+    async approveWithStaff(appointmentCode: string, staffCode: string, actor: any) {
+        const appointment = await repo.findByCode(appointmentCode);
+        if (!appointment) throw new Error("Appointment not found");
+
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
+
+        const currentStatus = appointment.dataValues?.status ?? appointment.status;
+        if (currentStatus !== "pending")
+            throw new Error("Only pending appointments can be approved this way");
+
+        if (!appointment.location_code)
+            throw new Error("Cannot approve appointment without a location");
+        if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time)
+            throw new Error("Appointment is missing date or time information");
+
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const parsed = new Date(appointment.appointment_start_date);
+        if (isNaN(parsed.getTime())) throw new Error("Appointment has invalid date");
+        const workingDay = days[parsed.getDay()];
+
+        // Confirm the chosen staff is still in an available schedule slot
+        const availableStaff = await scheduleRepo.findAvailableStaff(
+            appointment.business_code,
+            appointment.location_code,
+            workingDay,
+            appointment.start_time,
+            appointment.end_time
+        );
+        const staffRecord = (availableStaff || []).find((s: any) => s.user_code === staffCode);
+        if (!staffRecord)
+            throw new Error("Selected staff member is not available for this appointment slot");
+
+        // Check for double-booking
+        const dateStr = new Date(appointment.appointment_start_date).toISOString().split("T")[0];
+        const conflicts = await participantRepo.findConflictsForStaff(
+            staffCode,
+            dateStr,
+            appointment.start_time,
+            appointment.end_time,
+            appointmentCode
+        );
+        if (conflicts && conflicts.length > 0)
+            throw new Error("Selected staff member has a conflicting appointment at this time");
+
+        // Assign the staff member as participant
+        await participantRepo.create({
+            business_code: appointment.business_code,
+            appointment_code: appointmentCode,
+            user_code: staffCode,
+            user_type: ROLES.SERVICE_STAFF,
+            user_role: "service_staff",
+            status: "active",
+        });
+
+        // Approve
+        await repo.update(appointmentCode, { status: "approved", approved_by: actor?.userCode || null });
+
+        // Apply business charges
+        const activeCharges = await chargeRepo.findActiveByBusiness(appointment.business_code);
+        for (const charge of activeCharges) {
+            const chargeData = charge.dataValues || charge;
+            await appointmentChargeRepo.create({
+                business_code: appointment.business_code,
+                appointment_code: appointmentCode,
+                charge_code: chargeData.charge_code,
+                charge_uom: chargeData.charge_uom,
+                charge_value: chargeData.charge_value,
+            });
+        }
+
+        // Draft invoice
+        await invoiceRepo.create({
+            business_code: appointment.business_code,
+            appointment_code: appointmentCode,
+            subtotal: null,
+            total: null,
+            invoice_status: "draft",
+            date: new Date().toISOString().split("T")[0],
+            updated_by: actor?.userCode || null,
+        });
+
+        await historyRepo.create({
+            business_code: appointment.business_code,
+            appointment_code: appointmentCode,
+            action: "approved",
+            changed_by: actor?.userCode,
+            old_value: { status: "pending" },
+            new_value: { status: "approved", assigned_staff: staffCode },
+        });
+
+        return { appointmentCode, status: "approved", assigned_staff: staffCode };
     }
 }
 

@@ -241,6 +241,34 @@ class AppointmentController {
             return res.status(400).json({ success: false, message: err.message });
         }
     }
+
+    // ─── Approval Flow ────────────────────────────────────────────────────────
+
+    async checkAvailability(req: Request, res: Response) {
+        try {
+            const data = await service.checkAvailability(String(req.params.appointmentCode), req.user);
+            return res.status(200).json({ success: true, data });
+        } catch (err: any) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
+    async approveWithStaff(req: Request, res: Response) {
+        try {
+            const { staff_code } = req.body;
+            if (!staff_code) {
+                return res.status(400).json({ success: false, message: "staff_code is required" });
+            }
+            const data = await service.approveWithStaff(
+                String(req.params.appointmentCode),
+                String(staff_code),
+                req.user
+            );
+            return res.status(200).json({ success: true, message: "Appointment approved and staff assigned", data });
+        } catch (err: any) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
 }
 
 export default new AppointmentController();

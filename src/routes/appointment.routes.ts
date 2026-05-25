@@ -58,6 +58,21 @@ router.patch(
     controller.respondToReschedule
 );
 
+// Approval flow
+router.get(
+    "/:appointmentCode/availability",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    controller.checkAvailability
+);
+
+router.post(
+    "/:appointmentCode/approve",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    controller.approveWithStaff
+);
+
 router.get(
     "/:appointmentCode/history",
     authenticate,

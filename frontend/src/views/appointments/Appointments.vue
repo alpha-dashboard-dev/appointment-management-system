@@ -50,7 +50,7 @@
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
               <td class="pe-3">
                 <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(appt)">View</button>
-                <button v-if="appt.status === 'pending'" class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'approved')">Approve</button>
+                <button v-if="appt.status === 'pending'" class="btn btn-sm btn-success me-1" @click="openApprovalDialog(appt)">Approve</button>
                 <button v-if="appt.status === 'approved'" class="btn btn-sm btn-outline-info me-1" @click="changeStatus(appt, 'in_progress')">Start</button>
                 <button v-if="appt.status === 'in_progress'" class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'completed')">Complete</button>
                 <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-primary me-1" @click="openReschedule(appt)">Reschedule</button>
@@ -156,6 +156,139 @@
       </div>
     </div>
 
+    <!-- APPROVAL FLOW MODAL -->
+    <div v-if="showApproval" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Approve Appointment &mdash; Staff Availability</h5>
+            <button type="button" class="btn-close" @click="closeApprovalDialog"></button>
+          </div>
+          <div class="modal-body">
+
+            <!-- Appointment summary -->
+            <div class="bg-light rounded p-3 mb-3 d-flex flex-wrap gap-3" v-if="selected">
+              <div><span class="text-muted small">Code</span><div><code>{{ selected.appointment_code }}</code></div></div>
+              <div><span class="text-muted small">Date</span><div>{{ selected.appointment_start_date }}</div></div>
+              <div><span class="text-muted small">Time</span><div>{{ selected.start_time }} – {{ selected.end_time }}</div></div>
+              <div><span class="text-muted small">Location</span><div>{{ selected.location_code || '—' }}</div></div>
+            </div>
+
+            <!-- Loading -->
+            <div v-if="availabilityLoading" class="text-center text-muted py-4">
+              <div class="spinner-border spinner-border-sm me-2"></div> Checking staff availability…
+            </div>
+
+            <!-- Error -->
+            <div v-else-if="availabilityError" class="alert alert-warning py-2 mb-3">{{ availabilityError }}</div>
+
+            <!-- Staff available -->
+            <template v-else-if="!showRescheduleInApproval">
+              <div v-if="availableStaff.length > 0">
+                <p class="fw-semibold mb-2">Available staff for this slot:</p>
+                <div class="list-group mb-3">
+                  <label
+                    v-for="s in availableStaff"
+                    :key="s.user_code"
+                    class="list-group-item list-group-item-action d-flex align-items-center gap-3 cursor-pointer"
+                    :class="{ active: selectedStaff === s.user_code }"
+                    @click="selectedStaff = s.user_code"
+                  >
+                    <input type="radio" :value="s.user_code" v-model="selectedStaff" class="form-check-input mt-0" />
+                    <div>
+                      <div class="fw-semibold">{{ s.user_name || s.user_code }}</div>
+                      <small class="text-muted">{{ s.working_days }} &bull; {{ s.start_time }}–{{ s.end_time }}</small>
+                    </div>
+                  </label>
+                </div>
+                <p v-if="approvalError" class="text-danger small mb-2">{{ approvalError }}</p>
+              </div>
+
+              <!-- No staff available -->
+              <div v-else class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+                <span class="fs-5">&#9888;</span>
+                <div>
+                  <strong>No staff available</strong> for this date and time slot.
+                  <br>You can send a reschedule request to the client with a new date &amp; time.
+                </div>
+              </div>
+            </template>
+
+            <!-- Reschedule sub-form (shown when no staff OR user clicked "Send Reschedule") -->
+            <template v-if="showRescheduleInApproval">
+              <div class="alert alert-info py-2 mb-3">
+                Fill in a new date &amp; time to propose to the client.
+              </div>
+              <div class="row g-3">
+                <div class="col-6">
+                  <label class="form-label fw-semibold">New Start Date *</label>
+                  <input type="date" v-model="approvalRescheduleForm.appointment_start_date" class="form-control" required />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold">New End Date *</label>
+                  <input type="date" v-model="approvalRescheduleForm.appointment_end_date" class="form-control" required />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold">Start Time *</label>
+                  <input type="time" v-model="approvalRescheduleForm.start_time" class="form-control" required />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold">End Time *</label>
+                  <input type="time" v-model="approvalRescheduleForm.end_time" class="form-control" required />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Reason / Notes</label>
+                  <textarea v-model="approvalRescheduleForm.notes" class="form-control" rows="2" placeholder="Reason for rescheduling…"></textarea>
+                </div>
+              </div>
+              <p v-if="approvalError" class="text-danger small mt-2 mb-0">{{ approvalError }}</p>
+            </template>
+
+          </div>
+          <div class="modal-footer gap-2">
+            <button type="button" class="btn btn-secondary" @click="closeApprovalDialog">Cancel</button>
+
+            <!-- When staff is available and one is selected: Approve -->
+            <button
+              v-if="!showRescheduleInApproval && availableStaff.length > 0"
+              class="btn btn-success"
+              :disabled="!selectedStaff || approvalSaving"
+              @click="submitApproveWithStaff"
+            >{{ approvalSaving ? 'Approving…' : 'Approve & Assign Staff' }}</button>
+
+            <!-- When staff is available: option to reschedule instead -->
+            <button
+              v-if="!showRescheduleInApproval && availableStaff.length > 0 && !availabilityLoading && !availabilityError"
+              class="btn btn-outline-primary"
+              @click="showRescheduleInApproval = true"
+            >Send Reschedule Request Instead</button>
+
+            <!-- When no staff: primary action is reschedule -->
+            <button
+              v-if="!showRescheduleInApproval && availableStaff.length === 0 && !availabilityLoading && !availabilityError"
+              class="btn btn-primary"
+              @click="showRescheduleInApproval = true"
+            >Send Reschedule Request to Client</button>
+
+            <!-- Back button when reschedule form is open -->
+            <button
+              v-if="showRescheduleInApproval"
+              class="btn btn-outline-secondary"
+              @click="showRescheduleInApproval = false"
+            >&#8592; Back</button>
+
+            <!-- Submit reschedule -->
+            <button
+              v-if="showRescheduleInApproval"
+              class="btn btn-primary"
+              :disabled="approvalSaving"
+              @click="submitApprovalReschedule"
+            >{{ approvalSaving ? 'Sending…' : 'Send Reschedule Request' }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -255,6 +388,89 @@ async function submitReschedule() {
     rescheduleError.value = err.response?.data?.message || 'Reschedule failed'
   } finally {
     saving.value = false
+  }
+}
+
+// ─── Approval Flow ────────────────────────────────────────────────────────────
+
+const showApproval = ref(false)
+const availabilityLoading = ref(false)
+const availabilityError = ref('')
+const availableStaff = ref([])
+const selectedStaff = ref('')
+const approvalSaving = ref(false)
+const approvalError = ref('')
+const showRescheduleInApproval = ref(false)
+
+const approvalRescheduleForm = reactive({
+  appointment_start_date: '',
+  appointment_end_date: '',
+  start_time: '',
+  end_time: '',
+  notes: '',
+})
+
+async function openApprovalDialog(appt) {
+  selected.value = appt
+  showApproval.value = true
+  availabilityError.value = ''
+  availableStaff.value = []
+  selectedStaff.value = ''
+  approvalError.value = ''
+  showRescheduleInApproval.value = false
+  approvalRescheduleForm.appointment_start_date = appt.appointment_start_date || ''
+  approvalRescheduleForm.appointment_end_date = appt.appointment_end_date || ''
+  approvalRescheduleForm.start_time = appt.start_time || ''
+  approvalRescheduleForm.end_time = appt.end_time || ''
+  approvalRescheduleForm.notes = ''
+
+  availabilityLoading.value = true
+  try {
+    const res = await api.get(`/appointments/${appt.appointment_code}/availability`)
+    availableStaff.value = res.data.data?.available_staff || []
+  } catch (err) {
+    availabilityError.value = err.response?.data?.message || 'Could not check availability'
+  } finally {
+    availabilityLoading.value = false
+  }
+}
+
+function closeApprovalDialog() {
+  showApproval.value = false
+  showRescheduleInApproval.value = false
+  approvalError.value = ''
+}
+
+async function submitApproveWithStaff() {
+  if (!selectedStaff.value) return
+  approvalSaving.value = true
+  approvalError.value = ''
+  try {
+    await api.post(`/appointments/${selected.value.appointment_code}/approve`, { staff_code: selectedStaff.value })
+    showApproval.value = false
+    await fetchAppointments()
+  } catch (err) {
+    approvalError.value = err.response?.data?.message || 'Approval failed'
+  } finally {
+    approvalSaving.value = false
+  }
+}
+
+async function submitApprovalReschedule() {
+  if (!approvalRescheduleForm.appointment_start_date || !approvalRescheduleForm.start_time || !approvalRescheduleForm.end_time) {
+    approvalError.value = 'Please fill in the new date and times'
+    return
+  }
+  approvalSaving.value = true
+  approvalError.value = ''
+  try {
+    await api.post(`/appointments/${selected.value.appointment_code}/reschedule`, approvalRescheduleForm)
+    showApproval.value = false
+    await fetchAppointments()
+  } catch (err) {
+    approvalError.value = err.response?.data?.message || 'Reschedule request failed'
+  } finally {
+    approvalSaving.value = false
   }
 }
 
