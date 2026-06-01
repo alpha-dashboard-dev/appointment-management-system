@@ -17,7 +17,7 @@
       <select v-model="locFilter" @change="fetchMappings" class="form-select" style="max-width:260px">
         <option value="">All Locations</option>
         <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">
-          {{ loc.location_code }} — {{ loc.address + " " + loc.city }}
+          {{ loc.address + " " + loc.street + " " + loc.city  }}
         </option>
       </select>
     </div>
@@ -83,7 +83,7 @@
                 <select v-model="createForm.location_code" class="form-select" required>
                   <option value="">Select location</option>
                   <option v-for="loc in filteredLocations" :key="loc.location_code" :value="loc.location_code">
-                    {{ loc.location_code }} — {{ loc.address + " " + loc.city }}
+                    {{ loc.address + " " + loc.street + " " + loc.city  }}
                   </option>
                 </select>
               </div>

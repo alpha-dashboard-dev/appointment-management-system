@@ -31,7 +31,7 @@
       <div v-if="loading" class="loading">Loading...</div>
       <table v-else class="table">
         <thead>
-          <tr><th>Code</th><th>Start</th><th>End</th><th>Location</th><th>Status</th></tr>
+          <tr><th>Code</th><th>Start Time</th><th>End Time</th><th>Location</th><th>Status</th></tr>
         </thead>
         <tbody>
           <tr v-for="appt in todayAppts" :key="appt.appointment_code">

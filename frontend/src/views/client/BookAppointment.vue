@@ -50,15 +50,18 @@
 
               <div v-for="ch in selectedCharges" :key="ch.charge_code" class="charge-row">
 <!--         add if charge_uom is percentage then show % sign, otherwise show fixed-->
-                <span>{{ ch.name + " "  + ch.charge_value + " " + "%" }}</span>
-
-                <span class="charge-val">{{ totalPrice }} {{selectedService?.currency }}</span>
+<!--                <span>{{ ch.name + " "  + ch.charge_value + " " + "%" }}</span>-->
+                <span>
+                      {{ ch.name }}
+                      {{ ch.charge_value }}
+                      {{ch.charge_uom === 'percentage' ? '%' : selectedService?.currency }}
+                </span>
               </div>
-<!--             Total amount after computed service price and business charge fixed or percentage -->
-<!--              <div class="charge-row fw-bold">-->
-<!--                <span>Total Price</span>-->
-<!--                <span class="charge-val">{{ totalPrice }} {{ selectedService?.currency }}</span>-->
-<!--              </div>-->
+<!--             Total amount after computed service price and business charge fixed or percentage-->
+              <div class="charge-row fw-bold">
+                <span>Total Price</span>
+                <span class="charge-val">{{ totalPrice }} {{ selectedService?.currency }}</span>
+              </div>
 
             </template>
 
@@ -179,6 +182,9 @@ async function onLocationChange() {
 }
 
 function onServiceChange() {
+  console.log('Selected Service:', selectedService.value)
+  console.log('All Charges:', charges.value)
+  console.log('Selected Charges:', selectedCharges.value)
   // charges are embedded in the service object from client-view
 }
 

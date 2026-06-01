@@ -40,6 +40,7 @@ class BusinessService {
             phone,
             password: defaultPassword,
             is_active: "active",
+            employee_type: null,
         });
 
         await repo.update(businessCode, { user_code: ownerCode });

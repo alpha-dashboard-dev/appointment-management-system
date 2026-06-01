@@ -50,7 +50,7 @@
         <tbody>
           <tr v-for="appt in pendingAppts" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
+            <td>{{ formatDate(appt.appointment_start_date) }}</td>
             <td>{{ formatTime(appt.start_time)}}</td>
             <td>{{ appt.location_code ?? '—' }}</td>
             <td><span class="badge pending">Pending</span></td>
@@ -83,6 +83,8 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
+import formatDate from "../../utils/formatDate.js";
 
 const authStore = useAuthStore()
 const appointments = ref([])
@@ -91,7 +93,7 @@ const loading = ref(true)
 const stats = reactive({ pending: 0, today: 0, approved: 0, total: 0 })
 const pendingAppts = computed(() => appointments.value.filter(a => a.status === 'pending'))
 
-const today = new Date().toISOString().split('T')[0]
+// const today = new Date().toISOString().split('T')[0]
 
 async function fetchAppointments() {
   loading.value = true
@@ -113,15 +115,6 @@ async function changeStatus(appt, status) {
     await fetchAppointments()
   } catch (_) {}
 }
-
-function formatTime(t) {
-  if (!t) return '—'
-  const [h, m] = t.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
-}
-
 
 onMounted(fetchAppointments)
 </script>

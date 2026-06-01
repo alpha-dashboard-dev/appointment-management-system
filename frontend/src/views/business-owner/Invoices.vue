@@ -7,9 +7,9 @@
       <select v-model="statusFilter" @change="fetchInvoices" class="form-select" style="max-width:200px">
         <option value="">All Statuses</option>
         <option value="draft">Draft</option>
-        <option value="sent">Sent</option>
+        <option value="issued">Issued</option>
         <option value="paid">Paid</option>
-        <option value="cancelled">Cancelled</option>
+        <option value="canceled">Canceled</option>
       </select>
     </div>
     <div class="card shadow-sm border-0">
@@ -23,7 +23,7 @@
           <tbody>
             <tr v-for="inv in invoices" :key="inv.id">
               <td class="ps-3">#{{ inv.id }}</td>
-              <td>{{ inv.total ?? '—' }}</td>
+              <td>{{ inv.total}}</td>
               <td><span :class="['ams-badge', inv.invoice_status]">{{ inv.invoice_status }}</span></td>
               <td>{{ formatDate(inv.created_at) }}</td>
               <td class="pe-3"><button class="btn btn-sm btn-outline-primary" @click="openView(inv)">View</button></td>
@@ -76,6 +76,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatDate from "../../utils/formatDate.js";
 
 const authStore = useAuthStore()
 const invoices = ref([])
@@ -89,7 +90,6 @@ const showViewModal = ref(false)
 const selected = ref(null)
 const newStatus = ref('')
 
-function formatDate(d) { return d ? new Date(d).toLocaleDateString() : '—' }
 
 async function fetchInvoices() {
   loading.value = true

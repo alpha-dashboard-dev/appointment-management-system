@@ -2,7 +2,7 @@
   <div class="layout">
     <aside :class="['sidebar', { collapsed }]">
       <div class="logo">
-        <span v-if="!collapsed">Operations</span>
+        <span v-if="!collapsed">Operational Staff Portal</span>
         <button class="toggle" @click="collapsed = !collapsed">☰</button>
       </div>
 
@@ -51,27 +51,10 @@
         </div>
       </nav>
 
-<!--      <div class="logout-section">-->
-<!--        <div v-if="!collapsed" class="user-info">-->
-<!--          <span class="user-name">{{ authStore.user?.name || authStore.user?.email }}</span>-->
-<!--          <span class="user-role">Operational Staff</span>-->
-<!--        </div>-->
-<!--        <button class="logout-btn" @click="handleLogout">-->
-<!--          <i class="bi bi-box-arrow-right icon"></i>-->
-<!--          <span v-if="!collapsed">Logout</span>-->
-<!--        </button>-->
-<!--      </div>-->
     </aside>
 
     <div class="main">
       <Topbar />
-<!--      <header class="topbar">-->
-<!--        <h3 class="page-title">{{ pageTitle }}</h3>-->
-<!--        <div class="topbar-right">-->
-<!--          <span class="tb-name">{{ authStore.user?.name || authStore.user?.email }}</span>-->
-<!--          <span class="tb-role">Operational Staff</span>-->
-<!--        </div>-->
-<!--      </header>-->
       <div class="content">
         <router-view />
       </div>
@@ -103,10 +86,6 @@ const titleMap = {
 }
 const pageTitle = computed(() => titleMap[route.path] || 'Operations')
 
-// async function handleLogout() {
-//   await authStore.logout()
-//   router.push('/login')
-// }
 </script>
 
 <style scoped>

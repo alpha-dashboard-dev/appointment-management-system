@@ -45,6 +45,16 @@
           <p v-if="errors.user_type" class="field-error">{{ errors.user_type }}</p>
         </div>
 
+        <div v-if="['service_staff', 'operational_staff'].includes(form.user_type)" class="field">
+          <label>Employee Type *</label>
+          <select v-model="form.employee_type">
+            <option value="">Select Employee Type</option>
+            <option value="permanent">Permanent</option>
+            <option value="visiting">Visiting</option>
+            <option value="remote">Remote</option>
+          </select>
+        </div>
+
         <div class="field">
           <label>Business</label>
           <select v-model="form.business_code" :class="{ 'field-input-error': errors.business_code }" @change="validateField('business_code')">
@@ -72,7 +82,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api from '@/utils/api'
 import { validateUserForm } from '@/utils/validator'
@@ -91,9 +101,19 @@ const form = reactive({
   phone: '',
   password: '',
   user_type: '',
+  employee_type: '',
   business_code: '',
   is_active: 'active',
 })
+
+watch(
+    () => form.user_type,
+    (newValue) => {
+      if (!['service_staff', 'operational_staff'].includes(newValue)) {
+        form.employee_type = ''
+      }
+    }
+)
 const businesses = ref([])
 const loading = ref(false)
 const error = ref('')
@@ -121,6 +141,9 @@ async function submit() {
   error.value = ''
   try {
     const payload = { ...form }
+    if (!['service_staff', 'operational_staff'].includes(payload.user_type)) {
+      payload.employee_type = null
+    }
     if (!payload.business_code) delete payload.business_code
     await api.post('/users/create-user', payload)
     router.push('/users')

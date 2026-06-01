@@ -21,12 +21,18 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Code</th><th>Date</th><th>Start</th><th>End</th><th>Status</th><th class="pe-3" style="width:360px">Actions</th></tr>
+            <tr>
+              <th class="ps-3">Appointment Code</th>
+              <th>Start Date</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Status</th>
+              <th class="pe-3" style="width:360px">Actions</th></tr>
           </thead>
           <tbody>
             <tr v-for="appt in appointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
-              <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
+              <td>{{ formatDate(appt.appointment_start_date) }}</td>
               <td>{{ formatTime(appt.start_time) }}</td>
               <td>{{ formatTime(appt.end_time) }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
@@ -159,7 +165,7 @@
           <div class="modal-body">
             <dl class="row mb-3">
               <dt class="col-5 text-muted">Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
-              <dt class="col-5 text-muted">Date</dt><dd class="col-7">{{ selected.appointment_start_date?.split('T')[0] ?? '—' }}</dd>
+              <dt class="col-5 text-muted">Date</dt><dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>
               <dt class="col-5 text-muted">Start Time</dt><dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
               <dt class="col-5 text-muted">End Time</dt><dd class="col-7">{{ formatTime(selected.end_time) }}</dd>
               <dt class="col-5 text-muted">Location</dt><dd class="col-7">{{ selected.location_code || '—' }}</dd>
@@ -237,7 +243,7 @@
             <button type="button" class="btn-close" @click="closeAssign"></button>
           </div>
           <div class="modal-body">
-            <p class="text-muted small mb-3">Appointment: <code>{{ assignAppt.appointment_code }}</code></p>
+            <p class="text-muted small mb-3">Appointment Code: <code>{{ assignAppt.appointment_code }}</code></p>
             <div v-if="staffLoading" class="text-center text-muted py-3">Loading staff...</div>
             <div v-else-if="!staffList.length" class="text-center text-muted py-3">No service staff found</div>
             <div v-else class="d-flex flex-column gap-2" style="max-height:220px;overflow-y:auto">
@@ -246,7 +252,7 @@
                 :class="['staff-item', { selected: selectedStaff === s.user_code }]"
                 @click="selectedStaff = s.user_code"
               >
-                <div class="fw-semibold">{{ s.first_name }} {{ s.last_name }}</div>
+                <div class="fw-semibold">{{ s.name }} </div>
                 <div class="text-muted small">{{ s.user_code }}</div>
               </div>
             </div>
@@ -267,6 +273,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
+import formatDate from "../../utils/formatDate.js";
 
 
 const authStore = useAuthStore()
@@ -445,7 +452,7 @@ async function openAssign(appt) {
   staffLoading.value = true
   try {
     const biz = authStore.user?.business_code
-    const res = await api.get('/users/get-user', { params: { business_code: biz, user_type: 'service_staff' } })
+    const res = await api.get('/users/get-users', { params: { business_code: biz, user_type: 'service_staff' } })
     staffList.value = res.data.data || []
   } catch (_) {
     staffList.value = []

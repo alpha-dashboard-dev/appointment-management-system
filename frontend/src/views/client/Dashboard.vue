@@ -39,14 +39,14 @@
         <thead>
           <tr>
             <th>Appointment Code</th>
-            <th>Date</th>
+            <th>Start Date</th>
             <th>Status</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="appt in recent" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
+            <td>{{ formatDate(appt.appointment_start_date) }}</td>
             <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
           </tr>
           <tr v-if="recent.length === 0">
@@ -62,6 +62,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatDate from "../../utils/formatDate.js";
 
 const authStore = useAuthStore()
 const appointments = ref([])

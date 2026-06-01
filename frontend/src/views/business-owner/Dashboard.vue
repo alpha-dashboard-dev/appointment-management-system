@@ -82,7 +82,7 @@
         <tbody>
           <tr v-for="appt in pendingAppointments" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.appointment_start_date }}</td>
+            <td>{{ formatDate(appt.appointment_start_date) }}</td>
             <td>{{ formatTime(appt.start_time) }}</td>
             <td>{{ formatTime(appt.end_time) }}</td>
             <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
@@ -106,6 +106,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
+import formatDate from "../../utils/formatDate.js";
 
 const authStore = useAuthStore()
 const loading = ref(true)

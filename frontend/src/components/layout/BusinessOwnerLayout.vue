@@ -12,19 +12,6 @@
           <span v-if="!collapsed">Dashboard</span>
         </router-link>
 
-        <!-- APPOINTMENTS -->
-        <div class="group">
-          <div class="group-title" @click="toggle('app')">
-            <i class="bi bi-calendar-check icon"></i>
-            <span v-if="!collapsed">Appointments</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.app }">›</i>
-          </div>
-          <div v-show="open.app && !collapsed" class="submenu">
-            <router-link to="/business/appointments" class="sub-item">All Requests</router-link>
-            <router-link to="/business/appointments/create" class="sub-item">New Request</router-link>
-          </div>
-        </div>
-
         <!-- SERVICES -->
         <div class="group">
           <div class="group-title" @click="toggle('svc')">
@@ -90,6 +77,19 @@
           <span v-if="!collapsed">Charges</span>
         </router-link>
 
+        <!-- APPOINTMENTS -->
+        <div class="group">
+          <div class="group-title" @click="toggle('app')">
+            <i class="bi bi-calendar-check icon"></i>
+            <span v-if="!collapsed">Appointments</span>
+            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.app }">›</i>
+          </div>
+          <div v-show="open.app && !collapsed" class="submenu">
+            <router-link to="/business/appointments" class="sub-item">All Requests</router-link>
+            <router-link to="/business/appointments/create" class="sub-item">New Request</router-link>
+          </div>
+        </div>
+
         <!-- INVOICES -->
         <router-link to="/business/invoices" class="item">
           <i class="bi bi-receipt icon"></i>
@@ -97,23 +97,10 @@
         </router-link>
       </nav>
 
-<!--      <div class="logout-section">-->
-<!--        <div v-if="!collapsed" class="user-info">-->
-<!--          <span class="user-name">{{ authStore.user?.name || authStore.user?.email }}</span>-->
-<!--          <span class="user-role">Business Owner</span>-->
-<!--        </div>-->
-<!--        <button class="logout-btn" @click="handleLogout">-->
-<!--          <i class="bi bi-box-arrow-right icon"></i>-->
-<!--          <span v-if="!collapsed">Logout</span>-->
-<!--        </button>-->
-<!--      </div>-->
     </aside>
 
     <div class="main">
       <Topbar />
-<!--      <header class="topbar">-->
-<!--        <h3 class="page-title">{{ pageTitle }}</h3>-->
-<!--      </header>-->
       <div class="content">
         <router-view />
       </div>
@@ -154,10 +141,6 @@ const titleMap = {
 }
 const pageTitle = computed(() => titleMap[route.path] || 'Business Portal')
 
-// async function handleLogout() {
-//   await authStore.logout()
-//   router.push('/login')
-// }
 </script>
 
 <style scoped>

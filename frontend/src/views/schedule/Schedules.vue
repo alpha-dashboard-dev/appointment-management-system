@@ -69,20 +69,13 @@
                   <option v-for="d in DAY_KEYS" :key="d" :value="d">{{ DAY_LABELS[d] }}</option>
                 </select>
               </div>
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Employee Type *</label>
-                <select v-model="editForm.employee_type" class="form-select" required>
-                  <option value="permanent">Permanent</option>
-                  <option value="visiting">Visiting</option>
-                  <option value="remote">Remote</option>
-                </select>
-              </div>
+
               <div class="mb-3">
                 <label class="form-label fw-semibold">Location</label>
                 <select v-model="editForm.location_code" class="form-select">
                   <option value="">No specific location</option>
                   <option v-for="loc in locationsList" :key="loc.location_code" :value="loc.location_code">
-                    {{ loc.address || loc.location_type || loc.location_code }}
+                    {{ loc.address + " " + loc.street + " " + loc.city }}
                   </option>
                 </select>
               </div>
@@ -90,12 +83,10 @@
                 <div class="col-6">
                   <label class="form-label fw-semibold">Start Time *</label>
                   <input type="time" v-model="editForm.start_time" class="form-control" :required="editForm.status === 'active'" :disabled="editForm.status === 'inactive'" />
-<!--                  <small class="text-muted">{{ formatTime(editForm.start_time) }}</small>-->
                 </div>
                 <div class="col-6">
                   <label class="form-label fw-semibold">End Time *</label>
                   <input type="time" v-model="editForm.end_time" class="form-control" :required="editForm.status === 'active'" :disabled="editForm.status === 'inactive'" />
-<!--                  <small class="text-muted">{{ formatTime(editForm.end_time) }}</small>-->
                 </div>
               </div>
               <div class="mt-3">
@@ -144,6 +135,7 @@
       </div>
     </div>
 
+<!--    Remove off day functionality, add toggle for same time for all days,-->
     <!-- CREATE MODAL -->
     <div v-if="showCreateModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
       <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="max-height:90vh">
@@ -173,16 +165,6 @@
                 </select>
               </div>
 
-              <!-- Employee type -->
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Employee Type *</label>
-                <select v-model="createForm.employee_type" class="form-select" required>
-                  <option value="">Select type</option>
-                  <option value="permanent">Permanent</option>
-                  <option value="visiting">Visiting</option>
-                  <option value="remote">Remote</option>
-                </select>
-              </div>
 
               <!-- Location -->
               <div class="mb-4">
@@ -190,7 +172,7 @@
                 <select v-model="createForm.location_code" class="form-select">
                   <option value="">No specific location</option>
                   <option v-for="loc in locationsList" :key="loc.location_code" :value="loc.location_code">
-                    {{ loc.address || loc.location_type || loc.location_code }}
+                    {{ loc.address + " " + loc.street + " " + loc.city }}
                   </option>
                 </select>
               </div>
@@ -264,14 +246,14 @@ const showEditModal = ref(false)
 const showCreateModal = ref(false)
 const selected = ref(null)
 
-const editForm = ref({ working_days: '', employee_type: '', location_code: '', start_time: '', end_time: '', status: 'active' })
+const editForm = ref({ working_days: '',  location_code: '', start_time: '', end_time: '', status: 'active' })
 const editError = ref('')
 
 function openEdit(schedule) {
   selected.value = schedule
   editForm.value = {
     working_days: schedule.working_days,
-    employee_type: schedule.employee_type || '',
+    // employee_type: schedule.employee_type || '',
     location_code: schedule.location_code || '',
     start_time: (schedule.start_time || '').slice(0, 5),
     end_time: (schedule.end_time || '').slice(0, 5),
@@ -328,7 +310,7 @@ function freshWeekDays() {
   return DAY_KEYS.map(k => ({ key: k, label: DAY_LABELS[k], start_time: '09:00', end_time: '17:00', is_off: false }))
 }
 
-const createForm = ref({ business_code: '', user_code: '', employee_type: '', location_code: '' })
+const createForm = ref({ business_code: '', user_code: '', location_code: '' })
 const weekDays = ref(freshWeekDays())
 
 async function fetchStaff(business_code) {
@@ -395,7 +377,7 @@ async function createSchedule() {
     business_code,
     user_code: createForm.value.user_code,
     working_days: d.key,
-    employee_type: createForm.value.employee_type,
+    // employee_type: createForm.value.employee_type,
     location_code: createForm.value.location_code || undefined,
     start_time: d.start_time,
     end_time: d.end_time,

@@ -61,6 +61,7 @@ module.exports = {
                 password: hashAdmin,
                 user_type: "admin",
                 is_active: "active",
+                employee_type: null,
                 created_at: now,
                 updated_at: now,
             },

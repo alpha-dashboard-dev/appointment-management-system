@@ -17,7 +17,7 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Name</th><th>Email</th><th>Type</th><th>Code</th><th>Status</th><th class="pe-3" style="width:140px">Actions</th></tr>
+            <tr><th class="ps-3">Name</th><th>Email</th><th>Role</th><th>Code</th><th>Status</th><th class="pe-3" style="width:140px">Actions</th></tr>
           </thead>
           <tbody>
             <tr v-for="user in staff" :key="user.user_code">
@@ -49,6 +49,15 @@
             <div class="modal-body">
               <div class="mb-3"><label class="form-label fw-semibold">Full Name *</label><input v-model="editForm.name" class="form-control" required /></div>
               <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input v-model="editForm.phone" class="form-control" /></div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Employee Type</label>
+                <select v-model="editForm.employee_type" class="form-select">
+                  <option value="permanent">Permanent</option>
+                  <option value="visiting">Visiting</option>
+                  <option value="remote">Remote</option>
+                </select>
+              </div>
+
               <div class="mb-3">
                 <label class="form-label fw-semibold">Status</label>
                 <select v-model="editForm.is_active" class="form-select">
@@ -104,7 +113,7 @@ const typeFilter = ref('')
 const showEditModal = ref(false)
 const showDeactivateModal = ref(false)
 const selected = ref(null)
-const editForm = reactive({ name: '', phone: '', is_active: 'active' })
+const editForm = reactive({ name: '', phone: '', employee_type: "", is_active: 'active'})
 
 async function fetchStaff() {
   loading.value = true

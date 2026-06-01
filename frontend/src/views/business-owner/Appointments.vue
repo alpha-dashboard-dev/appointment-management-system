@@ -41,7 +41,7 @@
           <tbody>
             <tr v-for="appt in filteredAppointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
-              <td>{{ appt.appointment_start_date }}</td>
+              <td>{{ formatDate(appt.appointment_start_date) }}</td>
               <td>{{ formatTime(appt.start_time) }}</td>
               <td>{{ formatTime(appt.end_time) }}</td>
               <td>{{ appt.location_code || '—' }}</td>
@@ -77,9 +77,9 @@
           </div>
           <div class="modal-body" v-if="selected">
             <dl class="row mb-3">
-              <dt class="col-5 text-muted">Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
-              <dt class="col-5 text-muted">Business</dt><dd class="col-7">{{ selected.business_code }}</dd>
-              <dt class="col-5 text-muted">Date</dt><dd class="col-7">{{ selected.appointment_start_date }}</dd>
+              <dt class="col-5 text-muted">Appointment Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
+              <dt class="col-5 text-muted">Business Code</dt><dd class="col-7">{{ selected.business_code }}</dd>
+              <dt class="col-5 text-muted">Start Date</dt><dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>
               <dt class="col-5 text-muted">Start Time</dt><dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
               <dt class="col-5 text-muted">End Time</dt><dd class="col-7">{{ formatTime(selected.end_time) }}</dd>
               <dt class="col-5 text-muted">Location</dt><dd class="col-7">{{ selected.location_code || '—' }}</dd>
@@ -118,8 +118,8 @@
           <div class="modal-body">
             <!-- Appointment summary -->
             <div class="bg-light rounded p-3 mb-3 d-flex flex-wrap gap-3" v-if="selected">
-              <div><span class="text-muted small">Code</span><div><code>{{ selected.appointment_code }}</code></div></div>
-              <div><span class="text-muted small">Date</span><div>{{ selected.appointment_start_date }}</div></div>
+              <div><span class="text-muted small">Appointment Code</span><div><code>{{ selected.appointment_code }}</code></div></div>
+              <div><span class="text-muted small">Start Date</span><div>{{ formatDate(selected.appointment_start_date) }}</div></div>
               <div><span class="text-muted small">Time</span><div>{{ formatTime(selected.start_time) }} – {{ formatTime(selected.end_time ) }}</div></div>
               <div><span class="text-muted small">Location</span><div>{{ selected.location_code || '—' }}</div></div>
             </div>
@@ -236,9 +236,8 @@
                 v-for="s in staffList" :key="s.user_code"
                 :class="['list-group-item list-group-item-action', { active: selectedStaff === s.user_code }]"
                 style="cursor:pointer"
-                @click="selectedStaff = s.user_code"
-              >
-                <div class="fw-semibold">{{ s.first_name }} {{ s.last_name }}</div>
+                @click="selectedStaff = s.user_code">
+                <div class="fw-semibold">{{ s.name}}</div>
                 <div class="text-muted small">{{ s.user_code }}</div>
               </div>
             </div>
@@ -302,6 +301,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
+import formatDate from "../../utils/formatDate.js";
 
 const authStore = useAuthStore()
 const appointments = ref([])
@@ -491,7 +491,7 @@ async function openAssign(appt) {
   staffLoading.value = true
   try {
     const biz = authStore.user?.business_code
-    const res = await api.get('/users/get-user', { params: { business_code: biz, user_type: 'service_staff' } })
+    const res = await api.get('/users/get-users', { params: { business_code: biz, user_type: 'service_staff' } })
     staffList.value = res.data.data || []
   } catch (_) {
     staffList.value = []

@@ -648,17 +648,25 @@ class AppointmentService {
         return recurrence;
     }
 
-    async updateRecurrence(id: number, data: any, actor: any) {
-        const recurrence = await appointmentRecurrenceRepo.findById(id);
-        if (!recurrence) throw new Error("Recurrence not found");
+    // async updateRecurrence(id: number, data: any, actor: any) {
+    //     const recurrence = await appointmentRecurrenceRepo.findById(id);
+    //     if (!recurrence) throw new Error("Recurrence not found");
+    //
+    //     const allowed: any = {};
+    //     const fields = ["recurrence_uom", "recurrence_value", "status", "auto_cancel_after_days", "reschedule_after_days"];
+    //     for (const f of fields) {
+    //         if (data[f] !== undefined) allowed[f] = data[f];
+    //     }
+    //
+    //     return await appointmentRecurrenceRepo.update(id, allowed);
+    // }
+
+    async update_recurrence(id: number, data: any, actor: any) {
+        const recurrence = await appointmentRecurrenceRepo.findById(id)
+        if(!recurrence) throw new Error("Recurrence not found");
 
         const allowed: any = {};
-        const fields = ["recurrence_uom", "recurrence_value", "status", "auto_cancel_after_days", "reschedule_after_days"];
-        for (const f of fields) {
-            if (data[f] !== undefined) allowed[f] = data[f];
-        }
-
-        return await appointmentRecurrenceRepo.update(id, allowed);
+        const fields = ['recurrence_uom, "recurrence_value', "status", "auto_cancel_"]
     }
 
     async deleteRecurrence(id: number, actor: any) {

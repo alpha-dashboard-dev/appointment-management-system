@@ -46,7 +46,7 @@
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
               <td>{{ appt.business_code || '—' }}</td>
               <td>{{ appt.notes || '—' }}</td>
-              <td>{{ appt.appointment_start_date }}</td>
+              <td>{{ formatDate(appt.appointment_start_date) }}</td>
               <td>{{ formatTime(appt.start_time) }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
               <td class="pe-3">
@@ -84,9 +84,9 @@
               <dt class="col-5 text-muted">Business Code</dt>
               <dd class="col-7"><code>{{ selected.business_code }}</code></dd>
               <dt class="col-5 text-muted">Start Date</dt>
-              <dd class="col-7">{{ selected.appointment_start_date }}</dd>
+              <dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>
               <dt class="col-5 text-muted">End Date</dt>
-              <dd class="col-7">{{ selected.appointment_end_date }}</dd>
+              <dd class="col-7">{{ formatDate(selected.appointment_end_date) }}</dd>
               <dt class="col-5 text-muted">Start Time</dt>
               <dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
               <dt class="col-5 text-muted">End Time</dt>
@@ -173,8 +173,8 @@
             <!-- Appointment summary -->
             <div class="bg-light rounded p-3 mb-3 d-flex flex-wrap gap-3" v-if="selected">
               <div><span class="text-muted small">Appointment Code</span><div><code>{{ selected.appointment_code }}</code></div></div>
-              <div><span class="text-muted small">Start Date</span><div>{{ selected.appointment_start_date }}</div></div>
-              <div><span class="text-muted small">Time</span><div>{{ selected.start_time }} – {{ selected.end_time }}</div></div>
+              <div><span class="text-muted small">Start Date</span><div>{{ formatDate(selected.appointment_start_date) }}</div></div>
+              <div><span class="text-muted small">Time</span><div>{{ formatTime(selected.start_time) }} – {{ formatTime(selected.end_time) }}</div></div>
               <div><span class="text-muted small">Location Code</span><div>{{ selected.location_code || '—' }}</div></div>
             </div>
 
@@ -300,6 +300,7 @@
 import { computed, reactive, ref, onMounted } from 'vue'
 import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
+import formatDate from "../../utils/formatDate.js";
 
 const appointments = ref([])
 const loading = ref(true)

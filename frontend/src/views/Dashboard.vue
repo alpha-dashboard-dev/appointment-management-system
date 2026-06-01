@@ -95,7 +95,7 @@
           <td>{{ appt.appointment_code }}</td>
           <td>{{ appt.business_code}}</td>
           <td>{{ appt.notes || '—' }}</td>
-          <td>{{ appt.appointment_start_date }}</td>
+          <td>{{ formatDate(appt.appointment_start_date) }}</td>
           <td>{{ formatTime(appt.start_time) }}</td>
           <td>
             <span :class="['badge', appt.status]">{{ appt.status }}</span>
@@ -115,6 +115,7 @@
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
 import formatTime from "../utils/formatTime.js";
+import formatDate from "../utils/formatDate.js";
 
 const loading = ref(true)
 const recentAppointments = ref([])

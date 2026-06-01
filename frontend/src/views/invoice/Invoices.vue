@@ -92,6 +92,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
+import formatDate from "../../utils/formatDate.js";
 
 const invoices = ref([])
 const businesses = ref([])
@@ -136,11 +137,6 @@ async function updateStatus(inv, status) {
   } finally {
     saving.value = false
   }
-}
-
-function formatDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString()
 }
 
 onMounted(async () => {
