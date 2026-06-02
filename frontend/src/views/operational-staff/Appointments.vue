@@ -27,7 +27,8 @@
               <th>Start Time</th>
               <th>End Time</th>
               <th>Status</th>
-              <th class="pe-3" style="width:360px">Actions</th></tr>
+              <th class="pe-3 text-center" style="min-width:220px">Actions</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="appt in appointments" :key="appt.appointment_code">
@@ -36,15 +37,30 @@
               <td>{{ formatTime(appt.start_time) }}</td>
               <td>{{ formatTime(appt.end_time) }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
-              <td class="pe-3">
-                <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(appt)">View</button>
-                <button v-if="appt.status === 'pending'" class="btn btn-sm btn-success me-1" @click="openApprovalDialog(appt)">Approve</button>
-                <button v-if="appt.status === 'pending'" class="btn btn-sm btn-outline-danger me-1" @click="changeStatus(appt, 'rejected')">Reject</button>
-                <button v-if="appt.status === 'approved'" class="btn btn-sm btn-outline-info me-1" @click="changeStatus(appt, 'in_progress')">Start</button>
-                <button v-if="appt.status === 'in_progress'" class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'completed')">Complete</button>
-                <button v-if="['pending','approved','in_progress'].includes(appt.status)" class="btn btn-sm btn-outline-primary me-1" @click="openAssign(appt)">Assign</button>
-                <button v-if="['approved','in_progress'].includes(appt.status)" class="btn btn-sm btn-outline-warning me-1" @click="openReschedule(appt)">Reschedule</button>
-                <button v-if="['approved','pending'].includes(appt.status)" class="btn btn-sm btn-outline-secondary" @click="changeStatus(appt, 'canceled')">Cancel</button>
+              <td class="pe-3 text-center">
+                <div class="d-flex justify-content-center">
+                  <div class="dropdown">
+                    <button
+                      class="btn btn-sm btn-secondary dropdown-toggle"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      :aria-expanded="openDropdownCode === appt.appointment_code"
+                      @click.stop="toggleActionDropdown(appt.appointment_code)"
+                    >
+                      Actions
+                    </button>
+                    <ul class="dropdown-menu" :class="{ show: openDropdownCode === appt.appointment_code }">
+                      <li><button class="dropdown-item" type="button" @click="openDetails(appt); closeActionDropdown()">View</button></li>
+                      <li v-if="appt.status === 'pending'"><button class="dropdown-item" type="button" @click="openApprovalDialog(appt); closeActionDropdown()">Approve</button></li>
+                      <li v-if="appt.status === 'approved'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'in_progress'); closeActionDropdown()">Start</button></li>
+                      <li v-if="appt.status === 'in_progress'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'completed'); closeActionDropdown()">Complete</button></li>
+                      <li v-if="['pending','approved','in_progress'].includes(appt.status)"><button class="dropdown-item" type="button" @click="openAssign(appt); closeActionDropdown()">Assign</button></li>
+                      <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item" type="button" @click="openReschedule(appt); closeActionDropdown()">Reschedule</button></li>
+                      <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item text-danger" type="button" @click="changeStatus(appt, 'rejected'); closeActionDropdown()">Reject</button></li>
+                      <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'canceled'); closeActionDropdown()">Cancel</button></li>
+                    </ul>
+                  </div>
+                </div>
               </td>
             </tr>
             <tr v-if="appointments.length === 0"><td colspan="6" class="text-center text-muted py-4">No appointments found</td></tr>
@@ -64,7 +80,7 @@
           <div class="modal-body">
             <div class="bg-light rounded p-3 mb-3 d-flex flex-wrap gap-3" v-if="selected">
               <div><span class="text-muted small">Code</span><div><code>{{ selected.appointment_code }}</code></div></div>
-              <div><span class="text-muted small">Date</span><div>{{ selected.appointment_start_date?.split('T')[0] }}</div></div>
+              <div><span class="text-muted small">Date</span><div>{{ formatDate(selected.appointment_start_date) }}</div></div>
               <div><span class="text-muted small">Time</span><div>{{ formatTime(selected.start_time) }} – {{ formatTime(selected.end_time) }}</div></div>
               <div><span class="text-muted small">Location</span><div>{{ selected.location_code || '—' }}</div></div>
             </div>
@@ -85,8 +101,8 @@
                   >
                     <input type="radio" :value="s.user_code" v-model="approvalSelectedStaff" class="form-check-input mt-0" />
                     <div>
-                      <div class="fw-semibold">{{ s.user_name || s.user_code }}</div>
-                      <small class="text-muted">{{ s.working_days }} &bull; {{ s.start_time }}–{{ s.end_time }}</small>
+                      <div class="fw-semibold">{{ s.name || s.user_code }}</div>
+                      <small class="text-muted">{{ s.working_days }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</small>
                     </div>
                   </label>
                 </div>
@@ -281,6 +297,7 @@ const appointments = ref([])
 const loading = ref(true)
 const error = ref('')
 const statusFilter = ref('')
+const openDropdownCode = ref('')
 
 const showDetails = ref(false)
 const selected = ref(null)
@@ -467,6 +484,10 @@ function closeAssign() {
   assignError.value = ''
 }
 
+function toggleActionDropdown(appointmentCode) {
+  openDropdownCode.value = openDropdownCode.value === appointmentCode ? '' : appointmentCode
+}
+
 async function assignStaff() {
   assigning.value = true
   assignError.value = ''
@@ -484,7 +505,17 @@ async function assignStaff() {
   }
 }
 
+function closeActionDropdown() {
+  openDropdownCode.value = ''
+}
+
 onMounted(fetchList)
 </script>
+
+<style scoped>
+.dropdown-menu {
+  min-width: 180px;
+}
+</style>
 
 

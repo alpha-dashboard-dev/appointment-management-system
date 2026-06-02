@@ -119,8 +119,7 @@ async function updateStatus() {
   saving.value = true
   formError.value = ''
   try {
-    console.log(newStatus.value)
-    await api.patch(`/invoices/update-invoice-status${selected.value.id}`, { invoice_status: newStatus.value })
+    await api.patch(`/invoices/update-invoice-status/${selected.value.id}`, { invoice_status: newStatus.value })
     showViewModal.value = false
     await fetchInvoices()
   } catch (err) {

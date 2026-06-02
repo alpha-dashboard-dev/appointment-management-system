@@ -269,6 +269,15 @@ class AppointmentController {
             return res.status(400).json({ success: false, message: err.message });
         }
     }
+
+    async pricingPreview(req: Request, res: Response) {
+        try {
+            const data = await service.getPricingPreview(req.body, req.user);
+            return res.status(200).json({ success: true, data });
+        } catch (err: any) {
+            return res.status(400).json({ success: false, message: err.message });
+        }
+    }
 }
 
 export default new AppointmentController();

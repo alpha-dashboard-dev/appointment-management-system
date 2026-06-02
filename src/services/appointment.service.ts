@@ -8,6 +8,7 @@ import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.rep
 import chargeRepo from "../repositories/charge.repository";
 import invoiceRepo from "../repositories/invoice.repository";
 import scheduleRepo from "../repositories/schedule.repository";
+import serviceRepo from "../repositories/service.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { ROLES } from "../utils/roles";
 import {
@@ -21,7 +22,202 @@ import {
     validateAppointmentRecurrence,
 } from "../utils/validator";
 
+const DAYS_OF_WEEK = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+function normalizeDateOnly(input: any): string {
+    if (!input) throw new Error("Appointment has invalid date");
+
+    if (input instanceof Date) {
+        if (isNaN(input.getTime())) throw new Error("Appointment has invalid date");
+        return input.toISOString().split("T")[0];
+    }
+
+    const text = String(input).trim();
+    const datePart = text.includes("T") ? text.split("T")[0] : text;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
+    if (!m) {
+        const parsed = new Date(text);
+        if (isNaN(parsed.getTime())) throw new Error("Appointment has invalid date");
+        return parsed.toISOString().split("T")[0];
+    }
+
+    return datePart;
+}
+
+function getWorkingDayFromDate(input: any): string {
+    const dateOnly = normalizeDateOnly(input);
+    const [year, month, day] = dateOnly.split("-").map(Number);
+    const utcDate = new Date(Date.UTC(year, month - 1, day));
+    return DAYS_OF_WEEK[utcDate.getUTCDay()];
+}
+
 class AppointmentService {
+
+    private toAmount(value: any): number {
+        const n = Number(value ?? 0);
+        return Number.isFinite(n) ? n : 0;
+    }
+
+    private roundMoney(value: number): number {
+        return Number(value.toFixed(2));
+    }
+
+    private computeChargeAmount(baseAmount: number, chargeUom: string, chargeValue: any): number {
+        const normalizedUom = String(chargeUom || "").toLowerCase();
+        const value = this.toAmount(chargeValue);
+        if (normalizedUom === "percentage") {
+            return this.roundMoney((baseAmount * value) / 100);
+        }
+        return this.roundMoney(value);
+    }
+
+    private async calculatePricingFromServiceCodes(
+        businessCode: string,
+        serviceCodes: string[],
+        chargeRows: any[]
+    ) {
+        let serviceSubtotal = 0;
+        let currency: string | null = null;
+        const servicesBreakdown: any[] = [];
+
+        for (const code of serviceCodes) {
+            const service = await serviceRepo.findByCode(code);
+            if (!service) continue;
+            const s = service.dataValues || service;
+            if (s.business_code !== businessCode) continue;
+
+            const price = this.roundMoney(this.toAmount(s.price));
+            serviceSubtotal += price;
+            if (!currency && s.currency) currency = s.currency;
+
+            servicesBreakdown.push({
+                service_code: s.service_code,
+                name: s.name,
+                price,
+                currency: s.currency || null,
+            });
+        }
+
+        serviceSubtotal = this.roundMoney(serviceSubtotal);
+
+        let chargeTotal = 0;
+        const chargesBreakdown = (chargeRows || []).map((charge: any) => {
+            const c = charge.dataValues || charge;
+            const computedAmount = this.computeChargeAmount(serviceSubtotal, c.charge_uom, c.charge_value);
+            chargeTotal += computedAmount;
+            return {
+                charge_code: c.charge_code,
+                name: c.name || null,
+                charge_uom: c.charge_uom,
+                charge_value: this.toAmount(c.charge_value),
+                computed_amount: computedAmount,
+            };
+        });
+
+        chargeTotal = this.roundMoney(chargeTotal);
+        const subtotal = serviceSubtotal;
+        const total = this.roundMoney(subtotal + chargeTotal);
+
+        return {
+            currency: currency || "PKR",
+            service_subtotal: serviceSubtotal,
+            discount_total: 0,
+            subtotal,
+            charge_total: chargeTotal,
+            total,
+            services: servicesBreakdown,
+            charges: chargesBreakdown,
+        };
+    }
+
+    private async applyActiveChargesToAppointment(businessCode: string, appointmentCode: string) {
+        const existing = await appointmentChargeRepo.findByAppointment(appointmentCode);
+        const existingCodes = new Set(
+            (existing || []).map((row: any) => {
+                const r = row.dataValues || row;
+                return r.charge_code;
+            })
+        );
+
+        const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
+        for (const charge of activeCharges) {
+            const chargeData = charge.dataValues || charge;
+            if (existingCodes.has(chargeData.charge_code)) continue;
+
+            await appointmentChargeRepo.create({
+                business_code: businessCode,
+                appointment_code: appointmentCode,
+                charge_code: chargeData.charge_code,
+                charge_uom: chargeData.charge_uom,
+                charge_value: chargeData.charge_value,
+            });
+        }
+    }
+
+    private async upsertDraftInvoice(
+        businessCode: string,
+        appointmentCode: string,
+        subtotal: number,
+        total: number,
+        updatedBy: string | null
+    ) {
+        const existingInvoices = await invoiceRepo.findByAppointment(appointmentCode);
+        const existing = existingInvoices?.[0];
+
+        if (existing) {
+            const id = (existing as any).id;
+            await invoiceRepo.update(id, {
+                subtotal,
+                total,
+                invoice_status: "draft",
+                date: new Date().toISOString().split("T")[0],
+                updated_by: updatedBy,
+            });
+            return;
+        }
+
+        await invoiceRepo.create({
+            business_code: businessCode,
+            appointment_code: appointmentCode,
+            subtotal,
+            total,
+            invoice_status: "draft",
+            date: new Date().toISOString().split("T")[0],
+            updated_by: updatedBy,
+        });
+    }
+
+    private async computeAppointmentPricing(businessCode: string, appointmentCode: string) {
+        const appointmentServices = await appointmentServiceRepo.findByAppointment(appointmentCode);
+        const serviceCodes = (appointmentServices || []).map((item: any) => {
+            const row = item.dataValues || item;
+            return row.service_code;
+        });
+
+        const appointmentCharges = await appointmentChargeRepo.findByAppointment(appointmentCode);
+        return this.calculatePricingFromServiceCodes(businessCode, serviceCodes, appointmentCharges || []);
+    }
+
+    async getPricingPreview(data: any, actor?: any) {
+        const inputBusinessCode = data?.business_code;
+        const businessCode = actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT
+            ? actor.businessCode
+            : inputBusinessCode;
+
+        const serviceCodes = Array.isArray(data?.service_codes) ? data.service_codes.filter(Boolean) : [];
+
+        if (!businessCode) throw new Error("business_code is required");
+        if (serviceCodes.length === 0) throw new Error("service_codes is required");
+
+        const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
+        const pricing = await this.calculatePricingFromServiceCodes(businessCode, serviceCodes, activeCharges || []);
+
+        return {
+            business_code: businessCode,
+            service_codes: serviceCodes,
+            ...pricing,
+        };
+    }
 
 
     async create(data: any, actor: any) {
@@ -228,10 +424,7 @@ class AppointmentService {
                 throw new Error("Appointment is missing date or time information");
             }
 
-            const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-            const parsed = new Date(appointment.appointment_start_date);
-            if (isNaN(parsed.getTime())) throw new Error("Appointment has invalid date");
-            const workingDay = days[parsed.getDay()];
+            const workingDay = getWorkingDayFromDate(appointment.appointment_start_date);
 
             const availableStaff = await scheduleRepo.findAvailableStaff(
                 appointment.business_code,
@@ -266,29 +459,15 @@ class AppointmentService {
         await repo.update(appointmentCode, updateData);
 
         if (status === "approved") {
-            // Apply all active business charges to this appointment
-            const activeCharges = await chargeRepo.findActiveByBusiness(appointment.business_code);
-            for (const charge of activeCharges) {
-                const chargeData = charge.dataValues || charge;
-                await appointmentChargeRepo.create({
-                    business_code: appointment.business_code,
-                    appointment_code: appointmentCode,
-                    charge_code: chargeData.charge_code,
-                    charge_uom: chargeData.charge_uom,
-                    charge_value: chargeData.charge_value,
-                });
-            }
-
-            // Auto-generate a draft invoice
-            await invoiceRepo.create({
-                business_code: appointment.business_code,
-                appointment_code: appointmentCode,
-                subtotal: null,
-                total: null,
-                invoice_status: "draft",
-                date: new Date().toISOString().split("T")[0],
-                updated_by: actor?.userCode || null,
-            });
+            await this.applyActiveChargesToAppointment(appointment.business_code, appointmentCode);
+            const pricing = await this.computeAppointmentPricing(appointment.business_code, appointmentCode);
+            await this.upsertDraftInvoice(
+                appointment.business_code,
+                appointmentCode,
+                pricing.subtotal,
+                pricing.total,
+                actor?.userCode || null
+            );
         }
 
         await historyRepo.create({
@@ -380,30 +559,18 @@ class AppointmentService {
         const business_code = original.dataValues?.business_code ?? original.business_code;
 
         if (action === "accepted") {
-            // Approve the new appointment + generate charges & draft invoice
-            const activeCharges = await chargeRepo.findActiveByBusiness(business_code);
-            for (const charge of activeCharges) {
-                const chargeData = charge.dataValues || charge;
-                await appointmentChargeRepo.create({
-                    business_code,
-                    appointment_code: rescheduledCode,
-                    charge_code: chargeData.charge_code,
-                    charge_uom: chargeData.charge_uom,
-                    charge_value: chargeData.charge_value,
-                });
-            }
+            await this.applyActiveChargesToAppointment(business_code, rescheduledCode);
 
             await repo.update(rescheduledCode, { status: "approved" });
 
-            await invoiceRepo.create({
+            const pricing = await this.computeAppointmentPricing(business_code, rescheduledCode);
+            await this.upsertDraftInvoice(
                 business_code,
-                appointment_code: rescheduledCode,
-                subtotal: null,
-                total: null,
-                invoice_status: "draft",
-                date: new Date().toISOString().split("T")[0],
-                updated_by: actor.userCode,
-            });
+                rescheduledCode,
+                pricing.subtotal,
+                pricing.total,
+                actor.userCode
+            );
 
             await historyRepo.create({
                 business_code,
@@ -698,10 +865,7 @@ class AppointmentService {
         if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time)
             throw new Error("Appointment is missing date or time information");
 
-        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        const parsed = new Date(appointment.appointment_start_date);
-        if (isNaN(parsed.getTime())) throw new Error("Appointment has invalid date");
-        const workingDay = days[parsed.getDay()];
+        const workingDay = getWorkingDayFromDate(appointment.appointment_start_date);
 
         const availableStaff = await scheduleRepo.findAvailableStaff(
             appointment.business_code,
@@ -748,10 +912,7 @@ class AppointmentService {
         if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time)
             throw new Error("Appointment is missing date or time information");
 
-        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        const parsed = new Date(appointment.appointment_start_date);
-        if (isNaN(parsed.getTime())) throw new Error("Appointment has invalid date");
-        const workingDay = days[parsed.getDay()];
+        const workingDay = getWorkingDayFromDate(appointment.appointment_start_date);
 
         // Confirm the chosen staff is still in an available schedule slot
         const availableStaff = await scheduleRepo.findAvailableStaff(
@@ -766,7 +927,7 @@ class AppointmentService {
             throw new Error("Selected staff member is not available for this appointment slot");
 
         // Check for double-booking
-        const dateStr = new Date(appointment.appointment_start_date).toISOString().split("T")[0];
+        const dateStr = normalizeDateOnly(appointment.appointment_start_date);
         const conflicts = await participantRepo.findConflictsForStaff(
             staffCode,
             dateStr,
@@ -790,29 +951,15 @@ class AppointmentService {
         // Approve
         await repo.update(appointmentCode, { status: "approved", approved_by: actor?.userCode || null });
 
-        // Apply business charges
-        const activeCharges = await chargeRepo.findActiveByBusiness(appointment.business_code);
-        for (const charge of activeCharges) {
-            const chargeData = charge.dataValues || charge;
-            await appointmentChargeRepo.create({
-                business_code: appointment.business_code,
-                appointment_code: appointmentCode,
-                charge_code: chargeData.charge_code,
-                charge_uom: chargeData.charge_uom,
-                charge_value: chargeData.charge_value,
-            });
-        }
-
-        // Draft invoice
-        await invoiceRepo.create({
-            business_code: appointment.business_code,
-            appointment_code: appointmentCode,
-            subtotal: null,
-            total: null,
-            invoice_status: "draft",
-            date: new Date().toISOString().split("T")[0],
-            updated_by: actor?.userCode || null,
-        });
+        await this.applyActiveChargesToAppointment(appointment.business_code, appointmentCode);
+        const pricing = await this.computeAppointmentPricing(appointment.business_code, appointmentCode);
+        await this.upsertDraftInvoice(
+            appointment.business_code,
+            appointmentCode,
+            pricing.subtotal,
+            pricing.total,
+            actor?.userCode || null
+        );
 
         await historyRepo.create({
             business_code: appointment.business_code,

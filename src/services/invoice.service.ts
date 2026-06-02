@@ -1,29 +1,46 @@
 import repo from "../repositories/invoice.repository";
 import appointmentRepo from "../repositories/appointment.repository";
 import { validateInvoice, validateInvoiceStatus } from "../utils/validator";
+import { ROLES } from "../utils/roles";
 
 class InvoiceService {
 
     async create(data: any, actor: any) {
-        const { businessCode, appointmentCode, subtotal, total, date } = data;
+        const {
+            business_code,
+            appointment_code,
+            subtotal,
+            total,
+            date,
+        } = data;
 
         validateInvoice(data);
 
-        const appointment = await appointmentRepo.findByCode(appointmentCode);
+        const appointment = await appointmentRepo.findByCode(appointment_code);
         if (!appointment) throw new Error("Appointment not found");
 
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
+
         return await repo.create({
-            businessCode,
-            appointmentCode,
+            business_code,
+            appointment_code,
             subtotal: subtotal || null,
             total: total || null,
-            status: "draft",
+            invoice_status: "draft",
             date: date || new Date().toISOString().split("T")[0],
-            updatedBy: actor?.userCode || null,
+            updated_by: actor?.userCode || null,
         });
     }
 
-    async getAll(filters: any = {}) {
+    async getAll(filters: any = {}, actor?: any) {
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            filters.business_code = actor.businessCode;
+        }
         return await repo.findAll(filters);
     }
 
@@ -41,7 +58,7 @@ class InvoiceService {
         if (data.subtotal !== undefined) allowed.subtotal = data.subtotal;
         if (data.total !== undefined) allowed.total = data.total;
         if (data.date !== undefined) allowed.date = data.date;
-        allowed.updatedBy = actor?.userCode || null;
+        allowed.updated_by = actor?.userCode || null;
 
         return await repo.update(id, allowed);
     }
@@ -54,7 +71,7 @@ class InvoiceService {
 
         return await repo.update(id, {
             invoice_status: status,
-            updatedBy: actor?.userCode || null,
+            updated_by: actor?.userCode || null,
         });
     }
 }

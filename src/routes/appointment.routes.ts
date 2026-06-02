@@ -16,6 +16,13 @@ router.post(
     controller.create
 );
 
+router.post(
+    "/pricing-preview",
+    authenticate,
+    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
+    controller.pricingPreview
+);
+
 router.get(
     "/",
     authenticate,

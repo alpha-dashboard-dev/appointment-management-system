@@ -21,21 +21,21 @@ router.get(
 );
 
 router.get(
-    "/get-charge:chargeCode",
+    "/get-charge/:chargeCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.getByCode
 );
 
 router.put(
-    "/update-charge:chargeCode",
+    "/update-charge/:chargeCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.delete(
-    "/delete-charge:chargeCode",
+    "/delete-charge/:chargeCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete

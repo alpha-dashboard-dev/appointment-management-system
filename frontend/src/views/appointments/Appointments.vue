@@ -49,15 +49,28 @@
               <td>{{ formatDate(appt.appointment_start_date) }}</td>
               <td>{{ formatTime(appt.start_time) }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
-              <td class="pe-3">
-                <div class="d-flex flex-wrap justify-content-center gap-1">
-                <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(appt)">View</button>
-                <button v-if="appt.status === 'pending'" class="btn btn-sm btn-success me-1" @click="openApprovalDialog(appt)">Approve</button>
-                <button v-if="appt.status === 'approved'" class="btn btn-sm btn-outline-info me-1" @click="changeStatus(appt, 'in_progress')">Start</button>
-                <button v-if="appt.status === 'in_progress'" class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'completed')">Complete</button>
-                <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-primary me-1" @click="openReschedule(appt)">Reschedule</button>
-                <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-outline-danger me-1" @click="changeStatus(appt, 'rejected')">Reject</button>
-                <button v-if="['pending','approved'].includes(appt.status)" class="btn btn-sm btn-secondary" @click="changeStatus(appt, 'canceled')">Cancel</button>
+              <td class="pe-3 text-center">
+                <div class="d-flex justify-content-center">
+                  <div class="dropdown">
+                    <button
+                      class="btn btn-sm btn-secondary dropdown-toggle"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      :aria-expanded="openDropdownCode === appt.appointment_code"
+                      @click.stop="toggleActionDropdown(appt.appointment_code)"
+                    >
+                      Actions
+                    </button>
+                    <ul class="dropdown-menu" :class="{ show: openDropdownCode === appt.appointment_code }">
+                      <li><button class="dropdown-item" type="button" @click="openDetails(appt); closeActionDropdown()">View</button></li>
+                      <li v-if="appt.status === 'pending'"><button class="dropdown-item" type="button" @click="openApprovalDialog(appt); closeActionDropdown()">Approve</button></li>
+                      <li v-if="appt.status === 'approved'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'in_progress'); closeActionDropdown()">Start</button></li>
+                      <li v-if="appt.status === 'in_progress'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'completed'); closeActionDropdown()">Complete</button></li>
+                      <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item" type="button" @click="openReschedule(appt); closeActionDropdown()">Reschedule</button></li>
+                      <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item text-danger" type="button" @click="changeStatus(appt, 'rejected'); closeActionDropdown()">Reject</button></li>
+                      <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'canceled'); closeActionDropdown()">Cancel</button></li>
+                    </ul>
+                  </div>
                 </div>
               </td>
             </tr>
@@ -310,6 +323,7 @@ const rescheduleError = ref('')
 
 const search = ref('')
 const statusFilter = ref('')
+const openDropdownCode = ref('')
 
 const showDetails = ref(false)
 const showReschedule = ref(false)
@@ -480,7 +494,21 @@ async function submitApprovalReschedule() {
   }
 }
 
+function toggleActionDropdown(appointmentCode) {
+  openDropdownCode.value = openDropdownCode.value === appointmentCode ? '' : appointmentCode
+}
+
+function closeActionDropdown() {
+  openDropdownCode.value = ''
+}
+
 onMounted(fetchAppointments)
 </script>
+
+<style scoped>
+.dropdown-menu {
+  min-width: 180px;
+}
+</style>
 
 

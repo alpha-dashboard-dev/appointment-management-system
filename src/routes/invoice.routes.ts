@@ -21,21 +21,21 @@ router.get(
 );
 
 router.get(
-    "/get-invoice:id",
+    "/get-invoice/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.CLIENT),
     controller.getById
 );
 
 router.put(
-    "/update-invoice:id",
+    "/update-invoice/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.update
 );
 
 router.patch(
-    "/update-invoice-status:id",
+    "/update-invoice-status/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.changeStatus

@@ -29,28 +29,28 @@ router.get(
 );
 
 router.get(
-    "/get-service:serviceCode",
+    "/get-service/:serviceCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getByCode
 );
 
 router.put(
-    "/update-service:serviceCode",
+    "/update-service/:serviceCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.patch(
-    "/update-service-status:serviceCode/status",
+    "/update-service-status/:serviceCode/status",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.changeStatus
 );
 
 router.delete(
-    "/delete-service:serviceCode",
+    "/delete-service/:serviceCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete

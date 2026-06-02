@@ -23,12 +23,22 @@
             </select>
           </div>
 
+<!--          <div class="field">-->
+<!--            <label>Service *</label>-->
+<!--            <select v-model="form.service_code" @change="onServiceChange" required>-->
+<!--              <option value="">Select service</option>-->
+<!--              <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">-->
+<!--                {{ svc.name }} {{ svc.duration_value }} {{ svc.duration_uom}}-->
+<!--              </option>-->
+<!--            </select>-->
+<!--          </div>-->
+
           <div class="field">
             <label>Service *</label>
             <select v-model="form.service_code" @change="onServiceChange" required>
               <option value="">Select service</option>
               <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">
-                {{ svc.name }} {{ svc.duration_value }} {{ svc.duration_uom}}
+                {{ svc.name }} {{ svc.duration_value }} {{ svc.duration_uom }}
               </option>
             </select>
           </div>
@@ -41,32 +51,30 @@
             <!-- Base Service Price -->
             <div class="charge-row">
               <span>{{ selectedService.name }}</span>
-
-              <span class="charge-val">{{ selectedService.price }}{{ selectedService.currency }}</span>
+              <span class="charge-val">{{ serviceSubtotal }} {{ currencyCode }}</span>
             </div>
 
             <!-- Additional Charges -->
             <template v-if="selectedCharges.length">
 
               <div v-for="ch in selectedCharges" :key="ch.charge_code" class="charge-row">
-<!--         add if charge_uom is percentage then show % sign, otherwise show fixed-->
-<!--                <span>{{ ch.name + " "  + ch.charge_value + " " + "%" }}</span>-->
                 <span>
                       {{ ch.name }}
                       {{ ch.charge_value }}
-                      {{ch.charge_uom === 'percentage' ? '%' : selectedService?.currency }}
+                      {{ ch.charge_uom === 'percentage' ? '%' : currencyCode }}
                 </span>
-              </div>
-<!--             Total amount after computed service price and business charge fixed or percentage-->
-              <div class="charge-row fw-bold">
-                <span>Total Price</span>
-                <span class="charge-val">{{ totalPrice }} {{ selectedService?.currency }}</span>
+                <span class="charge-val">{{ ch.computed_amount }} {{ currencyCode }}</span>
               </div>
 
             </template>
 
             <div v-else class="no-charges">
               No additional charges
+            </div>
+
+            <div class="charge-row fw-bold mt-2">
+              <span>Total Price</span>
+              <span class="charge-val">{{ totalPrice }} {{ currencyCode }}</span>
             </div>
 
           </div>
@@ -113,35 +121,28 @@ const locations = ref([])
 const charges = ref([])
 const loading = ref(false)
 const error = ref('')
+const pricingPreview = ref(null)
+const previewLoading = ref(false)
 
 // const selectedService = computed(() => services.value.find(s => s.service_code === form.service_code) || null)
 const selectedService = computed(() => services.value.find(s => s.service_code === form.service_code) || null)
 
 const selectedCharges = computed(() => {
-  if (!selectedService.value) return []
-
-  return charges.value.filter(
-      ch => ch.business_code === selectedService.value.business_code
-  )
+  return pricingPreview.value?.charges || []
 })
 
 const totalPrice = computed(() => {
-  if (!selectedService.value) return 0
+  if (pricingPreview.value?.total != null) return Number(pricingPreview.value.total)
+  return Number(selectedService.value?.price || 0)
+})
 
-  let base = Number(selectedService.value.price || 0)
+const serviceSubtotal = computed(() => {
+  if (pricingPreview.value?.service_subtotal != null) return Number(pricingPreview.value.service_subtotal)
+  return Number(selectedService.value?.price || 0)
+})
 
-  let fixedCharges = 0
-  let percentCharges = 0
-
-  selectedCharges.value.forEach(ch => {
-    if (ch.charge_uom === 'percentage') {
-      percentCharges += (base * Number(ch.charge_value)) / 100
-    } else {
-      fixedCharges += Number(ch.charge_value)
-    }
-  })
-
-  return base + fixedCharges + percentCharges
+const currencyCode = computed(() => {
+  return pricingPreview.value?.currency || selectedService.value?.currency || 'PKR'
 })
 
 onMounted(async () => {
@@ -157,6 +158,7 @@ async function onBusinessChange() {
   services.value = []
   locations.value = []
   charges.value = []
+  pricingPreview.value = null
   if (!form.business_code) return
   try {
     const [svcRes, locRes] = await Promise.all([
@@ -172,20 +174,37 @@ async function onBusinessChange() {
 
 async function onLocationChange() {
   form.service_code = ''
+  pricingPreview.value = null
   if (!form.business_code) return
   try {
     const params = { business_code: form.business_code }
     if (form.location_code) params.location_code = form.location_code
     const svcRes = await api.get('/services/client-view', { params })
     services.value = svcRes.data.data.services || []
+    charges.value = svcRes.data.data.charges || []
   } catch (_) {}
 }
 
-function onServiceChange() {
-  console.log('Selected Service:', selectedService.value)
-  console.log('All Charges:', charges.value)
-  console.log('Selected Charges:', selectedCharges.value)
-  // charges are embedded in the service object from client-view
+async function onServiceChange() {
+  await fetchPricingPreview()
+}
+
+async function fetchPricingPreview() {
+  pricingPreview.value = null
+  if (!form.business_code || !form.service_code) return
+
+  previewLoading.value = true
+  try {
+    const res = await api.post('/appointments/pricing-preview', {
+      business_code: form.business_code,
+      service_codes: [form.service_code],
+    })
+    pricingPreview.value = res.data.data || null
+  } catch (_) {
+    pricingPreview.value = null
+  } finally {
+    previewLoading.value = false
+  }
 }
 
 async function submit() {

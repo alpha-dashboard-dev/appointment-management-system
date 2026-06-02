@@ -23,7 +23,6 @@
     </div>
 
 
-
     <div class="card shadow-sm border-0">
       <div class="card-body p-0">
         <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
@@ -48,7 +47,7 @@
               <td>{{ formatDate(inv.created_at) }}</td>
               <td class="pe-3">
                 <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(inv)">View</button>
-                <button v-if="inv.status === 'pending'" class="btn btn-sm btn-success" @click="updateStatus(inv, 'paid')">Mark Paid</button>
+                <button v-if="inv.invoice_status === 'draft' || inv.invoice_status === 'issued'" class="btn btn-sm btn-success" @click="updateStatus(inv, 'paid')">Mark Paid</button>
               </td>
             </tr>
             <tr v-if="invoices.length === 0">
@@ -81,8 +80,8 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showDetails = false">Close</button>
-            <button v-if="selected?.status === 'pending'" class="btn btn-success btn-sm" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
-            <button v-if="selected?.status === 'pending'" class="btn btn-danger btn-sm" @click="updateStatus(selected, 'cancelled')" :disabled="saving">Cancel</button>
+            <button v-if="selected?.invoice_status === 'draft' || selected?.invoice_status === 'issued'" class="btn btn-success btn-sm" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
+            <button v-if="selected?.invoice_status === 'draft' || selected?.invoice_status === 'issued'" class="btn btn-danger btn-sm" @click="updateStatus(selected, 'canceled')" :disabled="saving">Cancel</button>
           </div>
         </div>
       </div>
@@ -131,7 +130,7 @@ function openDetails(inv) {
 async function updateStatus(inv, status) {
   saving.value = true
   try {
-    await api.patch(`/invoices/update-invoice-status${inv.id}`, { status })
+    await api.patch(`/invoices/update-invoice-status/${inv.id}`, { invoice_status: status })
     showDetails.value = false
     await fetchInvoices()
   } catch (err) {

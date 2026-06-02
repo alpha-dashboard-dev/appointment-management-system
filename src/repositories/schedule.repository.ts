@@ -4,6 +4,11 @@ import {Op} from "sequelize";
 
 const db = initModels();
 
+const normalizeTime = (time: string) => {
+    if (!time) return time;
+    return /^\d{2}:\d{2}$/.test(time) ? `${time}:00` : time;
+};
+
 
 class ScheduleRepository {
     private tables: any;
@@ -40,14 +45,16 @@ class ScheduleRepository {
     }
 
     async findAvailableStaff(businessCode: string, locationCode: string, workingDay: string, startTime: string, endTime: string) {
-        // con
+        const normalizedStartTime = normalizeTime(startTime);
+        const normalizedEndTime = normalizeTime(endTime);
+
         return await db.UserShiftSchedule.findAll({
             where: {
                 business_code: businessCode,
                 location_code: locationCode,
-                working_days: workingDay,
-                start_time: { [Op.lte]: startTime },
-                end_time: { [Op.gte]: endTime },
+                working_days: String(workingDay || "").toLowerCase(),
+                start_time: { [Op.lte]: normalizedStartTime },
+                end_time: { [Op.gte]: normalizedEndTime },
             },
             raw: true,
         });
