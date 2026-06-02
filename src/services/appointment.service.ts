@@ -51,6 +51,15 @@ function getWorkingDayFromDate(input: any): string {
     return DAYS_OF_WEEK[utcDate.getUTCDay()];
 }
 
+function normalizeTimeToHHMM(input: any, label: "startTime" | "endTime"): string {
+    const raw = input == null ? "" : String(input).trim();
+    const match = /^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/.exec(raw);
+    if (!match) {
+        throw new Error(`Invalid ${label} format. Use HH:MM`);
+    }
+    return `${match[1]}:${match[2]}`;
+}
+
 class AppointmentService {
 
     private toAmount(value: any): number {
@@ -495,23 +504,42 @@ class AppointmentService {
         }
 
         const { appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes } = data;
+        const originalRow: any = original.dataValues || original;
 
-        validateReschedule(data);
+        // Allow partial reschedule payloads by defaulting missing fields to original values.
+        const resolvedPayload = {
+            appointment_start_date: normalizeDateOnly(
+                appointment_start_date || originalRow.appointment_start_date
+            ),
+            appointment_end_date: normalizeDateOnly(
+                appointment_end_date || originalRow.appointment_end_date
+            ),
+            start_time: normalizeTimeToHHMM(
+                start_time || originalRow.start_time,
+                "startTime"
+            ),
+            end_time: normalizeTimeToHHMM(
+                end_time || originalRow.end_time,
+                "endTime"
+            ),
+        };
 
-        const business_code = original.business_code;
+        validateReschedule(resolvedPayload);
+
+        const business_code = originalRow.business_code;
         const new_appointment_code = generateCode();
 
         const newAppointment = await repo.create({
             business_code,
             appointment_code: new_appointment_code,
-            appointment_start_date,
-            appointment_end_date,
-            start_time,
-            end_time,
-            location_code: location_code || original.location_code || null,
+            appointment_start_date: resolvedPayload.appointment_start_date,
+            appointment_end_date: resolvedPayload.appointment_end_date,
+            start_time: resolvedPayload.start_time,
+            end_time: resolvedPayload.end_time,
+            location_code: location_code || originalRow.location_code || null,
             status: "pending",
             created_by: actor?.userCode,
-            rescheduled_from: original.appointment_code,
+            rescheduled_from: originalRow.appointment_code,
             notes: notes || null,
         });
 

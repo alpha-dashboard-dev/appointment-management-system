@@ -19,7 +19,7 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Name</th>
-              <th>Code</th>
+              <th>Organization Code</th>
               <th>Status</th>
               <th class="pe-3" style="width:180px">Actions</th>
             </tr>
@@ -27,7 +27,7 @@
           <tbody>
             <tr v-for="org in organizations" :key="org.organization_code">
               <td class="ps-3">{{ org.name }}</td>
-              <td><code>{{ org.organization_code }}</code></td>
+              <td><strong>{{ org.organization_code }}</strong></td>
               <td><span :class="['ams-badge', org.status]">{{ org.status }}</span></td>
               <td class="pe-3">
                 <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(org)">Edit</button>

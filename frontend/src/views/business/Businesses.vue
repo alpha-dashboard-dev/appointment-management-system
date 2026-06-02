@@ -19,8 +19,8 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Name</th>
-              <th>Business Code</th>
-              <th>Organization</th>
+              <th>Email</th>
+              <th>Organization Name</th>
               <th>Status</th>
               <th class="pe-3" style="width:230px">Actions</th>
             </tr>
@@ -28,8 +28,8 @@
           <tbody>
             <tr v-for="business in businesses" :key="business.business_code">
               <td class="ps-3">{{ business.name }}</td>
-              <td><code>{{ business.business_code }}</code></td>
-              <td>{{ business.organization_name || business.organization_code || '—' }}</td>
+              <td>{{ business.email }}</td>
+              <td>{{ business.organization_name || '—' }}</td>
               <td><span :class="['ams-badge', business.status]">{{ business.status }}</span></td>
               <td class="pe-3">
                 <router-link :to="`/businesses/${business.business_code}`" class="btn btn-sm btn-outline-secondary me-1">View</router-link>
@@ -119,8 +119,23 @@ async function fetchBusinesses() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/businesses/get-business')
-    businesses.value = res.data.data || []
+    const [businessRes, organizationRes] = await Promise.all([
+      api.get('/businesses/get-business'),
+      api.get('/organizations/get-organization'),
+    ])
+
+    const organizations = organizationRes.data.data || []
+    const organizationNameByCode = new Map(
+      organizations.map((org) => [org.organization_code, org.name])
+    )
+
+    businesses.value = (businessRes.data.data || []).map((business) => ({
+      ...business,
+      organization_name:
+        organizationNameByCode.get(business.organization_code) ||
+        business.organization_name ||
+        '',
+    }))
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load businesses'
   } finally {

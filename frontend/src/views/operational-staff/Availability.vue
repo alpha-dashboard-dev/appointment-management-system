@@ -3,7 +3,15 @@
     <div class="header"><h2>Check Staff Availability</h2></div>
     <div class="card">
       <form class="form" @submit.prevent="checkAvailability">
-        <div class="field"><label>Location Code *</label><input v-model="form.locationCode" placeholder="Location code" required /></div>
+        <div class="field">
+          <label>Location *</label>
+          <select v-model="form.locationCode" required>
+            <option value="">Select location</option>
+            <option v-for="location in locations" :key="location.location_code" :value="location.location_code">
+              {{ formatLocationLabel(location) }}
+            </option>
+          </select>
+        </div>
         <div class="field"><label>Date *</label><input v-model="form.date" type="date" required /></div>
         <div class="field"><label>Start Time *</label><input v-model="form.startTime" type="time" required /></div>
         <div class="field"><label>End Time *</label><input v-model="form.endTime" type="time" required /></div>
@@ -29,8 +37,8 @@
             <td><code>{{ s.user_code }}</code></td>
             <td>{{ s.employee_type || '—' }}</td>
             <td>{{ s.working_days }}</td>
-            <td>{{ s.start_time }}</td>
-            <td>{{ s.end_time }}</td>
+            <td>{{ formatTime(s.start_time) }}</td>
+            <td>{{ formatTime(s.end_time) }}</td>
           </tr>
         </tbody>
       </table>
@@ -39,16 +47,45 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "@/utils/formatTime.js";
 
 const authStore = useAuthStore()
 const form = reactive({ locationCode: '', date: '', startTime: '', endTime: '' })
+const locations = ref([])
 const available = ref([])
 const loading = ref(false)
 const error = ref('')
 const checked = ref(false)
+
+function formatLocationLabel(location) {
+  const parts = [
+    location.name,
+    location.address,
+    location.street,
+    location.city,
+    // location.location_code,
+  ].filter(Boolean)
+
+  return parts.join(' - ')
+}
+
+async function fetchLocations() {
+  try {
+    const biz = authStore.user?.business_code
+    if (!biz) return
+
+    const res = await api.get('/locations/get-location', {
+      params: { business_code: biz },
+    })
+
+    locations.value = res.data.data || []
+  } catch (_) {
+    locations.value = []
+  }
+}
 
 async function checkAvailability() {
   loading.value = true
@@ -58,11 +95,11 @@ async function checkAvailability() {
     const biz = authStore.user?.business_code
     const res = await api.get('/schedules/check-staff-availability', {
       params: {
-        businessCode: biz,
-        locationCode: form.locationCode,
+        business_code: biz,
+        location_code: form.locationCode,
         date: form.date,
-        startTime: form.startTime,
-        endTime: form.endTime,
+        start_time: form.startTime,
+        end_time: form.endTime,
       }
     })
     available.value = res.data.data || []
@@ -74,6 +111,8 @@ async function checkAvailability() {
     loading.value = false
   }
 }
+
+onMounted(fetchLocations)
 </script>
 
 <style scoped>
@@ -84,7 +123,7 @@ async function checkAvailability() {
 .form { display: flex; flex-direction: column; gap: 16px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 13px; font-weight: 600; color: #374151; }
-.field input { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; }
+.field input, .field select { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; }
 .check-btn { background: #6366f1; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; align-self: flex-start; }
 .result-card h3 { margin: 0 0 12px; font-size: 16px; }
 .table { width: 100%; border-collapse: collapse; }

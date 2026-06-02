@@ -67,13 +67,18 @@ class ScheduleController {
 
     async checkAvailability(req: Request, res: Response) {
         try {
-            const { business_code, location_code, date, start_time, end_time } = req.query;
+            const businessCode = req.query.business_code ?? req.query.businessCode;
+            const locationCode = req.query.location_code ?? req.query.locationCode;
+            const date = req.query.date;
+            const startTime = req.query.start_time ?? req.query.startTime;
+            const endTime = req.query.end_time ?? req.query.endTime;
+
             const data = await service.checkAvailability(
-                String(business_code || ""),
-                String(location_code || ""),
+                String(businessCode || ""),
+                String(locationCode || ""),
                 String(date || ""),
-                String(start_time || ""),
-                String(end_time || "")
+                String(startTime || ""),
+                String(endTime || "")
             );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
