@@ -130,6 +130,7 @@ async function updateStatus() {
   }
 }
 
+
 onMounted(fetchInvoices)
 </script>
 

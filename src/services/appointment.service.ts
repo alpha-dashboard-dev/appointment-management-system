@@ -683,6 +683,7 @@ class AppointmentService {
      */
     async checkAvailability(appointmentCode: string, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
+        // console.log(appointment)
         if (!appointment) throw new Error("Appointment not found");
 
         if (actor && actor.userType !== ROLES.ADMIN) {
