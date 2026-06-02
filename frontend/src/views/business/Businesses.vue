@@ -36,10 +36,39 @@
               <td>{{business.timezone}}</td>
               <td><span :class="['ams-badge', business.status]">{{ business.status }}</span></td>
               <td class="pe-3">
-                <router-link :to="`/businesses/${business.business_code}`" class="btn btn-sm btn-outline-secondary me-1">View</router-link>
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(business)">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" @click="openDelete(business)">Deactivate</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <router-link :to="`/businesses/${business.code}`" class="dropdown-item">
+                        <i class="bi bi-eye me-2"></i>
+                        View
+                      </router-link>
+                    </li>
+
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(business)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(business)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
+<!--              <td class="pe-3">-->
+<!--                <router-link :to="`/businesses/${business.business_code}`" class="btn btn-sm btn-outline-secondary me-1">View</router-link>-->
+<!--                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(business)">Edit</button>-->
+<!--                <button class="btn btn-sm btn-outline-danger" @click="openDelete(business)">Deactivate</button>-->
+<!--              </td>-->
             </tr>
             <tr v-if="businesses.length === 0">
               <td colspan="7" class="text-center text-muted py-4">No businesses found</td>
@@ -147,7 +176,15 @@ async function fetchBusinesses() {
   }
 }
 
-function openEdit(business) {
+// function openEdit(business) {
+//   selected.value = business
+//   editForm.name = business.name
+//   editForm.status = business.status
+//   formError.value = ''
+//   showEditModal.value = true
+// }
+
+function openEdit(business){
   selected.value = business
   editForm.name = business.name
   editForm.status = business.status
