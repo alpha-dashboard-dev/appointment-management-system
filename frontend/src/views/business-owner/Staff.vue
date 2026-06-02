@@ -17,21 +17,29 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Name</th><th>Email</th><th>Role</th><th>Code</th><th>Status</th><th class="pe-3" style="width:140px">Actions</th></tr>
+            <tr>
+              <th class="ps-3">Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Employment Type</th>
+              <th>Status</th>
+              <th class="pe-3" style="width:220px">Actions</th></tr>
           </thead>
           <tbody>
             <tr v-for="user in staff" :key="user.user_code">
               <td class="ps-3">{{ user.name }}</td>
               <td>{{ user.email }}</td>
+              <td>{{ user.phone }}</td>
               <td>{{ user.user_type }}</td>
-              <td><code>{{ user.user_code }}</code></td>
+              <td>{{ user.employee_type }}</td>
               <td><span :class="['ams-badge', user.is_active === 'active' ? 'active' : 'inactive']">{{ user.is_active === 'active' ? 'Active' : 'Inactive' }}</span></td>
               <td class="pe-3">
                 <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(user)">Edit</button>
                 <button class="btn btn-sm btn-outline-warning" @click="openDeactivate(user)">Deactivate</button>
               </td>
             </tr>
-            <tr v-if="staff.length === 0"><td colspan="6" class="text-center text-muted py-4">No staff found</td></tr>
+            <tr v-if="staff.length === 0"><td colspan="7" class="text-center text-muted py-4">No staff found</td></tr>
           </tbody>
         </table>
       </div>

@@ -23,20 +23,28 @@
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
             <tr>
-              <th class="ps-3">Code</th>
-              <th>Type</th>
-              <th>City</th>
+              <th class="ps-3">Business Name</th>
               <th>Address</th>
+              <th>Street</th>
+              <th>Apartment</th>
+              <th>City</th>
+              <th>State</th>
+              <th>Country</th>
+              <th>Type</th>
               <th>Status</th>
               <th class="pe-3" style="width:140px">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="loc in locations" :key="loc.location_code">
-              <td class="ps-3"><code>{{ loc.location_code }}</code></td>
-              <td>{{ loc.location_type }}</td>
+              <td class="ps-3">{{ loc.business_name ||  '—'}}</td>
+              <td>{{ loc.address || '—' }}</td>
+              <td>{{loc.street || '—'}}</td>
+              <td>{{loc.apartment || '—'}}</td>
               <td>{{ loc.city || '—' }}</td>
-              <td>{{ loc.address || loc.street || '—' }}</td>
+              <td>{{loc.province || '—'}}</td>
+              <td>{{ loc.country || '—' }}</td>
+              <td>{{ loc.location_type }}</td>
               <td><span :class="['ams-badge', loc.status]">{{ loc.status }}</span></td>
               <td class="pe-3">
                 <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(loc)">Edit</button>
@@ -44,7 +52,7 @@
               </td>
             </tr>
             <tr v-if="locations.length === 0">
-              <td colspan="6" class="text-center text-muted py-4">No locations found</td>
+              <td colspan="10" class="text-center text-muted py-4">No locations found</td>
             </tr>
           </tbody>
         </table>
@@ -151,19 +159,52 @@ const showDeleteModal = ref(false)
 const selected = ref(null)
 const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active' })
 
+
 async function fetchLocations() {
   loading.value = true
   error.value = ''
+
   try {
-    const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/locations/get-location', { params })
-    locations.value = res.data.data || []
+    const params = bizFilter.value
+        ? { business_code: bizFilter.value }
+        : {}
+
+    const [locationRes, businessRes] = await Promise.all([
+      api.get('/locations/get-location', { params }),
+      api.get('/businesses/get-business'),
+    ])
+
+    const businesses = businessRes.data.data || []
+
+    const businessNameByCode = new Map(
+        businesses.map((bus) => [bus.business_code, bus.name])
+    )
+
+    locations.value = (locationRes.data.data || []).map((location) => ({
+      ...location,
+      business_name:
+          businessNameByCode.get(location.business_code) || '',
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load locations'
+    error.value =
+        err.response?.data?.message || 'Failed to load locations'
   } finally {
     loading.value = false
   }
 }
+// async function fetchLocations() {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
+//     const res = await api.get('/locations/get-location', { params })
+//     locations.value = res.data.data || []
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to load locations'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 function openEdit(loc) {
   selected.value = loc

@@ -29,13 +29,13 @@
               <th>Start Time</th>
               <th>End Time</th>
               <th>Status</th>
-              <th class="pe-3" style="width:120px">Actions</th>
+              <th class="pe-3" style="width:220px">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="schedule in schedules" :key="schedule.id">
               <td class="ps-3">{{ schedule.id }}</td>
-              <td>{{ schedule.user_name || schedule.user_code || '—' }}</td>
+              <td>{{ schedule.name || '—' }}</td>
               <td class="text-capitalize">{{ schedule.working_days }}</td>
               <td>{{ formatTime(schedule.start_time) }}</td>
               <td>{{ formatTime(schedule.end_time) }}</td>
@@ -379,16 +379,33 @@ async function onBusinessChange() {
 async function fetchSchedules() {
   loading.value = true
   error.value = ''
+
   try {
     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/schedules/get-schedule', { params })
-    schedules.value = res.data.data || []
+
+    const [scheduleRes, usersRes] = await Promise.all([
+      api.get('/schedules/get-schedule', { params }),
+      api.get('/users/get-users', { params })
+    ])
+
+    const users = usersRes.data.data || []
+
+    const staffNameByCode = new Map(users.map((user) => [user.user_code, user.name.trim()]))
+
+    schedules.value = (scheduleRes.data.data || []).map((schedule) => ({
+      ...schedule,
+      name:
+          staffNameByCode.get(schedule.user_code) ||
+          ''
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load schedules'
+    error.value =
+        err.response?.data?.message || 'Failed to load schedules'
   } finally {
     loading.value = false
   }
 }
+
 
 function openDelete(schedule) {
   selected.value = schedule

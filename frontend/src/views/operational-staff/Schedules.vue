@@ -53,8 +53,6 @@ async function fetchSchedules() {
     loading.value = false
   }
 }
-
-
 onMounted(fetchSchedules)
 </script>
 

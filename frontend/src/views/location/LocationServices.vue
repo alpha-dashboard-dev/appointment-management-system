@@ -40,9 +40,9 @@
           <tbody>
             <tr v-for="item in mappings" :key="item.id">
               <td class="ps-3">{{ item.id }}</td>
-              <td><code>{{ item.business_code }}</code></td>
-              <td><code>{{ item.location_code }}</code></td>
-              <td><code>{{ item.service_code }}</code></td>
+              <td>{{ item.business_name }}</td>
+              <td>{{ item.location_address }}</td>
+              <td>{{ item.service_name }}</td>
               <td>
                 <span :class="['ams-badge', item.availability === 'available' ? 'active' : 'inactive']">
                   {{ item.availability }}
@@ -207,18 +207,70 @@ const filteredServices = computed(() =>
 async function fetchMappings() {
   loading.value = true
   error.value = ''
+
   try {
     const params = {}
     if (bizFilter.value) params.business_code = bizFilter.value
     if (locFilter.value) params.location_code = locFilter.value
-    const res = await api.get('/location-services/get-location-service', { params })
-    mappings.value = res.data.data || []
+
+    const [mappingRes, businessRes, serviceRes, locationRes] = await Promise.all([
+      api.get('/location-services/get-location-service', { params }),
+      api.get('/businesses/get-business'),
+      api.get('/services/get-service'),
+      api.get('/locations/get-location'),
+    ])
+
+    const businesses = businessRes.data.data || []
+    const services = serviceRes.data.data || []
+    const locations = locationRes.data.data || []
+
+    const businessNameByCode = new Map(
+        businesses.map((b) => [b.business_code, b.name])
+    )
+
+    const serviceNameByCode = new Map(
+        services.map((s) => [s.service_code, s.name])
+    )
+
+    const locationAddressByCode = new Map(
+        locations.map((l) => [
+          l.location_code,
+          l.address + " " + l.street + " " + l.city,
+        ])
+    )
+
+    mappings.value = (mappingRes.data.data || []).map((mapping) => ({
+      ...mapping,
+      business_name:
+          businessNameByCode.get(mapping.business_code) || '',
+      service_name:
+          serviceNameByCode.get(mapping.service_code) || '',
+      location_address:
+          locationAddressByCode.get(mapping.location_code) || '',
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load mappings'
+    error.value =
+        err.response?.data?.message || 'Failed to load mappings'
   } finally {
     loading.value = false
   }
 }
+
+// async function fetchMappings() {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const params = {}
+//     if (bizFilter.value) params.business_code = bizFilter.value
+//     if (locFilter.value) params.location_code = locFilter.value
+//     const res = await api.get('/location-services/get-location-service', { params })
+//     mappings.value = res.data.data || []
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to load mappings'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 function onBizChange() {
   createForm.location_code = ''

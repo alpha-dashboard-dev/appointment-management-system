@@ -20,7 +20,9 @@
             <tr>
               <th class="ps-3">Name</th>
               <th>Email</th>
+              <th>Phone</th>
               <th>Organization Name</th>
+              <th>Time Zone</th>
               <th>Status</th>
               <th class="pe-3" style="width:230px">Actions</th>
             </tr>
@@ -29,7 +31,9 @@
             <tr v-for="business in businesses" :key="business.business_code">
               <td class="ps-3">{{ business.name }}</td>
               <td>{{ business.email }}</td>
+              <td>{{business.phone}}</td>
               <td>{{ business.organization_name || '—' }}</td>
+              <td>{{business.timezone}}</td>
               <td><span :class="['ams-badge', business.status]">{{ business.status }}</span></td>
               <td class="pe-3">
                 <router-link :to="`/businesses/${business.business_code}`" class="btn btn-sm btn-outline-secondary me-1">View</router-link>
@@ -38,7 +42,7 @@
               </td>
             </tr>
             <tr v-if="businesses.length === 0">
-              <td colspan="5" class="text-center text-muted py-4">No businesses found</td>
+              <td colspan="7" class="text-center text-muted py-4">No businesses found</td>
             </tr>
           </tbody>
         </table>

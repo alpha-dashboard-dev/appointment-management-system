@@ -22,7 +22,7 @@
           </thead>
           <tbody>
             <tr v-for="inv in invoices" :key="inv.id">
-              <td class="ps-3">#{{ inv.id }}</td>
+              <td class="ps-3">{{ inv.id }}</td>
               <td>{{ inv.total}}</td>
               <td><span :class="['ams-badge', inv.invoice_status]">{{ inv.invoice_status }}</span></td>
               <td>{{ formatDate(inv.created_at) }}</td>

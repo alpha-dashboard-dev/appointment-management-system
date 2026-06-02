@@ -20,8 +20,8 @@
             <tr>
               <th class="ps-3">Full Name</th>
               <th>Email</th>
-              <th>Type</th>
-              <th>Code</th>
+              <th>Phone</th>
+              <th>Role</th>
               <th>Status</th>
               <th class="pe-3" style="width:160px">Actions</th>
             </tr>
@@ -30,8 +30,8 @@
             <tr v-for="user in users" :key="user.user_code">
               <td class="ps-3">{{ user.name }}</td>
               <td>{{ user.email }}</td>
+              <td>{{user.phone}}</td>
               <td>{{ user.user_type }}</td>
-              <td><code>{{ user.user_code }}</code></td>
               <td>
                 <span :class="['ams-badge', user.is_active === 'active' ? 'active' : 'inactive']">
                   {{ user.is_active === 'active' ? 'Active' : 'Inactive' }}

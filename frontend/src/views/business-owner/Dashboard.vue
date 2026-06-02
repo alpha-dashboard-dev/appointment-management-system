@@ -64,7 +64,7 @@
     <!-- PENDING APPOINTMENT REQUESTS -->
     <div class="card">
       <div class="card-header">
-        <h3>Appointment Requests</h3>
+        <h3>Pending Appointment's Requests</h3>
         <router-link to="/business/appointments" class="view-all">View All</router-link>
       </div>
       <div v-if="loading" class="loading">Loading...</div>

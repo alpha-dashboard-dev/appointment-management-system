@@ -24,7 +24,7 @@
         <div class="field">
           <label>Client</label>
           <select v-model="form.client_code">
-            <option value="">Select client (optional)</option>
+            <option value="">Select client</option>
             <option v-for="client in clients" :key="client.user_code" :value="client.user_code">
               {{ client.name }}
             </option>

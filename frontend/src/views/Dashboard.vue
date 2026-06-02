@@ -83,7 +83,7 @@
         <thead>
         <tr>
           <th>Appointment Code</th>
-          <th>Business Code</th>
+          <th>Business Name</th>
           <th>Appointment Notes</th>
           <th>Start Date</th>
           <th>Start Time</th>
@@ -93,7 +93,7 @@
         <tbody>
         <tr v-for="appt in recentAppointments" :key="appt.appointment_code">
           <td>{{ appt.appointment_code }}</td>
-          <td>{{ appt.business_code}}</td>
+          <td>{{ appt.business_name}}</td>
           <td>{{ appt.notes || '—' }}</td>
           <td>{{ formatDate(appt.appointment_start_date) }}</td>
           <td>{{ formatTime(appt.start_time) }}</td>
@@ -154,13 +154,31 @@ onMounted(async () => {
     stats.value.invoices = invs.status === 'fulfilled' ? (invs.value.data.data?.length ?? 0) : 0
     stats.value.locations = locs.status === 'fulfilled' ? (locs.value.data.data?.length ?? 0) : 0
 
+    const business =
+        bizs.status === 'fulfilled'
+            ? bizs.value.data.data || []
+            : []
+
+    const businessNameByCode = new Map(
+        business.map((bus) => [bus.business_code, bus.name])
+    )
+
     if (appts.status === 'fulfilled') {
-      recentAppointments.value = (appts.value.data.data || []).slice(0, 5)
+      recentAppointments.value = (appts.value.data.data || [])
+          .slice(0, 5)
+          .map((appt) => ({
+            ...appt,
+            business_name:
+                businessNameByCode.get(appt.business_code) ||
+                appt.business_name ||
+                '',
+          }))
     }
   } finally {
     loading.value = false
   }
 })
+
 </script>
 
 <style scoped>

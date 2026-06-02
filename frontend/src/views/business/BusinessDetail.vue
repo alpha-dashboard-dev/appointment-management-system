@@ -20,8 +20,7 @@
             v-for="tab in tabs"
             :key="tab"
             :class="['tab', activeTab === tab ? 'active' : '']"
-            @click="activeTab = tab"
-        >
+            @click="activeTab = tab">
           {{ tab }}
         </button>
       </div>

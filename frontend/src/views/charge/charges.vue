@@ -23,16 +23,16 @@
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
             <tr>
-              <th class="ps-3">Charge Code</th>
+              <th class="ps-3">Business Name</th>
               <th>Name</th>
-              <th>Amount</th>
+              <th>Value</th>
               <th>Type</th>
               <th class="pe-3" style="width:100px">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="charge in charges" :key="charge.charge_code">
-              <td class="ps-3"><code>{{ charge.charge_code }}</code></td>
+              <td class="ps-3">{{ charge.business_name }}</td>
               <td>{{ charge.name }}</td>
               <td>{{ charge.charge_value }}</td>
               <td>{{ charge.charge_uom }}</td>
@@ -147,16 +147,51 @@ const createForm = ref({ business_code: '', name: '', charge_uom: '', charge_val
 async function fetchCharges() {
   loading.value = true
   error.value = ''
+
   try {
-    const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/charges/get-charge', { params })
-    charges.value = res.data.data || []
+    const params = bizFilter.value
+        ? { business_code: bizFilter.value }
+        : {}
+
+    const [chargeRes, businessRes] = await Promise.all([
+      api.get('/charges/get-charge', { params }),
+      api.get('/businesses/get-business'),
+    ])
+
+    const businesses = businessRes.data.data || []
+
+    const businessNameByCode = new Map(
+        businesses.map((bus) => [bus.business_code, bus.name])
+    )
+
+    charges.value = (chargeRes.data.data || []).map((charge) => ({
+      ...charge,
+      business_name:
+          businessNameByCode.get(charge.business_code) ||
+          charge.business_name ||
+          '',
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load charges'
+    error.value =
+        err.response?.data?.message || 'Failed to load charges'
   } finally {
     loading.value = false
   }
 }
+
+// async function fetchCharges() {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
+//     const res = await api.get('/charges/get-charge', { params })
+//     charges.value = res.data.data || []
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to load charges'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 function openDelete(charge) {
   selected.value = charge

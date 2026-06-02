@@ -44,7 +44,7 @@
           <tbody>
             <tr v-for="appt in filteredAppointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
-              <td>{{ appt.business_code || '—' }}</td>
+              <td>{{ appt.business_name || '—' }}</td>
               <td>{{ appt.notes || '—' }}</td>
               <td>{{ formatDate(appt.appointment_start_date) }}</td>
               <td>{{ formatTime(appt.start_time) }}</td>
@@ -64,6 +64,8 @@
                     <ul class="dropdown-menu" :class="{ show: openDropdownCode === appt.appointment_code }">
                       <li><button class="dropdown-item" type="button" @click="openDetails(appt); closeActionDropdown()">View</button></li>
                       <li v-if="appt.status === 'pending'"><button class="dropdown-item" type="button" @click="openApprovalDialog(appt); closeActionDropdown()">Approve</button></li>
+                      <!--   when click on approve button, if staff is not available ,
+     then show the list of available staff, & choose from the available staff list          -->
                       <li v-if="appt.status === 'approved'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'in_progress'); closeActionDropdown()">Start</button></li>
                       <li v-if="appt.status === 'in_progress'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'completed'); closeActionDropdown()">Complete</button></li>
                       <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item" type="button" @click="openReschedule(appt); closeActionDropdown()">Reschedule</button></li>
@@ -217,7 +219,7 @@
                       <small class="text-muted">{{ s.working_days }} &bull; {{ s.start_time }}–{{ s.end_time }}</small>
                     </div>
                   </label>
-                </div>
+x                </div>
                 <p v-if="approvalError" class="text-danger small mb-2">{{ approvalError }}</p>
               </div>
 
@@ -343,8 +345,22 @@ async function fetchAppointments() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/appointments')
-    appointments.value = res.data.data || []
+    const [res, businessRes] = await Promise.all([
+      api.get('/appointments'),
+      api.get('/businesses/get-business'),
+    ])
+
+    const business = businessRes.data.data || []
+    const businessNameByCode = new Map(
+        business.map((bus) => [bus.business_code, bus.name])
+    )
+    appointments.value = (res.data.data || []).map((appointments) => ({
+      ...appointments,
+      business_name:
+          businessNameByCode.get(appointments.business_code) ||
+          appt.business_name ||
+          '',
+    }))
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load appointments'
   } finally {

@@ -10,21 +10,38 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Business Code</th><th>Location Code</th><th>Type</th><th>Address</th><th>Status</th><th class="pe-3" style="width:140px">Actions</th></tr>
+            <tr>
+              <th class="ps-3">Business Name</th>
+              <th>Location Code</th>
+              <th>Address</th>
+              <th>Street</th>
+              <th>Apartment</th>
+              <th>City</th>
+              <th>State</th>
+              <th>Country</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th class="pe-3" style="width:140px">Actions</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="loc in locations" :key="loc.location_code">
-              <td class="ps-3">{{ loc.business_code }}</td>
+              <td class="ps-3">{{ loc.business_name }}</td>
               <td><code>{{ loc.location_code }}</code></td>
+              <td>{{ loc.address || '—' }}</td>
+              <td>{{loc.street || '—'}}</td>
+              <td>{{loc.apartment || '—'}}</td>
+              <td>{{ loc.city || '—' }}</td>
+              <td>{{loc.province || '—'}}</td>
+              <td>{{ loc.country || '—' }}</td>
               <td>{{ loc.location_type || '—' }}</td>
-              <td>{{ loc.address + ' ' + loc.street + ' ' + loc.city }}</td>
               <td><span :class="['ams-badge', loc.status]">{{ loc.status }}</span></td>
               <td class="pe-3">
                 <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(loc)">Edit</button>
                 <button class="btn btn-sm btn-outline-danger" @click="openDelete(loc)">Delete</button>
               </td>
             </tr>
-            <tr v-if="locations.length === 0"><td colspan="6" class="text-center text-muted py-4">No locations found</td></tr>
+            <tr v-if="locations.length === 0"><td colspan="10" class="text-center text-muted py-4">No locations found</td></tr>
           </tbody>
         </table>
       </div>
@@ -95,22 +112,56 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
 
-// const createForm = reactive({ name: '', address: '', location_type: '' })
 const editForm = reactive({ city: '', address: '', status: 'active' })
 
 async function fetchLocations() {
   loading.value = true
   error.value = ''
+
   try {
     const biz = authStore.user?.business_code
-    const res = await api.get('/locations/get-location', { params: biz ? { business_code: biz } : {} })
-    locations.value = res.data.data || []
+
+    const [locationRes, businessRes] = await Promise.all([
+      api.get('/locations/get-location', {
+        params: biz ? { business_code: biz } : {}
+      }),
+      api.get('/businesses/get-business')
+    ])
+
+    const businesses = businessRes.data.data || []
+
+    const businessNameByCode = new Map(
+        businesses.map((bus) => [bus.business_code, bus.name])
+    )
+
+    locations.value = (locationRes.data.data || []).map((location) => ({
+      ...location,
+      business_name:
+          businessNameByCode.get(location.business_code) ||
+          location.business_name ||
+          ''
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load locations'
+    error.value =
+        err.response?.data?.message || 'Failed to load locations'
   } finally {
     loading.value = false
   }
 }
+
+// async function fetchLocations() {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const biz = authStore.user?.business_code
+//     const res = await api.get('/locations/get-location', { params: biz ? { business_code: biz } : {} })
+//     locations.value = res.data.data || []
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to load locations'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 function openEdit(loc) {
   selected.value = loc
@@ -122,24 +173,6 @@ function openEdit(loc) {
 }
 
 function openDelete(loc) { selected.value = loc; showDeleteModal.value = true }
-
-// async function createLocation() {
-//   saving.value = true
-//   formError.value = ''
-//   try {
-//     const biz = authStore.user?.business_code
-//     const payload = { ...createForm, business_code: biz }
-//     if (!payload.address) delete payload.address
-//     await api.post('/locations/create-location', payload)
-//     showCreateModal.value = false
-//     Object.assign(createForm, { name: '', address: '', location_type: '' })
-//     await fetchLocations()
-//   } catch (err) {
-//     formError.value = err.response?.data?.message || 'Create failed'
-//   } finally {
-//     saving.value = false
-//   }
-// }
 
 async function updateLocation() {
   saving.value = true

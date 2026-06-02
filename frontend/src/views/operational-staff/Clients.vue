@@ -2,7 +2,7 @@
   <div class="page">
     <div class="header">
       <h2>Clients</h2>
-      <router-link to="/operations/clients/create" class="btn">+ New Client</router-link>
+<!--      <router-link to="/operations/clients/create" class="btn">+ New Client</router-link>-->
     </div>
     <div class="search-bar">
       <input v-model="searchQuery" placeholder="Search by name or email..." />

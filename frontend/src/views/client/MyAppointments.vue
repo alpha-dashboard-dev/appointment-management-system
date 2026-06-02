@@ -88,7 +88,7 @@
               <div class="fw-bold text-dark mb-2">💳 Charges</div>
               <dl class="row">
                 <template v-for="ch in modalCharges" :key="ch.charge_code">
-                  <dt class="col-7">{{ ch.charge_name || ch.charge_code }}</dt>
+                  <dt class="col-7">{{ ch.name || ch.charge_code }}</dt>
                   <dd class="col-5 text-end fw-semibold text-primary">{{ ch.charge_value }} / {{ ch.charge_uom }}</dd>
                 </template>
               </dl>
