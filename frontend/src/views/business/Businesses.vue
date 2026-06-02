@@ -42,7 +42,7 @@
                   </button>
                   <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                      <router-link :to="`/businesses/${business.code}`" class="dropdown-item">
+                      <router-link :to="`/businesses/${business.business_code}`" class="dropdown-item">
                         <i class="bi bi-eye me-2"></i>
                         View
                       </router-link>
