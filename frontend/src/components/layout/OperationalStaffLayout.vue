@@ -39,15 +39,12 @@
         </div>
 
         <!-- CLIENTS -->
-        <div class="group">
-          <div class="group-title" @click="toggle('client')">
+         <div class="group">
+          <router-link to="/operations/clients" class="group-title">
             <i class="bi bi-people icon"></i>
+
             <span v-if="!collapsed">Clients</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.client }">›</i>
-          </div>
-          <div v-show="open.client && !collapsed" class="submenu">
-            <router-link to="/operations/clients" class="sub-item">All Clients</router-link>
-          </div>
+          </router-link>
         </div>
       </nav>
 
@@ -99,7 +96,7 @@ const pageTitle = computed(() => titleMap[route.path] || 'Operations')
 .item:hover, .item.router-link-active { background: #334155; color: white; }
 .icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
 .group { margin-bottom: 2px; }
-.group-title { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: #94a3b8; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.group-title { display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: #94a3b8; font-size: 13px; font-weight: 500; transition: all 0.15s; }
 .group-title:hover { background: #334155; color: white; }
 .arrow { font-size: 16px; margin-left: auto; transition: transform 0.2s; }
 .arrow.rotated { transform: rotate(90deg); }

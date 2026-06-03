@@ -5,14 +5,11 @@
     <div class="d-flex align-items-center justify-content-between">
       <div>
         <h2 class="mb-0">Clients</h2>
-        <p class="text-muted small mb-0">Manage all clients</p>
+        <!-- <p class="text-muted small mb-0">Manage all clients</p> -->
       </div>
-      <router-link to="/clients/create" class="btn btn-ams">+ New Client</router-link>
-    </div>
-
-    <!-- FILTER -->
-    <div class="d-flex gap-2">
+      <div class="d-flex gap-2">
       <input v-model="search" class="form-control" style="max-width:300px" placeholder="Search by name or email..." />
+    </div>
     </div>
 
     <!-- TABLE CARD -->

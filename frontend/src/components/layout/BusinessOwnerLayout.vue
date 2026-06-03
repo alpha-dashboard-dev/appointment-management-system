@@ -21,48 +21,35 @@
           </div>
           <div v-show="open.svc && !collapsed" class="submenu">
             <router-link to="/business/services" class="sub-item">All Services</router-link>
-            <router-link to="/business/services/create" class="sub-item">New Service</router-link>
-          </div>
-        </div>
-
-        <!-- LOCATIONS -->
-        <div class="group">
-          <div class="group-title" @click="toggle('loc')">
-            <i class="bi bi-geo-alt icon"></i>
-            <span v-if="!collapsed">Locations</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.loc }">›</i>
-          </div>
-          <div v-show="open.loc && !collapsed" class="submenu">
-            <router-link to="/business/locations" class="sub-item">All Locations</router-link>
-            <router-link to="/business/locations/create" class="sub-item">New Location</router-link>
             <router-link to="/business/location-services" class="sub-item">Location Services</router-link>
           </div>
         </div>
 
+        <!-- LOCATIONS -->
+         <div class="group">
+          <router-link to="/business/locations" class="group-title">
+            <i class="bi bi-geo-alt icon"></i>
+
+            <span v-if="!collapsed">Locations</span>
+          </router-link>
+        </div>
+
         <!-- STAFF (USERS) -->
-        <div class="group">
-          <div class="group-title" @click="toggle('staff')">
+         <div class="group">
+          <router-link to="/business/staff" class="group-title">
             <i class="bi bi-person icon"></i>
+
             <span v-if="!collapsed">Staff</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.staff }">›</i>
-          </div>
-          <div v-show="open.staff && !collapsed" class="submenu">
-            <router-link to="/business/staff" class="sub-item">All Staff</router-link>
-            <router-link to="/business/staff/create" class="sub-item">Add Staff</router-link>
-          </div>
+          </router-link>
         </div>
 
         <!-- CLIENTS -->
-        <div class="group">
-          <div class="group-title" @click="toggle('client')">
+         <div class="group">
+          <router-link to="/business/clients" class="group-title">
             <i class="bi bi-people icon"></i>
+
             <span v-if="!collapsed">Clients</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.client }">›</i>
-          </div>
-          <div v-show="open.client && !collapsed" class="submenu">
-            <router-link to="/business/clients" class="sub-item">All Clients</router-link>
-            <router-link to="/business/clients/create" class="sub-item">Add Client</router-link>
-          </div>
+          </router-link>
         </div>
 
         <!-- SCHEDULES -->
@@ -78,16 +65,12 @@
         </router-link>
 
         <!-- APPOINTMENTS -->
-        <div class="group">
-          <div class="group-title" @click="toggle('app')">
+         <div class="group">
+          <router-link to="/business/appointments" class="group-title">
             <i class="bi bi-calendar-check icon"></i>
+
             <span v-if="!collapsed">Appointments</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.app }">›</i>
-          </div>
-          <div v-show="open.app && !collapsed" class="submenu">
-            <router-link to="/business/appointments" class="sub-item">All Requests</router-link>
-            <router-link to="/business/appointments/create" class="sub-item">New Request</router-link>
-          </div>
+          </router-link>
         </div>
 
         <!-- INVOICES -->
@@ -154,7 +137,7 @@ const pageTitle = computed(() => titleMap[route.path] || 'Business Portal')
 .item:hover, .item.router-link-active { background: #1e293b; color: white; }
 .icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
 .group { margin-bottom: 2px; }
-.group-title { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: #94a3b8; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.group-title { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: #94a3b8; font-size: 13px; font-weight: 500; transition: all 0.15s; text-decoration: none; }
 .group-title:hover { background: #1e293b; color: white; }
 .arrow { font-size: 16px; margin-left: auto; transition: transform 0.2s; }
 .arrow.rotated { transform: rotate(90deg); }

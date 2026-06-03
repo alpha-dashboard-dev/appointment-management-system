@@ -219,7 +219,7 @@
                       <small class="text-muted">{{ s.working_days }} &bull; {{ s.start_time }}–{{ s.end_time }}</small>
                     </div>
                   </label>
-x                </div>
+               </div>
                 <p v-if="approvalError" class="text-danger small mb-2">{{ approvalError }}</p>
               </div>
 
@@ -345,20 +345,14 @@ async function fetchAppointments() {
   loading.value = true
   error.value = ''
   try {
-    const [res, businessRes] = await Promise.all([
-      api.get('/appointments'),
-      api.get('/businesses/get-business'),
-    ])
+    const res = await api.get('/appointments')
 
-    const business = businessRes.data.data || []
-    const businessNameByCode = new Map(
-        business.map((bus) => [bus.business_code, bus.name])
-    )
-    appointments.value = (res.data.data || []).map((appointments) => ({
-      ...appointments,
+    appointments.value = (res.data.data || []).map((appt) => ({
+      ...appt,
       business_name:
-          businessNameByCode.get(appointments.business_code) ||
-          appt.business_name ||
+          appt.business?.name ||
+          appt.Business?.name ||
+          appt.business_code ||
           '',
     }))
   } catch (err) {

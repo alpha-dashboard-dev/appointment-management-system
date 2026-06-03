@@ -2,6 +2,8 @@
   <div class="page">
     <div class="header">
       <div><h2>Clients</h2><p class="sub">Clients for your business</p></div>
+      <router-link to="/business/clients/create" class="btn btn-ams">+ New Client</router-link>
+
     </div>
     <div class="search-bar">
       <input v-model="searchQuery" placeholder="Search by name or email..." @input="filterClients" />

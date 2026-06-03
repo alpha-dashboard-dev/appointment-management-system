@@ -38,7 +38,8 @@
             <select v-model="form.service_code" @change="onServiceChange" required>
               <option value="">Select service</option>
               <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">
-                {{ svc.name }} {{ svc.duration_value }} {{ svc.duration_uom }}
+                {{ svc.name }} 
+                <!-- {{ svc.duration_value }} {{ svc.duration_uom }} -->
               </option>
             </select>
           </div>
