@@ -171,14 +171,6 @@ async function fetchBusinesses() {
   }
 }
 
-// function openEdit(business) {
-//   selected.value = business
-//   editForm.name = business.name
-//   editForm.status = business.status
-//   formError.value = ''
-//   showEditModal.value = true
-// }
-
 function openEdit(business){
   selected.value = business
   editForm.name = business.name

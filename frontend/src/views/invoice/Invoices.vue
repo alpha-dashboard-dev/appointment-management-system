@@ -74,11 +74,6 @@
         </table>
       </div>
     </div>
-
-<!--    when admin & business owner wants to reschedule the appointment time, if one of them from start_time or end_time not changed
- fill only one new start_time or end_time, this error happens Invalid endTime format. Use HH:MM-->
-
-
     <!-- DETAILS MODAL -->
     <div v-if="showDetails" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
       <div class="modal-dialog modal-dialog-centered">

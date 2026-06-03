@@ -23,16 +23,6 @@
             </select>
           </div>
 
-<!--          <div class="field">-->
-<!--            <label>Service *</label>-->
-<!--            <select v-model="form.service_code" @change="onServiceChange" required>-->
-<!--              <option value="">Select service</option>-->
-<!--              <option v-for="svc in services" :key="svc.service_code" :value="svc.service_code">-->
-<!--                {{ svc.name }} {{ svc.duration_value }} {{ svc.duration_uom}}-->
-<!--              </option>-->
-<!--            </select>-->
-<!--          </div>-->
-
           <div class="field">
             <label>Service *</label>
             <select v-model="form.service_code" @change="onServiceChange" required>
@@ -125,7 +115,6 @@ const error = ref('')
 const pricingPreview = ref(null)
 const previewLoading = ref(false)
 
-// const selectedService = computed(() => services.value.find(s => s.service_code === form.service_code) || null)
 const selectedService = computed(() => services.value.find(s => s.service_code === form.service_code) || null)
 
 const selectedCharges = computed(() => {

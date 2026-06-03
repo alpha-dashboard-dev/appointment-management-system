@@ -273,22 +273,6 @@ async function fetchMappings() {
   }
 }
 
-// async function fetchMappings() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const params = {}
-//     if (bizFilter.value) params.business_code = bizFilter.value
-//     if (locFilter.value) params.location_code = locFilter.value
-//     const res = await api.get('/location-services/get-location-service', { params })
-//     mappings.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load mappings'
-//   } finally {
-//     loading.value = false
-//   }
-// }
-
 function onBizChange() {
   createForm.location_code = ''
   createForm.service_code = ''

@@ -86,6 +86,18 @@
                 <input v-model="editForm.email" type="email" class="form-control" placeholder="Email" required />
               </div>
               <div class="mb-3">
+                <label class="form-label fw-semibold">Phone *</label>
+                <input v-model="editForm.phone" type="text" class="form-control" placeholder="Phone" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">New Password</label>
+
+                <input v-model="editForm.password" type="password" class="form-control" placeholder="Leave blank to keep current password"/>
+                <small class="text-muted">
+                  Leave empty if you don't want to change the password.
+                </small>
+              </div>
+              <div class="mb-3">
                 <label class="form-label fw-semibold">Status</label>
                 <select v-model="editForm.is_active" class="form-select">
                   <option value="active">Active</option>
@@ -139,7 +151,7 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
 
-const editForm = reactive({ name: '', email: '', is_active: 'active' })
+const editForm = reactive({ name: '', email: '', phone: '', password: '', is_active: 'active' })
 
 async function fetchUsers() {
   loading.value = true
@@ -158,6 +170,8 @@ function openEdit(user) {
   selected.value = user
   editForm.name = user.name
   editForm.email = user.email
+  editForm.phone = user.phone
+  editForm.password = user.password
   editForm.is_active = user.is_active
   formError.value = ''
   showEditModal.value = true

@@ -86,22 +86,27 @@
           </div>
           <form @submit.prevent="updateLocation">
             <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Location Type</label>
-                <select v-model="editForm.location_type" class="form-select">
-                  <option value="business">Business</option>
-                  <option value="client">Client</option>
-                </select>
-              </div>
+<!--              <div class="mb-3">-->
+<!--                <label class="form-label fw-semibold">Location Type</label>-->
+<!--                <select v-model="editForm.location_type" class="form-select">-->
+<!--                  <option value="business">Business</option>-->
+<!--                  <option value="client">Client</option>-->
+<!--                </select>-->
+<!--              </div>-->
               <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Address</label>
+                  <input v-model="editForm.address" class="form-control" placeholder="Address" />
+                </div>
                 <div class="col-12">
                   <label class="form-label fw-semibold">Street</label>
                   <input v-model="editForm.street" class="form-control" placeholder="Street" />
                 </div>
                 <div class="col-12">
-                  <label class="form-label fw-semibold">Address</label>
-                  <input v-model="editForm.address" class="form-control" placeholder="Address" />
+                  <label class="form-label fw-semibold">Apartment</label>
+                  <input v-model="editForm.apartment" class="form-control" placeholder="Apartment" />
                 </div>
+
                 <div class="col-md-6">
                   <label class="form-label fw-semibold">City</label>
                   <input v-model="editForm.city" class="form-control" placeholder="City" />
@@ -174,7 +179,7 @@ const bizFilter = ref('')
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
-const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active' })
+const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active', apartment: '' })
 
 
 async function fetchLocations() {
@@ -233,6 +238,7 @@ function openEdit(loc) {
   editForm.postal_code = loc.postal_code || ''
   editForm.country = loc.country || ''
   editForm.status = loc.status || 'active'
+  editForm.apartment = loc.apartment || ''
   formError.value = ''
   showEditModal.value = true
 }

@@ -215,8 +215,8 @@
                   >
                     <input type="radio" :value="s.user_code" v-model="selectedStaff" class="form-check-input mt-0" />
                     <div>
-                      <div class="fw-semibold">{{ s.user_name || s.user_code }}</div>
-                      <small class="text-muted">{{ s.working_days }} &bull; {{ s.start_time }}–{{ s.end_time }}</small>
+                      <div class="fw-semibold">{{ s.name || s.user_code }}</div>
+                      <small class="text-muted">{{ s.working_days }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</small>
                     </div>
                   </label>
                </div>
@@ -288,7 +288,6 @@
               class="btn btn-primary"
               @click="showRescheduleInApproval = true"
             >Send Reschedule Request to Client</button>
-
             <!-- Back button when reschedule form is open -->
             <button
               v-if="showRescheduleInApproval"
