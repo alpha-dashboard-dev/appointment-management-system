@@ -24,9 +24,31 @@
               <td>{{ formatTime(appt.start_time)}}</td>
               <td>{{ appt.location_code ?? '—' }}</td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openAssignModal(appt)">Assign Staff</button>
-                <button class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'approved')">Approve</button>
-                <button class="btn btn-sm btn-outline-danger" @click="changeStatus(appt, 'rejected')">Reject</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openAssignModal(appt)">
+                        <i class="bi bi-person-plus me-2"></i>
+                        Assign Staff
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item" @click="changeStatus(appt, 'approved')">
+                        <i class="bi bi-check2-circle me-2"></i>
+                        Approve
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="changeStatus(appt, 'rejected')">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Reject
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="appointments.length === 0"><td colspan="6" class="text-center text-muted py-4">No pending requests</td></tr>

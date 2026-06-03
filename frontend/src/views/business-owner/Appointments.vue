@@ -50,15 +50,15 @@
                 <div class="d-flex justify-content-center">
                   <div class="dropdown">
                     <button
-                      class="btn btn-sm btn-secondary dropdown-toggle"
+                      class="btn btn-sm btn-outline-secondary"
                       type="button"
                       data-bs-toggle="dropdown"
                       :aria-expanded="openDropdownCode === appt.appointment_code"
                       @click.stop="toggleActionDropdown(appt.appointment_code)"
                     >
-                      Actions
+                      <i class="bi bi-three-dots-vertical"></i>
                     </button>
-                    <ul class="dropdown-menu" :class="{ show: openDropdownCode === appt.appointment_code }">
+                    <ul class="dropdown-menu dropdown-menu-end" :class="{ show: openDropdownCode === appt.appointment_code }">
                       <li><button class="dropdown-item" type="button" @click="openDetails(appt); closeActionDropdown()">View</button></li>
                       <li v-if="appt.status === 'pending'"><button class="dropdown-item" type="button" @click="openApprovalDialog(appt); closeActionDropdown()">Approve</button></li>
                       <li v-if="appt.status === 'approved'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'in_progress'); closeActionDropdown()">Start</button></li>

@@ -64,11 +64,6 @@
                   </ul>
                 </div>
               </td>
-<!--              <td class="pe-3">-->
-<!--                <router-link :to="`/businesses/${business.business_code}`" class="btn btn-sm btn-outline-secondary me-1">View</router-link>-->
-<!--                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(business)">Edit</button>-->
-<!--                <button class="btn btn-sm btn-outline-danger" @click="openDelete(business)">Deactivate</button>-->
-<!--              </td>-->
             </tr>
             <tr v-if="businesses.length === 0">
               <td colspan="7" class="text-center text-muted py-4">No businesses found</td>

@@ -46,8 +46,25 @@
               <td><span :class="['ams-badge', inv.invoice_status]">{{ inv.invoice_status }}</span></td>
               <td>{{ formatDate(inv.created_at) }}</td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(inv)">View</button>
-                <button v-if="inv.invoice_status === 'draft' || inv.invoice_status === 'issued'" class="btn btn-sm btn-success" @click="updateStatus(inv, 'paid')">Mark Paid</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openDetails(inv)">
+                        <i class="bi bi-eye me-2"></i>
+                        View
+                      </button>
+                    </li>
+                    <li v-if="inv.invoice_status === 'draft' || inv.invoice_status === 'issued'">
+                      <button class="dropdown-item" @click="updateStatus(inv, 'paid')">
+                        <i class="bi bi-check2-circle me-2"></i>
+                        Mark Paid
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="invoices.length === 0">

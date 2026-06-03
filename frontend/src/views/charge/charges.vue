@@ -37,7 +37,19 @@
               <td>{{ charge.charge_value }}</td>
               <td>{{ charge.charge_uom }}</td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-danger" @click="openDelete(charge)">Delete</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(charge)">
+                        <i class="bi bi-trash me-2"></i>
+                        Delete
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="charges.length === 0">
