@@ -120,7 +120,7 @@
       <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Delete Client</h5>
+            <h5 class="modal-title">Deactivate Client</h5>
             <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
           </div>
           <div class="modal-body text-center">

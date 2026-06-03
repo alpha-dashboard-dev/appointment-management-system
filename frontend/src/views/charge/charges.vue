@@ -340,7 +340,7 @@ async function deactivateCharge() {
   saving.value = true
   try {
     await api.put(`/charges/update-charge/${selected.value.charge_code}`, { status: 'inactive' })
-    showDeleteModal.value = false
+    showDeactivateModal.value = false
     await fetchCharges()
   } catch (err) {
     error.value = err.response?.data?.message || 'Deactivation failed'
