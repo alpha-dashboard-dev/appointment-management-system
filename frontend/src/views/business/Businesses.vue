@@ -19,8 +19,10 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Name</th>
-              <th>Business Code</th>
-              <th>Organization</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Organization Name</th>
+              <th>Time Zone</th>
               <th>Status</th>
               <th class="pe-3" style="width:230px">Actions</th>
             </tr>
@@ -28,17 +30,43 @@
           <tbody>
             <tr v-for="business in businesses" :key="business.business_code">
               <td class="ps-3">{{ business.name }}</td>
-              <td><code>{{ business.business_code }}</code></td>
-              <td>{{ business.organization_name || business.organization_code || '—' }}</td>
+              <td>{{ business.email }}</td>
+              <td>{{business.phone}}</td>
+              <td>{{ business.organization_name || '—' }}</td>
+              <td>{{business.timezone}}</td>
               <td><span :class="['ams-badge', business.status]">{{ business.status }}</span></td>
               <td class="pe-3">
-                <router-link :to="`/businesses/${business.business_code}`" class="btn btn-sm btn-outline-secondary me-1">View</router-link>
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(business)">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" @click="openDelete(business)">Deactivate</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <router-link :to="`/businesses/${business.business_code}`" class="dropdown-item">
+                        <i class="bi bi-eye me-2"></i>
+                        View
+                      </router-link>
+                    </li>
+
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(business)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(business)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="businesses.length === 0">
-              <td colspan="5" class="text-center text-muted py-4">No businesses found</td>
+              <td colspan="7" class="text-center text-muted py-4">No businesses found</td>
             </tr>
           </tbody>
         </table>
@@ -119,8 +147,23 @@ async function fetchBusinesses() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/businesses/get-business')
-    businesses.value = res.data.data || []
+    const [businessRes, organizationRes] = await Promise.all([
+      api.get('/businesses/get-business'),
+      api.get('/organizations/get-organization'),
+    ])
+
+    const organizations = organizationRes.data.data || []
+    const organizationNameByCode = new Map(
+      organizations.map((org) => [org.organization_code, org.name])
+    )
+
+    businesses.value = (businessRes.data.data || []).map((business) => ({
+      ...business,
+      organization_name:
+        organizationNameByCode.get(business.organization_code) ||
+        business.organization_name ||
+        '',
+    }))
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load businesses'
   } finally {
@@ -128,7 +171,7 @@ async function fetchBusinesses() {
   }
 }
 
-function openEdit(business) {
+function openEdit(business){
   selected.value = business
   editForm.name = business.name
   editForm.status = business.status

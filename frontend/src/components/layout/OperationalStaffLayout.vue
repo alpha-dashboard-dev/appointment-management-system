@@ -2,7 +2,7 @@
   <div class="layout">
     <aside :class="['sidebar', { collapsed }]">
       <div class="logo">
-        <span v-if="!collapsed">Operations</span>
+        <span v-if="!collapsed">Operational Staff Portal</span>
         <button class="toggle" @click="collapsed = !collapsed">☰</button>
       </div>
 
@@ -39,38 +39,19 @@
         </div>
 
         <!-- CLIENTS -->
-        <div class="group">
-          <div class="group-title" @click="toggle('client')">
+         <div class="group">
+          <router-link to="/operations/clients" class="group-title">
             <i class="bi bi-people icon"></i>
+
             <span v-if="!collapsed">Clients</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.client }">›</i>
-          </div>
-          <div v-show="open.client && !collapsed" class="submenu">
-            <router-link to="/operations/clients" class="sub-item">All Clients</router-link>
-          </div>
+          </router-link>
         </div>
       </nav>
 
-      <div class="logout-section">
-        <div v-if="!collapsed" class="user-info">
-          <span class="user-name">{{ authStore.user?.name || authStore.user?.email }}</span>
-          <span class="user-role">Operational Staff</span>
-        </div>
-        <button class="logout-btn" @click="handleLogout">
-          <i class="bi bi-box-arrow-right icon"></i>
-          <span v-if="!collapsed">Logout</span>
-        </button>
-      </div>
     </aside>
 
     <div class="main">
-      <header class="topbar">
-        <h3 class="page-title">{{ pageTitle }}</h3>
-        <div class="topbar-right">
-          <span class="tb-name">{{ authStore.user?.name || authStore.user?.email }}</span>
-          <span class="tb-role">Operational Staff</span>
-        </div>
-      </header>
+      <Topbar />
       <div class="content">
         <router-view />
       </div>
@@ -82,6 +63,7 @@
 import { reactive, ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import Topbar from "./Topbar.vue";
 
 const router = useRouter()
 const route = useRoute()
@@ -94,17 +76,13 @@ function toggle(key) { open[key] = !open[key] }
 const titleMap = {
   '/operations/dashboard': 'Dashboard',
   '/operations/appointments': 'Appointments',
-  '/operations/appointments/pending': 'Pending Appointments',
+  '/operations/pending': 'Pending Appointments',
   '/operations/schedules': 'Staff Schedules',
   '/operations/availability': 'Check Staff Availability',
   '/operations/clients': 'Clients',
 }
 const pageTitle = computed(() => titleMap[route.path] || 'Operations')
 
-async function handleLogout() {
-  await authStore.logout()
-  router.push('/login')
-}
 </script>
 <style scoped>
 .layout { display: flex; }
@@ -117,7 +95,7 @@ async function handleLogout() {
 .item:hover, .item.router-link-active { background: #334155; color: white; }
 .icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
 .group { margin-bottom: 2px; }
-.group-title { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: #94a3b8; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.group-title { display: flex; align-items: center; gap: 10px; text-decoration: none; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: #94a3b8; font-size: 13px; font-weight: 500; transition: all 0.15s; }
 .group-title:hover { background: #334155; color: white; }
 .arrow { font-size: 16px; margin-left: auto; transition: transform 0.2s; }
 .arrow.rotated { transform: rotate(90deg); }

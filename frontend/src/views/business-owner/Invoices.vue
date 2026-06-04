@@ -7,9 +7,9 @@
       <select v-model="statusFilter" @change="fetchInvoices" class="form-select" style="max-width:200px">
         <option value="">All Statuses</option>
         <option value="draft">Draft</option>
-        <option value="sent">Sent</option>
+        <option value="issued">Issued</option>
         <option value="paid">Paid</option>
-        <option value="cancelled">Cancelled</option>
+        <option value="canceled">Canceled</option>
       </select>
     </div>
     <div class="card shadow-sm border-0">
@@ -22,11 +22,25 @@
           </thead>
           <tbody>
             <tr v-for="inv in invoices" :key="inv.id">
-              <td class="ps-3">#{{ inv.id }}</td>
-              <td>{{ inv.total_amount ?? '—' }}</td>
-              <td><span :class="['ams-badge', inv.status]">{{ inv.status }}</span></td>
+              <td class="ps-3">{{ inv.id }}</td>
+              <td>{{ inv.total}}</td>
+              <td><span :class="['ams-badge', inv.invoice_status]">{{ inv.invoice_status }}</span></td>
               <td>{{ formatDate(inv.created_at) }}</td>
-              <td class="pe-3"><button class="btn btn-sm btn-outline-primary" @click="openView(inv)">View</button></td>
+              <td class="pe-3">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openView(inv)">
+                        <i class="bi bi-eye me-2"></i>
+                        View
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </td>
             </tr>
             <tr v-if="invoices.length === 0"><td colspan="5" class="text-center text-muted py-4">No invoices found</td></tr>
           </tbody>
@@ -45,9 +59,9 @@
           <div class="modal-body">
             <dl class="row mb-3">
               <dt class="col-5 text-muted">Status</dt>
-              <dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
+              <dd class="col-7"><span :class="['ams-badge', selected.invoice_status]">{{ selected.invoice_status }}</span></dd>
               <dt class="col-5 text-muted">Total</dt>
-              <dd class="col-7"><strong>{{ selected.total_amount }}</strong></dd>
+              <dd class="col-7"><strong>{{ selected.total }}</strong></dd>
               <dt class="col-5 text-muted">Created</dt>
               <dd class="col-7">{{ formatDate(selected.created_at) }}</dd>
             </dl>
@@ -55,9 +69,9 @@
               <label class="form-label fw-semibold mb-0">Update Status</label>
               <select v-model="newStatus" class="form-select form-select-sm">
                 <option value="draft">Draft</option>
-                <option value="sent">Sent</option>
+                <option value="issued">Issued</option>
                 <option value="paid">Paid</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="canceled">Canceled</option>
               </select>
               <button class="btn btn-ams btn-sm" @click="updateStatus" :disabled="saving">{{ saving ? '...' : 'Update' }}</button>
             </div>
@@ -76,6 +90,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatDate from "../../utils/formatDate.js";
 
 const authStore = useAuthStore()
 const invoices = ref([])
@@ -89,7 +104,6 @@ const showViewModal = ref(false)
 const selected = ref(null)
 const newStatus = ref('')
 
-function formatDate(d) { return d ? new Date(d).toLocaleDateString() : '—' }
 
 async function fetchInvoices() {
   loading.value = true
@@ -110,7 +124,7 @@ async function fetchInvoices() {
 
 function openView(inv) {
   selected.value = inv
-  newStatus.value = inv.status
+  newStatus.value = inv.invoice_status
   formError.value = ''
   showViewModal.value = true
 }
@@ -119,7 +133,7 @@ async function updateStatus() {
   saving.value = true
   formError.value = ''
   try {
-    await api.patch(`/invoices/update-invoice-status${selected.value.id}`, { status: newStatus.value })
+    await api.patch(`/invoices/update-invoice-status/${selected.value.id}`, { invoice_status: newStatus.value })
     showViewModal.value = false
     await fetchInvoices()
   } catch (err) {
@@ -128,6 +142,7 @@ async function updateStatus() {
     saving.value = false
   }
 }
+
 
 onMounted(fetchInvoices)
 </script>

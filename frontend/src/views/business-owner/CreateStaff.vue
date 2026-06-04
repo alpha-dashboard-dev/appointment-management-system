@@ -18,6 +18,15 @@
             <option value="service_staff">Service Staff</option>
           </select>
         </div>
+        <div class="field">
+          <label>Employee Type *</label>
+          <select v-model="form.employee_type" required>
+            <option value="">Select Employee Type</option>
+            <option value="permanent">Permanent</option>
+            <option value="visiting">Visiting</option>
+            <option value="remote">Remote</option>
+          </select>
+        </div>
         <div class="field"><label>Status *</label>
           <select v-model="form.is_active" required>
             <option value="">Select status</option>
@@ -44,7 +53,7 @@ import api from '@/utils/api'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const form = reactive({ name: '', email: '', phone: '', password: '', user_type: '', is_active: '' })
+const form = reactive({ name: '', email: '', phone: '', password: '', user_type: '', employee_type: '', is_active: '' })
 const loading = ref(false)
 const error = ref('')
 

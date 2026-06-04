@@ -37,12 +37,16 @@
       <div v-if="loading" class="loading">Loading...</div>
       <table v-else class="table">
         <thead>
-          <tr><th>Code</th><th>Date</th><th>Status</th></tr>
+          <tr>
+            <th>Appointment Code</th>
+            <th>Start Date</th>
+            <th>Status</th>
+          </tr>
         </thead>
         <tbody>
           <tr v-for="appt in recent" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
+            <td>{{ formatDate(appt.appointment_start_date) }}</td>
             <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
           </tr>
           <tr v-if="recent.length === 0">
@@ -58,6 +62,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatDate from "../../utils/formatDate.js";
 
 const authStore = useAuthStore()
 const appointments = ref([])
@@ -70,7 +75,9 @@ async function fetchAppointments() {
   try {
     const userCode = authStore.user?.user_code
     const params = userCode ? { user_code: userCode } : {}
+    // console.log(params, userCode)
     const res = await api.get('/appointments', { params })
+    // console.log(res.data.data)
     appointments.value = res.data.data || []
     const now = new Date()
     stats.pending = appointments.value.filter(a => a.status === 'pending').length

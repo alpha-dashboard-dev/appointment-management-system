@@ -64,29 +64,36 @@
     <!-- PENDING APPOINTMENT REQUESTS -->
     <div class="card">
       <div class="card-header">
-        <h3>Pending Appointment Requests</h3>
+        <h3>Pending Appointment's Requests</h3>
         <router-link to="/business/appointments" class="view-all">View All</router-link>
       </div>
       <div v-if="loading" class="loading">Loading...</div>
       <table v-else class="table">
         <thead>
-          <tr><th>Code</th><th>Date</th><th>Start</th><th>End</th><th>Status</th><th>Actions</th></tr>
+          <tr>
+            <th>Code</th>
+            <th>Date</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Status</th>
+<!--            <th>Actions</th>-->
+          </tr>
         </thead>
         <tbody>
           <tr v-for="appt in pendingAppointments" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.appointment_start_date }}</td>
-            <td>{{ appt.start_time }}</td>
-            <td>{{ appt.end_time }}</td>
+            <td>{{ formatDate(appt.appointment_start_date) }}</td>
+            <td>{{ formatTime(appt.start_time) }}</td>
+            <td>{{ formatTime(appt.end_time) }}</td>
             <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
-            <td>
-              <button class="approve-btn" @click="changeStatus(appt, 'approved')">Approve</button>
-              <button class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>
-            </td>
+<!--            <td>-->
+<!--              <button class="approve-btn" @click="changeStatus(appt, 'approved')">Approve</button>-->
+<!--              <button class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>-->
+<!--            </td>-->
           </tr>
-          <tr v-if="pendingAppointments.length === 0">
-            <td colspan="6" class="empty">No pending requests</td>
-          </tr>
+<!--          <tr v-if="pendingAppointments.length === 0">-->
+<!--            <td colspan="6" class="empty">No pending requests</td>-->
+<!--          </tr>-->
         </tbody>
       </table>
     </div>
@@ -98,6 +105,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
+import formatDate from "../../utils/formatDate.js";
 
 const authStore = useAuthStore()
 const loading = ref(true)

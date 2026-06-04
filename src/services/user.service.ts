@@ -48,6 +48,7 @@ class UserService {
             is_active: data.is_active,
             name: data.name || null,
             phone: data.phone || null,
+            employee_type: data.employee_type || null,
         };
 
         return await repo.create(userData);

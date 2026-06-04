@@ -64,6 +64,14 @@ class User extends Model {
                 allowNull: false,
                 defaultValue: "active",
             },
+            employee_type: {
+                type: DataTypes.ENUM(
+                    "visiting",
+                    "permanent",
+                    "remote"
+                ),
+                allowNull: true,
+            },
 
             created_at: {
                 type: DataTypes.DATE,

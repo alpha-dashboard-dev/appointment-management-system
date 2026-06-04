@@ -13,7 +13,7 @@ const VALID_DISCOUNT_UOMS = ["fixed", "percentage"];
 const VALID_INVOICE_STATUSES = ["draft", "issued", "paid", "canceled"];
 const VALID_LOCATION_TYPES = ["business", "client"];
 const VALID_AVAILABILITY = ["available", "not_available"];
-const VALID_PARTICIPANT_USER_TYPES = ["admin", "business_owner", "operational_staff", "service_staff", "client"];
+const VALID_PARTICIPANT_USER_TYPES = ["business_owner", "operational_staff", "service_staff", "client"];
 const VALID_ABILITY_USER_TYPES = ["admin", "business_owner", "staff", "client"];
 const VALID_ABILITY_STATUSES = ["active", "inactive"];
 const VALID_ORG_STATUSES = ["active", "inactive"];
@@ -192,9 +192,9 @@ export const validateSchedule = (data: any) => {
         throw new Error("Invalid workingDays. Must be one of: " + VALID_WORKING_DAYS.join(", "));
     }
 
-    if (!employee_type || !VALID_EMPLOYEE_TYPES.includes(employee_type)) {
-        throw new Error("Invalid employeeType. Must be one of: " + VALID_EMPLOYEE_TYPES.join(", "));
-    }
+    // if (!employee_type || !VALID_EMPLOYEE_TYPES.includes(employee_type)) {
+    //     throw new Error("Invalid employeeType. Must be one of: " + VALID_EMPLOYEE_TYPES.join(", "));
+    // }
 
     if (!location_code || !isValidCode(location_code)) {
         throw new Error("Valid 8-character locationCode is required");

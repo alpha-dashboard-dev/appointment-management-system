@@ -5,17 +5,24 @@
       <div v-if="loading" class="loading">Loading...</div>
       <div v-else-if="error" class="error-msg">{{ error }}</div>
       <table v-else class="table">
-        <thead><tr><th>Staff Code</th><th>Working Days</th><th>Start Time</th><th>End Time</th><th>Employee Type</th><th>Location</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Staff Code</th>
+            <th>Working Days</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Location</th>
+          </tr>
+        </thead>
         <tbody>
           <tr v-for="s in schedules" :key="s.id">
             <td><code>{{ s.user_code }}</code></td>
             <td>{{ s.working_days }}</td>
-            <td>{{ s.start_time }}</td>
-            <td>{{ s.end_time }}</td>
-            <td>{{ s.employee_type || '—' }}</td>
+            <td>{{ formatTime(s.start_time) }}</td>
+            <td>{{ formatTime(s.end_time) }}</td>
             <td>{{ s.location_code || '—' }}</td>
           </tr>
-          <tr v-if="schedules.length === 0"><td colspan="6" class="empty">No schedules found</td></tr>
+          <tr v-if="schedules.length === 0"><td colspan="5" class="empty">No schedules found</td></tr>
         </tbody>
       </table>
     </div>
@@ -26,6 +33,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
 
 const authStore = useAuthStore()
 const schedules = ref([])
@@ -45,7 +53,6 @@ async function fetchSchedules() {
     loading.value = false
   }
 }
-
 onMounted(fetchSchedules)
 </script>
 

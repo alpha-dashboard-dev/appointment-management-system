@@ -19,7 +19,7 @@ class InvoiceController {
                 appointment_code: req.query.appointment_code,
                 status: req.query.status,
             };
-            const data = await service.getAll(filters);
+            const data = await service.getAll(filters, req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -46,7 +46,7 @@ class InvoiceController {
 
     async changeStatus(req: Request, res: Response) {
         try {
-            const { status } = req.body;
+            const status = req.body.invoice_status ?? req.body.status;
             const data = await service.changeStatus(Number(req.params.id), status, req.user);
             return res.status(200).json({ success: true, message: "Invoice status updated", data });
         } catch (err: any) {

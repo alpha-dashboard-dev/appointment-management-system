@@ -23,28 +23,73 @@
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
             <tr>
-              <th class="ps-3">Charge Code</th>
+              <th class="ps-3">Business Name</th>
               <th>Name</th>
-              <th>Amount</th>
+              <th>Value</th>
               <th>Type</th>
+              <th>Status</th>
               <th class="pe-3" style="width:100px">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="charge in charges" :key="charge.charge_code">
-              <td class="ps-3"><code>{{ charge.charge_code }}</code></td>
+              <td class="ps-3">{{ charge.business_name }}</td>
               <td>{{ charge.name }}</td>
               <td>{{ charge.charge_value }}</td>
               <td>{{ charge.charge_uom }}</td>
+              <td><span :class="['ams-badge', charge.status]">{{ charge.status }}</span></td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-danger" @click="openDelete(charge)">Delete</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(charge)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDeactivate(charge)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(charge)">
+                        <i class="bi bi-trash me-2"></i>
+                        Delete
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="charges.length === 0">
-              <td colspan="5" class="text-center text-muted py-4">No charges found</td>
+              <td colspan="6" class="text-center text-muted py-4">No charges found</td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+<!--    Deactivate charge-->
+    <div v-if="showDeactivateModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Deactivate Charge</h5>
+            <button type="button" class="btn-close" @click="showDeactivateModal = false"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="mb-0">Deactivate <strong>{{ selected?.name }}</strong>?</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button class="btn btn-secondary btn-sm" @click="showDeactivateModal = false">Cancel</button>
+            <button class="btn btn-danger btn-sm" @click="deactivateCharge" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -118,12 +163,51 @@
         </div>
       </div>
     </div>
+  </div>
 
+<!--  Edit Modal-->
+  <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Charge</h5>
+          <button type="button" class="btn-close" @click="showEditModal = false"></button>
+        </div>
+        <form @submit.prevent="updateCharge">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Business Name *</label>
+              <input v-model="editForm.name" class="form-control" placeholder="Business Name" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <input v-model="editForm.description" class="form-control" placeholder="Description" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Charge Value *</label>
+              <input v-model="editForm.charge_value" class="form-control" placeholder="Charge Value" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Status</label>
+              <select v-model="editForm.status" class="form-select">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <p v-if="formError" class="text-danger small mb-0">{{ formError }}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
+            <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import {ref, computed, onMounted, reactive} from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import { validateChargeForm } from '@/utils/validator'
@@ -135,27 +219,62 @@ const businesses = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
+const formError = ref('')
 const bizFilter = ref('')
 
+const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+const showDeactivateModal = ref(false)
 const showCreateModal = ref(false)
 const selected = ref(null)
 const createError = ref('')
 const createErrors = ref({})
 const createForm = ref({ business_code: '', name: '', charge_uom: '', charge_value: '', description: '' })
+const editForm = reactive({ name: '', status: 'active', charge_value: '', description: '' })
 
 async function fetchCharges() {
   loading.value = true
   error.value = ''
+
   try {
-    const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/charges/get-charge', { params })
-    charges.value = res.data.data || []
+    const params = bizFilter.value
+        ? { business_code: bizFilter.value }
+        : {}
+
+    const [chargeRes, businessRes] = await Promise.all([
+      api.get('/charges/get-charge', { params }),
+      api.get('/businesses/get-business'),
+    ])
+
+    const businesses = businessRes.data.data || []
+
+    const businessNameByCode = new Map(
+        businesses.map((bus) => [bus.business_code, bus.name])
+    )
+
+    charges.value = (chargeRes.data.data || []).map((charge) => ({
+      ...charge,
+      business_name:
+          businessNameByCode.get(charge.business_code) ||
+          charge.business_name ||
+          '',
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load charges'
+    error.value =
+        err.response?.data?.message || 'Failed to load charges'
   } finally {
     loading.value = false
   }
+}
+
+function openEdit(charge) {
+  selected.value = charge
+  editForm.name = charge.name
+  editForm.charge_value = charge.charge_value
+  editForm.description = charge.description
+
+  formError.value = ''
+  showEditModal.value = true
 }
 
 function openDelete(charge) {
@@ -163,10 +282,15 @@ function openDelete(charge) {
   showDeleteModal.value = true
 }
 
+function openDeactivate(charge) {
+  selected.value = charge
+  showDeactivateModal.value = true
+}
+
 async function deleteCharge() {
   saving.value = true
   try {
-    await api.delete(`/charges/delete-charge${selected.value.charge_code}`)
+    await api.delete(`/charges/delete-charge/${selected.value.charge_code}`)
     showDeleteModal.value = false
     await fetchCharges()
   } catch (err) {
@@ -193,6 +317,33 @@ async function createCharge() {
     await fetchCharges()
   } catch (err) {
     createError.value = err.response?.data?.message || 'Create failed'
+  } finally {
+    saving.value = false
+  }
+}
+
+async function updateCharge() {
+  saving.value = true
+  formError.value = ''
+  try {
+    await api.put(`/charges/update-charge/${selected.value.charge_code}`, editForm)
+    showEditModal.value = false
+    await fetchCharges()
+  } catch (err) {
+    formError.value = err.response?.data?.message || 'Update failed'
+  } finally {
+    saving.value = false
+  }
+}
+
+async function deactivateCharge() {
+  saving.value = true
+  try {
+    await api.put(`/charges/update-charge/${selected.value.charge_code}`, { status: 'inactive' })
+    showDeactivateModal.value = false
+    await fetchCharges()
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Deactivation failed'
   } finally {
     saving.value = false
   }

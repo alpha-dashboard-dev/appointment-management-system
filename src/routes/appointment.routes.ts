@@ -16,10 +16,17 @@ router.post(
     controller.create
 );
 
+router.post(
+    "/pricing-preview",
+    authenticate,
+    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
+    controller.pricingPreview
+);
+
 router.get(
     "/",
     authenticate,
-    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
+    authorizeRoles(...ALL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getAll
 );
 
@@ -56,6 +63,21 @@ router.patch(
     authenticate,
     authorizeRoles(ROLES.CLIENT),
     controller.respondToReschedule
+);
+
+// Approval flow
+router.get(
+    "/:appointmentCode/availability",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    controller.checkAvailability
+);
+
+router.post(
+    "/:appointmentCode/approve",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    controller.approveWithStaff
 );
 
 router.get(

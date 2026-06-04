@@ -17,21 +17,46 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Name</th><th>Email</th><th>Type</th><th>Code</th><th>Status</th><th class="pe-3" style="width:140px">Actions</th></tr>
+            <tr>
+              <th class="ps-3">Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Employment Type</th>
+              <th>Status</th>
+              <th class="pe-3" style="width:220px">Actions</th></tr>
           </thead>
           <tbody>
             <tr v-for="user in staff" :key="user.user_code">
               <td class="ps-3">{{ user.name }}</td>
               <td>{{ user.email }}</td>
+              <td>{{ user.phone }}</td>
               <td>{{ user.user_type }}</td>
-              <td><code>{{ user.user_code }}</code></td>
+              <td>{{ user.employee_type }}</td>
               <td><span :class="['ams-badge', user.is_active === 'active' ? 'active' : 'inactive']">{{ user.is_active === 'active' ? 'Active' : 'Inactive' }}</span></td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(user)">Edit</button>
-                <button class="btn btn-sm btn-outline-warning" @click="openDeactivate(user)">Deactivate</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(user)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDeactivate(user)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
-            <tr v-if="staff.length === 0"><td colspan="6" class="text-center text-muted py-4">No staff found</td></tr>
+            <tr v-if="staff.length === 0"><td colspan="7" class="text-center text-muted py-4">No staff found</td></tr>
           </tbody>
         </table>
       </div>
@@ -49,6 +74,15 @@
             <div class="modal-body">
               <div class="mb-3"><label class="form-label fw-semibold">Full Name *</label><input v-model="editForm.name" class="form-control" required /></div>
               <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input v-model="editForm.phone" class="form-control" /></div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Employee Type</label>
+                <select v-model="editForm.employee_type" class="form-select">
+                  <option value="permanent">Permanent</option>
+                  <option value="visiting">Visiting</option>
+                  <option value="remote">Remote</option>
+                </select>
+              </div>
+
               <div class="mb-3">
                 <label class="form-label fw-semibold">Status</label>
                 <select v-model="editForm.is_active" class="form-select">
@@ -104,7 +138,7 @@ const typeFilter = ref('')
 const showEditModal = ref(false)
 const showDeactivateModal = ref(false)
 const selected = ref(null)
-const editForm = reactive({ name: '', phone: '', is_active: 'active' })
+const editForm = reactive({ name: '', phone: '', employee_type: "", is_active: 'active'})
 
 async function fetchStaff() {
   loading.value = true

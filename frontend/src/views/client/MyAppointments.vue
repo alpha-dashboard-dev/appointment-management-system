@@ -22,20 +22,53 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Code</th><th>Date</th><th>Start</th><th>End</th><th>Status</th><th class="pe-3" style="width:200px">Actions</th></tr>
+            <tr>
+              <th class="ps-3">Appointment Code</th>
+              <th>Start Date</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Status</th>
+              <th class="pe-3" style="width:200px">Actions</th></tr>
           </thead>
           <tbody>
             <tr v-for="appt in appointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
-              <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
-              <td>{{ appt.start_time ?? '—' }}</td>
-              <td>{{ appt.end_time ?? '—' }}</td>
+              <td>{{ formatDate(appt.appointment_start_date) }}</td>
+              <td>{{ formatTime(appt.start_time) }}</td>
+              <td>{{ formatTime(appt.end_time) }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
               <td class="pe-3">
-                <button v-if="appt.status === 'rescheduled'" class="btn btn-sm btn-success me-1" @click="respondReschedule(appt, 'accepted')">Accept</button>
-                <button v-if="appt.status === 'rescheduled'" class="btn btn-sm btn-outline-danger me-1" @click="respondReschedule(appt, 'rejected')">Reject</button>
-                <button v-if="appt.status === 'pending'" class="btn btn-sm btn-outline-secondary me-1" @click="cancelAppt(appt)">Cancel</button>
-                <button class="btn btn-sm btn-outline-primary" @click="openView(appt)">View</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openView(appt)">
+                        <i class="bi bi-eye me-2"></i>
+                        View
+                      </button>
+                    </li>
+                    <li v-if="appt.status === 'rescheduled'">
+                      <button class="dropdown-item" @click="respondReschedule(appt, 'accepted')">
+                        <i class="bi bi-check2-circle me-2"></i>
+                        Accept
+                      </button>
+                    </li>
+                    <li v-if="appt.status === 'rescheduled'">
+                      <button class="dropdown-item text-danger" @click="respondReschedule(appt, 'rejected')">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Reject
+                      </button>
+                    </li>
+                    <li v-if="appt.status === 'pending'">
+                      <button class="dropdown-item text-danger" @click="cancelAppt(appt)">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Cancel
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="appointments.length === 0"><td colspan="6" class="text-center text-muted py-4">No appointments found</td></tr>
@@ -54,11 +87,11 @@
           </div>
           <div class="modal-body">
             <dl class="row">
-              <dt class="col-5 text-muted">Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
+              <dt class="col-5 text-muted">Appointment Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
               <dt class="col-5 text-muted">Status</dt><dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
-              <dt class="col-5 text-muted">Date</dt><dd class="col-7">{{ selected.appointment_start_date?.split('T')[0] ?? '—' }}</dd>
-              <dt class="col-5 text-muted">Start Time</dt><dd class="col-7">{{ selected.start_time ?? '—' }}</dd>
-              <dt class="col-5 text-muted">End Time</dt><dd class="col-7">{{ selected.end_time ?? '—' }}</dd>
+              <dt class="col-5 text-muted">Start Date</dt><dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>
+              <dt class="col-5 text-muted">Start Time</dt><dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
+              <dt class="col-5 text-muted">End Time</dt><dd class="col-7">{{ formatTime(selected.end_time) }}</dd>
               <dt class="col-5 text-muted">Location</dt><dd class="col-7">{{ selected.location_code ?? '—' }}</dd>
               <dt class="col-5 text-muted">Notes</dt><dd class="col-7">{{ selected.notes ?? '—' }}</dd>
             </dl>
@@ -82,7 +115,7 @@
               <div class="fw-bold text-dark mb-2">💳 Charges</div>
               <dl class="row">
                 <template v-for="ch in modalCharges" :key="ch.charge_code">
-                  <dt class="col-7">{{ ch.charge_name || ch.charge_code }}</dt>
+                  <dt class="col-7">{{ ch.name || ch.charge_code }}</dt>
                   <dd class="col-5 text-end fw-semibold text-primary">{{ ch.charge_value }} / {{ ch.charge_uom }}</dd>
                 </template>
               </dl>
@@ -100,6 +133,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
+import formatDate from "../../utils/formatDate.js";
+import formatTime from "../../utils/formatTime.js";
 
 const appointments = ref([])
 const loading = ref(true)

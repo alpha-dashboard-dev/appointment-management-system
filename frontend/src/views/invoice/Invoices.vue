@@ -22,6 +22,7 @@
       </select>
     </div>
 
+
     <div class="card shadow-sm border-0">
       <div class="card-body p-0">
         <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
@@ -45,8 +46,25 @@
               <td><span :class="['ams-badge', inv.invoice_status]">{{ inv.invoice_status }}</span></td>
               <td>{{ formatDate(inv.created_at) }}</td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-secondary me-1" @click="openDetails(inv)">View</button>
-                <button v-if="inv.status === 'pending'" class="btn btn-sm btn-success" @click="updateStatus(inv, 'paid')">Mark Paid</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openDetails(inv)">
+                        <i class="bi bi-eye me-2"></i>
+                        View
+                      </button>
+                    </li>
+                    <li v-if="inv.invoice_status === 'draft' || inv.invoice_status === 'issued'">
+                      <button class="dropdown-item" @click="updateStatus(inv, 'paid')">
+                        <i class="bi bi-check2-circle me-2"></i>
+                        Mark Paid
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="invoices.length === 0">
@@ -56,7 +74,6 @@
         </table>
       </div>
     </div>
-
     <!-- DETAILS MODAL -->
     <div v-if="showDetails" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
       <div class="modal-dialog modal-dialog-centered">
@@ -79,8 +96,8 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showDetails = false">Close</button>
-            <button v-if="selected?.status === 'pending'" class="btn btn-success btn-sm" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
-            <button v-if="selected?.status === 'pending'" class="btn btn-danger btn-sm" @click="updateStatus(selected, 'cancelled')" :disabled="saving">Cancel</button>
+            <button v-if="selected?.invoice_status === 'draft' || selected?.invoice_status === 'issued'" class="btn btn-success btn-sm" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
+            <button v-if="selected?.invoice_status === 'draft' || selected?.invoice_status === 'issued'" class="btn btn-danger btn-sm" @click="updateStatus(selected, 'canceled')" :disabled="saving">Cancel</button>
           </div>
         </div>
       </div>
@@ -92,6 +109,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
+import formatDate from "../../utils/formatDate.js";
 
 const invoices = ref([])
 const businesses = ref([])
@@ -128,7 +146,7 @@ function openDetails(inv) {
 async function updateStatus(inv, status) {
   saving.value = true
   try {
-    await api.patch(`/invoices/update-invoice-status${inv.id}`, { status })
+    await api.patch(`/invoices/update-invoice-status/${inv.id}`, { invoice_status: status })
     showDetails.value = false
     await fetchInvoices()
   } catch (err) {
@@ -136,12 +154,6 @@ async function updateStatus(inv, status) {
   } finally {
     saving.value = false
   }
-}
-
-
-function formatDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString()
 }
 
 onMounted(async () => {

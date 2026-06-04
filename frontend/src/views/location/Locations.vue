@@ -23,28 +23,53 @@
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
             <tr>
-              <th class="ps-3">Code</th>
-              <th>Type</th>
-              <th>City</th>
+              <th class="ps-3">Business Name</th>
               <th>Address</th>
+              <th>Street</th>
+              <th>Apartment</th>
+              <th>City</th>
+              <th>State</th>
+              <th>Country</th>
+              <th>Type</th>
               <th>Status</th>
               <th class="pe-3" style="width:140px">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="loc in locations" :key="loc.location_code">
-              <td class="ps-3"><code>{{ loc.location_code }}</code></td>
-              <td>{{ loc.location_type }}</td>
+              <td class="ps-3">{{ loc.business_name ||  '—'}}</td>
+              <td>{{ loc.address || '—' }}</td>
+              <td>{{loc.street || '—'}}</td>
+              <td>{{loc.apartment || '—'}}</td>
               <td>{{ loc.city || '—' }}</td>
-              <td>{{ loc.address || loc.street || '—' }}</td>
+              <td>{{loc.province || '—'}}</td>
+              <td>{{ loc.country || '—' }}</td>
+              <td>{{ loc.location_type }}</td>
               <td><span :class="['ams-badge', loc.status]">{{ loc.status }}</span></td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(loc)">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" @click="openDelete(loc)">Delete</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(loc)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(loc)">
+                        <i class="bi bi-trash me-2"></i>
+                        Delete
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="locations.length === 0">
-              <td colspan="6" class="text-center text-muted py-4">No locations found</td>
+              <td colspan="10" class="text-center text-muted py-4">No locations found</td>
             </tr>
           </tbody>
         </table>
@@ -61,22 +86,27 @@
           </div>
           <form @submit.prevent="updateLocation">
             <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Location Type</label>
-                <select v-model="editForm.location_type" class="form-select">
-                  <option value="business">Business</option>
-                  <option value="client">Client</option>
-                </select>
-              </div>
+<!--              <div class="mb-3">-->
+<!--                <label class="form-label fw-semibold">Location Type</label>-->
+<!--                <select v-model="editForm.location_type" class="form-select">-->
+<!--                  <option value="business">Business</option>-->
+<!--                  <option value="client">Client</option>-->
+<!--                </select>-->
+<!--              </div>-->
               <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Address</label>
+                  <input v-model="editForm.address" class="form-control" placeholder="Address" />
+                </div>
                 <div class="col-12">
                   <label class="form-label fw-semibold">Street</label>
                   <input v-model="editForm.street" class="form-control" placeholder="Street" />
                 </div>
                 <div class="col-12">
-                  <label class="form-label fw-semibold">Address</label>
-                  <input v-model="editForm.address" class="form-control" placeholder="Address" />
+                  <label class="form-label fw-semibold">Apartment</label>
+                  <input v-model="editForm.apartment" class="form-control" placeholder="Apartment" />
                 </div>
+
                 <div class="col-md-6">
                   <label class="form-label fw-semibold">City</label>
                   <input v-model="editForm.city" class="form-control" placeholder="City" />
@@ -149,21 +179,54 @@ const bizFilter = ref('')
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
-const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active' })
+const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active', apartment: '' })
+
 
 async function fetchLocations() {
   loading.value = true
   error.value = ''
+
   try {
-    const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/locations/get-location', { params })
-    locations.value = res.data.data || []
+    const params = bizFilter.value
+        ? { business_code: bizFilter.value }
+        : {}
+
+    const [locationRes, businessRes] = await Promise.all([
+      api.get('/locations/get-location', { params }),
+      api.get('/businesses/get-business'),
+    ])
+
+    const businesses = businessRes.data.data || []
+
+    const businessNameByCode = new Map(
+        businesses.map((bus) => [bus.business_code, bus.name])
+    )
+
+    locations.value = (locationRes.data.data || []).map((location) => ({
+      ...location,
+      business_name:
+          businessNameByCode.get(location.business_code) || '',
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load locations'
+    error.value =
+        err.response?.data?.message || 'Failed to load locations'
   } finally {
     loading.value = false
   }
 }
+// async function fetchLocations() {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
+//     const res = await api.get('/locations/get-location', { params })
+//     locations.value = res.data.data || []
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to load locations'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 function openEdit(loc) {
   selected.value = loc
@@ -175,6 +238,7 @@ function openEdit(loc) {
   editForm.postal_code = loc.postal_code || ''
   editForm.country = loc.country || ''
   editForm.status = loc.status || 'active'
+  editForm.apartment = loc.apartment || ''
   formError.value = ''
   showEditModal.value = true
 }

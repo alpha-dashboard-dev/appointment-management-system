@@ -29,20 +29,37 @@
               <th>Start Time</th>
               <th>End Time</th>
               <th>Status</th>
-              <th class="pe-3" style="width:120px">Actions</th>
+              <th class="pe-3" style="width:220px">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="schedule in schedules" :key="schedule.id">
               <td class="ps-3">{{ schedule.id }}</td>
-              <td>{{ schedule.user_name || schedule.user_code || '—' }}</td>
+              <td>{{ schedule.name || '—' }}</td>
               <td class="text-capitalize">{{ schedule.working_days }}</td>
-              <td>{{ schedule.status === 'inactive' ? '—' : formatTime(schedule.start_time) }}</td>
-              <td>{{ schedule.status === 'inactive' ? '—' : formatTime(schedule.end_time) }}</td>
-              <td><span :class="['badge', schedule.status === 'active' ? 'bg-success' : 'bg-secondary']">{{ schedule.status === 'active' ? 'Working' : 'Off Day' }}</span></td>
+              <td>{{ formatTime(schedule.start_time) }}</td>
+              <td>{{ formatTime(schedule.end_time) }}</td>
+              <td><span :class="['badge', schedule.status === 'active' ? 'bg-success' : 'bg-secondary']">{{ schedule.status === 'active' ? 'Active' : 'Inactive' }}</span></td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(schedule)">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" @click="openDelete(schedule)">Delete</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(schedule)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(schedule)">
+                        <i class="bi bi-trash me-2"></i>
+                        Delete
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="schedules.length === 0">
@@ -69,56 +86,38 @@
                   <option v-for="d in DAY_KEYS" :key="d" :value="d">{{ DAY_LABELS[d] }}</option>
                 </select>
               </div>
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Employee Type *</label>
-                <select v-model="editForm.employee_type" class="form-select" required>
-                  <option value="permanent">Permanent</option>
-                  <option value="visiting">Visiting</option>
-                  <option value="remote">Remote</option>
-                </select>
-              </div>
+
               <div class="mb-3">
                 <label class="form-label fw-semibold">Location</label>
                 <select v-model="editForm.location_code" class="form-select">
                   <option value="">No specific location</option>
                   <option v-for="loc in locationsList" :key="loc.location_code" :value="loc.location_code">
-                    {{ loc.address || loc.location_type || loc.location_code }}
+                    {{ loc.address + " " + loc.street + " " + loc.city }}
                   </option>
                 </select>
               </div>
               <div class="row g-3">
                 <div class="col-6">
                   <label class="form-label fw-semibold">Start Time *</label>
-                  <input type="time" v-model="editForm.start_time" class="form-control" :required="editForm.status === 'active'" :disabled="editForm.status === 'inactive'" />
-                  <small class="text-muted">{{ formatTime(editForm.start_time) }}</small>
+                  <input type="time" v-model="editForm.start_time" class="form-control" required />
                 </div>
                 <div class="col-6">
                   <label class="form-label fw-semibold">End Time *</label>
-                  <input type="time" v-model="editForm.end_time" class="form-control" :required="editForm.status === 'active'" :disabled="editForm.status === 'inactive'" />
-                  <small class="text-muted">{{ formatTime(editForm.end_time) }}</small>
+                  <input type="time" v-model="editForm.end_time" class="form-control" required />
                 </div>
               </div>
               <div class="mt-3">
-                <label class="form-label fw-semibold">Day Status</label>
-                <div class="d-flex gap-3">
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" v-model="editForm.status" value="active" id="statusActive" />
-                    <label class="form-check-label" for="statusActive">Working Day</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" v-model="editForm.status" value="inactive" id="statusInactive" />
-                    <label class="form-check-label" for="statusInactive">Off Day</label>
-                  </div>
-                </div>
+                <label class="form-label fw-semibold">Status *</label>
+                <select v-model="editForm.status" class="form-select" required>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
               </div>
               <p v-if="editError" class="text-danger small mt-2 mb-0">{{ editError }}</p>
             </div>
-            <div class="modal-footer d-flex justify-content-between align-items-center">
-              <button type="button" class="btn btn-outline-danger btn-sm" @click="markAsOffDay" :disabled="saving">Mark as Off Day</button>
-              <div class="d-flex gap-2">
-                <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
-                <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
-              </div>
+            <div class="modal-footer d-flex gap-2 justify-content-end align-items-center">
+              <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
+              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
             </div>
           </form>
         </div>
@@ -144,6 +143,7 @@
       </div>
     </div>
 
+<!-- if    -->
     <!-- CREATE MODAL -->
     <div v-if="showCreateModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
       <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable" style="max-height:90vh">
@@ -173,16 +173,6 @@
                 </select>
               </div>
 
-              <!-- Employee type -->
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Employee Type *</label>
-                <select v-model="createForm.employee_type" class="form-select" required>
-                  <option value="">Select type</option>
-                  <option value="permanent">Permanent</option>
-                  <option value="visiting">Visiting</option>
-                  <option value="remote">Remote</option>
-                </select>
-              </div>
 
               <!-- Location -->
               <div class="mb-4">
@@ -190,39 +180,71 @@
                 <select v-model="createForm.location_code" class="form-select">
                   <option value="">No specific location</option>
                   <option v-for="loc in locationsList" :key="loc.location_code" :value="loc.location_code">
-                    {{ loc.address || loc.location_type || loc.location_code }}
+                    {{ loc.address + " " + loc.street + " " + loc.city }}
                   </option>
                 </select>
+              </div>
+
+              <div class="mb-4 border rounded-3 p-3 bg-light-subtle">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Working Days Setup</label>
+                  <div class="d-flex gap-4 flex-wrap">
+                    <div class="form-check">
+                      <input id="modeWholeWeek" v-model="scheduleMode" class="form-check-input" type="radio" value="whole_week" />
+                      <label class="form-check-label" for="modeWholeWeek">Whole week is working</label>
+                    </div>
+                    <div class="form-check">
+                      <input id="modeCustomDays" v-model="scheduleMode" class="form-check-input" type="radio" value="custom" />
+                      <label class="form-check-label" for="modeCustomDays">Custom working days</label>
+                    </div>
+                  </div>
+                  <small v-if="scheduleMode === 'custom'" class="text-muted">Select only the working days. Other days will be non-working by default.</small>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                  <input id="sameTimeAllDays" v-model="sameTimeForAllDays" class="form-check-input" type="checkbox" />
+                  <label class="form-check-label fw-semibold" for="sameTimeAllDays">Use same time for all days</label>
+                </div>
+                <div v-if="sameTimeForAllDays" class="row g-3">
+                  <div class="col-6">
+                    <label class="form-label fw-semibold">Shared Start Time *</label>
+                    <input type="time" v-model="sharedSchedule.start_time" class="form-control" required />
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label fw-semibold">Shared End Time *</label>
+                    <input type="time" v-model="sharedSchedule.end_time" class="form-control" required />
+                  </div>
+                </div>
               </div>
 
               <!-- Weekly schedule grid -->
               <div class="week-grid-wrap">
                 <div class="week-grid">
-                  <div class="week-grid-header">
+                  <div class="week-grid-header" :class="{ 'with-working': scheduleMode === 'custom' }">
                     <span>Day</span>
+                    <span v-if="scheduleMode === 'custom'" class="text-center">Working</span>
                     <span>Start Time</span>
                     <span>End Time</span>
-                    <span class="text-center">Off Day</span>
                   </div>
-                  <div v-for="day in weekDays" :key="day.key" class="week-grid-row" :class="{ 'row-disabled': day.is_off }">
+                  <div v-for="day in weekDays" :key="day.key" class="week-grid-row" :class="{ 'with-working': scheduleMode === 'custom' }">
                     <span class="day-label">{{ day.label }}</span>
+                    <div v-if="scheduleMode === 'custom'" class="text-center">
+                      <input type="checkbox" v-model="day.is_working" class="form-check-input" />
+                    </div>
                     <input
                       type="time"
                       v-model="day.start_time"
                       class="form-control form-control-sm"
-                      :disabled="day.is_off"
-                      :required="!day.is_off"
+                      :disabled="sameTimeForAllDays"
+                      required
                     />
                     <input
                       type="time"
                       v-model="day.end_time"
                       class="form-control form-control-sm"
-                      :disabled="day.is_off"
-                      :required="!day.is_off"
+                      :disabled="sameTimeForAllDays"
+                      required
                     />
-                    <div class="text-center">
-                      <input type="checkbox" v-model="day.is_off" class="form-check-input" />
-                    </div>
                   </div>
                 </div>
               </div>
@@ -242,9 +264,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.role === 'admin')
@@ -263,22 +286,14 @@ const showEditModal = ref(false)
 const showCreateModal = ref(false)
 const selected = ref(null)
 
-const editForm = ref({ working_days: '', employee_type: '', location_code: '', start_time: '', end_time: '', status: 'active' })
+const editForm = ref({ working_days: '',  location_code: '', start_time: '', end_time: '', status: 'active' })
 const editError = ref('')
-
-function formatTime(t) {
-  if (!t) return '—'
-  const [h, m] = t.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
-}
 
 function openEdit(schedule) {
   selected.value = schedule
   editForm.value = {
     working_days: schedule.working_days,
-    employee_type: schedule.employee_type || '',
+    // employee_type: schedule.employee_type || '',
     location_code: schedule.location_code || '',
     start_time: (schedule.start_time || '').slice(0, 5),
     end_time: (schedule.end_time || '').slice(0, 5),
@@ -314,29 +329,44 @@ async function refreshSchedules() {
   } catch (_) {}
 }
 
-async function markAsOffDay() {
-  saving.value = true
-  editError.value = ''
-  try {
-    await api.delete(`/schedules/delete-schedule${selected.value.id}`)
-    showEditModal.value = false
-    await refreshSchedules()
-  } catch (err) {
-    editError.value = err.response?.data?.message || 'Failed to mark as off day'
-  } finally {
-    saving.value = false
-  }
-}
-
 const DAY_KEYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
 const DAY_LABELS = { monday:'Monday', tuesday:'Tuesday', wednesday:'Wednesday', thursday:'Thursday', friday:'Friday', saturday:'Saturday', sunday:'Sunday' }
 
 function freshWeekDays() {
-  return DAY_KEYS.map(k => ({ key: k, label: DAY_LABELS[k], start_time: '09:00', end_time: '17:00', is_off: false }))
+  return DAY_KEYS.map(k => ({ key: k, label: DAY_LABELS[k], start_time: '09:00', end_time: '17:00', is_working: true }))
 }
 
-const createForm = ref({ business_code: '', user_code: '', employee_type: '', location_code: '' })
+const createForm = ref({ business_code: '', user_code: '', location_code: '' })
 const weekDays = ref(freshWeekDays())
+const scheduleMode = ref('whole_week')
+const sameTimeForAllDays = ref(false)
+const sharedSchedule = ref({ start_time: '09:00', end_time: '17:00' })
+
+function applySharedTimesToAllDays() {
+  weekDays.value = weekDays.value.map(day => ({
+    ...day,
+    start_time: sharedSchedule.value.start_time,
+    end_time: sharedSchedule.value.end_time,
+  }))
+}
+
+watch(sameTimeForAllDays, (enabled) => {
+  if (!enabled) return
+  applySharedTimesToAllDays()
+})
+
+watch(scheduleMode, (mode) => {
+  if (mode === 'whole_week') {
+    weekDays.value = weekDays.value.map(day => ({ ...day, is_working: true }))
+    return
+  }
+  weekDays.value = weekDays.value.map(day => ({ ...day, is_working: false }))
+})
+
+watch(sharedSchedule, () => {
+  if (!sameTimeForAllDays.value) return
+  applySharedTimesToAllDays()
+}, { deep: true })
 
 async function fetchStaff(business_code) {
   staffList.value = []
@@ -366,16 +396,33 @@ async function onBusinessChange() {
 async function fetchSchedules() {
   loading.value = true
   error.value = ''
+
   try {
     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/schedules/get-schedule', { params })
-    schedules.value = res.data.data || []
+
+    const [scheduleRes, usersRes] = await Promise.all([
+      api.get('/schedules/get-schedule', { params }),
+      api.get('/users/get-users', { params })
+    ])
+
+    const users = usersRes.data.data || []
+
+    const staffNameByCode = new Map(users.map((user) => [user.user_code, user.name.trim()]))
+
+    schedules.value = (scheduleRes.data.data || []).map((schedule) => ({
+      ...schedule,
+      name:
+          staffNameByCode.get(schedule.user_code) ||
+          ''
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load schedules'
+    error.value =
+        err.response?.data?.message || 'Failed to load schedules'
   } finally {
     loading.value = false
   }
 }
+
 
 function openDelete(schedule) {
   selected.value = schedule
@@ -398,15 +445,21 @@ async function deleteSchedule() {
 async function createSchedule() {
   createError.value = ''
   const business_code = isAdmin.value ? createForm.value.business_code : (authStore.user?.business_code || '')
+
+  if (scheduleMode.value === 'custom' && !weekDays.value.some(d => d.is_working)) {
+    createError.value = 'Select at least one working day for custom setup'
+    return
+  }
+
   const entries = weekDays.value.map(d => ({
     business_code,
     user_code: createForm.value.user_code,
     working_days: d.key,
-    employee_type: createForm.value.employee_type,
+    // employee_type: createForm.value.employee_type,
     location_code: createForm.value.location_code || undefined,
     start_time: d.start_time,
     end_time: d.end_time,
-    status: d.is_off ? 'inactive' : 'active',
+    status: scheduleMode.value === 'whole_week' ? 'active' : (d.is_working ? 'active' : 'inactive'),
   }))
 
   saving.value = true
@@ -415,6 +468,9 @@ async function createSchedule() {
     showCreateModal.value = false
     createForm.value = { business_code: '', user_code: '', employee_type: '', location_code: '' }
     weekDays.value = freshWeekDays()
+    scheduleMode.value = 'whole_week'
+    sameTimeForAllDays.value = false
+    sharedSchedule.value = { start_time: '09:00', end_time: '17:00' }
     staffList.value = []
     locationsList.value = []
     await fetchSchedules()
@@ -451,10 +507,19 @@ onMounted(async () => {
 .week-grid-header,
 .week-grid-row {
   display: grid;
-  grid-template-columns: 110px 1fr 1fr 80px;
+  grid-template-columns: 110px 1fr 1fr;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
+}
+
+.week-grid-header.with-working,
+.week-grid-row.with-working {
+  grid-template-columns: 110px 90px 1fr 1fr;
+}
+
+.week-grid-row > .form-control {
+  min-width: 0;
 }
 
 .week-grid-header {
@@ -474,11 +539,6 @@ onMounted(async () => {
 
 .week-grid-row:last-child {
   border-bottom: none;
-}
-
-.week-grid-row.row-disabled {
-  background: #f8fafc;
-  opacity: 0.55;
 }
 
 .day-label {

@@ -2,6 +2,7 @@
 
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth.store'
 
 const props = defineProps({
 
@@ -13,6 +14,7 @@ const props = defineProps({
 })
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const notificationsEnabled =
     ref(true)
@@ -29,13 +31,17 @@ function goToAccountSettings(){
 
 }
 
-function logout(){
-
-  localStorage.clear()
-
+async function handleLogout() {
+  await authStore.logout()
   router.push('/login')
-
 }
+// function logout(){
+//
+//   localStorage.clear()
+//
+//   router.push('/login')
+//
+// }
 
 </script>
 
@@ -124,7 +130,7 @@ function logout(){
 
     <div
         class="dropdown-item logout"
-        @click="logout"
+        @click="handleLogout"
     >
 
       <i

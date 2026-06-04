@@ -40,28 +40,28 @@
         <thead>
           <tr>
             <th>Code</th>
-            <th>Date</th>
-            <th>Client</th>
+            <th>Start Date</th>
+            <th>Start Time</th>
             <th>Location</th>
             <th>Status</th>
-            <th>Actions</th>
+<!--            <th>Actions</th>-->
           </tr>
         </thead>
         <tbody>
           <tr v-for="appt in pendingAppts" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
-            <td>{{ appt.client_code ?? '—' }}</td>
+            <td>{{ formatDate(appt.appointment_start_date) }}</td>
+            <td>{{ formatTime(appt.start_time)}}</td>
             <td>{{ appt.location_code ?? '—' }}</td>
             <td><span class="badge pending">Pending</span></td>
-            <td>
-              <button class="approve-btn" @click="changeStatus(appt, 'approved')">Approve</button>
-              <button class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>
-            </td>
+<!--            <td>-->
+<!--              <button class="approve-btn" @click="changeStatus(appt, 'approved')">Approve</button>-->
+<!--              <button class="reject-btn" @click="changeStatus(appt, 'rejected')">Reject</button>-->
+<!--            </td>-->
           </tr>
-          <tr v-if="pendingAppts.length === 0">
-            <td colspan="6" class="empty">No pending requests</td>
-          </tr>
+<!--          <tr v-if="pendingAppts.length === 0">-->
+<!--            <td colspan="6" class="empty">No pending requests</td>-->
+<!--          </tr>-->
         </tbody>
       </table>
     </div>
@@ -72,7 +72,7 @@
       </div>
       <div class="action-row">
         <router-link to="/operations/appointments" class="action-btn">All Appointments</router-link>
-        <router-link to="/operations/appointments/pending" class="action-btn">Pending Requests</router-link>
+        <router-link to="/operations/pending" class="action-btn">Pending Requests</router-link>
         <router-link to="/operations/availability" class="action-btn">Check Availability</router-link>
       </div>
     </div>
@@ -83,6 +83,8 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
+import formatDate from "../../utils/formatDate.js";
 
 const authStore = useAuthStore()
 const appointments = ref([])
@@ -91,7 +93,7 @@ const loading = ref(true)
 const stats = reactive({ pending: 0, today: 0, approved: 0, total: 0 })
 const pendingAppts = computed(() => appointments.value.filter(a => a.status === 'pending'))
 
-const today = new Date().toISOString().split('T')[0]
+// const today = new Date().toISOString().split('T')[0]
 
 async function fetchAppointments() {
   loading.value = true

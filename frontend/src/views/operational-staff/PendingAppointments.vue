@@ -7,19 +7,48 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Code</th><th>Date</th><th>Start</th><th>End</th><th>Location</th><th class="pe-3" style="width:240px">Actions</th></tr>
+            <tr>
+              <th class="ps-3">Appointment Code</th>
+              <th>Start ate</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Location</th>
+              <th class="pe-3" style="width:240px">Actions</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="appt in appointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
               <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
-              <td>{{ appt.start_time ?? '—' }}</td>
-              <td>{{ appt.end_time ?? '—' }}</td>
+              <td>{{ formatTime(appt.start_time) }}</td>
+              <td>{{ formatTime(appt.start_time)}}</td>
               <td>{{ appt.location_code ?? '—' }}</td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openAssignModal(appt)">Assign Staff</button>
-                <button class="btn btn-sm btn-success me-1" @click="changeStatus(appt, 'approved')">Approve</button>
-                <button class="btn btn-sm btn-outline-danger" @click="changeStatus(appt, 'rejected')">Reject</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openAssignModal(appt)">
+                        <i class="bi bi-person-plus me-2"></i>
+                        Assign Staff
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item" @click="changeStatus(appt, 'approved')">
+                        <i class="bi bi-check2-circle me-2"></i>
+                        Approve
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="changeStatus(appt, 'rejected')">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Reject
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="appointments.length === 0"><td colspan="6" class="text-center text-muted py-4">No pending requests</td></tr>
@@ -66,6 +95,7 @@
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
 
 const authStore = useAuthStore()
 const appointments = ref([])
@@ -125,6 +155,7 @@ function closeAssignModal() {
   assignAppt.value = null
   assignError.value = ''
 }
+
 
 async function assignStaff() {
   assigning.value = true

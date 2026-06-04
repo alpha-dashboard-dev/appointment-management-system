@@ -33,13 +33,13 @@
           <p v-if="errors.password" class="field-error">{{ errors.password }}</p>
         </div>
 
-        <div class="field">
-          <label>User Type *</label>
-          <select v-model="form.user_type" required>
-            <option value="">Select type</option>
-            <option value="client">Client</option>
-          </select>
-        </div>
+<!--        <div class="field">-->
+<!--          <label>User Type *</label>-->
+<!--          <select v-model="form.user_type" required>-->
+<!--            <option value="">Select type</option>-->
+<!--            <option value="client">Client</option>-->
+<!--          </select>-->
+<!--        </div>-->
 
         <div v-if="isAdmin" class="field">
           <label>Business</label>

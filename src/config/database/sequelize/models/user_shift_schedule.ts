@@ -38,14 +38,14 @@ class UserShiftSchedule extends Model {
                 allowNull: false,
             },
 
-            employee_type: {
-                type: DataTypes.ENUM(
-                    "visiting",
-                    "permanent",
-                    "remote"
-                ),
-                allowNull: false,
-            },
+            // employee_type: {
+            //     type: DataTypes.ENUM(
+            //         "visiting",
+            //         "permanent",
+            //         "remote"
+            //     ),
+            //     allowNull: false,
+            // },
 
             location_code: {
                 type: DataTypes.STRING(8),

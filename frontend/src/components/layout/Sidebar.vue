@@ -17,7 +17,13 @@
       </router-link>
 
       <!-- ORGANIZATIONS -->
-      <div class="group">
+       <div class="group">
+          <router-link to="/organizations" class="group-title">
+            <i class="bi bi-building icon"></i>
+            <span v-if="!collapsed">Organizations</span>
+          </router-link>
+        </div>
+      <!-- <div class="group">
         <div
             class="group-title"
             @click="handleGroupClick('org', '/organizations')"
@@ -44,10 +50,20 @@
             New Organization
           </router-link>
         </div>
-      </div>
+      </div> -->
 
       <!-- BUSINESSES -->
-      <div class="group">
+       <div class="group">
+        <router-link
+          to="/businesses"
+          class="group-title"
+        >
+          <i class="bi bi-shop icon"></i>
+
+          <span v-if="!collapsed">Businesses</span>
+        </router-link>
+      </div>
+      <!-- <div class="group">
         <div
             class="group-title"
             @click="handleGroupClick('biz', '/businesses')"
@@ -74,83 +90,38 @@
             New Business
           </router-link>
         </div>
-      </div>
+      </div> -->
 
       <!-- CLIENTS -->
-      <div class="group">
-        <div
-            class="group-title"
-            @click="handleGroupClick('client', '/clients')"
+       <div class="group">
+        <router-link
+          to="/clients"
+          class="group-title"
         >
           <i class="bi bi-people icon"></i>
 
           <span v-if="!collapsed">Clients</span>
-
-          <i
-              v-if="!collapsed"
-              class="arrow"
-              :class="{ rotated: open.client }"
-          >
-            ›
-          </i>
-        </div>
-
-        <div v-show="open.client && !collapsed" class="submenu">
-          <router-link to="/clients" class="sub-item">
-            All Clients
-          </router-link>
-
-          <router-link to="/clients/create" class="sub-item">
-            New Client
-          </router-link>
-        </div>
+        </router-link>
       </div>
-
+    
       <!-- APPOINTMENTS -->
-      <div class="group">
-        <div
-            class="group-title"
-            @click="handleGroupClick('app', '/appointments')"
-        >
-          <i class="bi bi-calendar-check icon"></i>
+       <div class="group">
+        <router-link to="/appointments"class="group-title">
+          <i class="bi bi-calendar3 icon"></i>
 
           <span v-if="!collapsed">Appointments</span>
-
-          <i
-              v-if="!collapsed"
-              class="arrow"
-              :class="{ rotated: open.app }"
-          >
-            ›
-          </i>
-        </div>
-
-        <div v-show="open.app && !collapsed" class="submenu">
-          <router-link to="/appointments" class="sub-item">
-            All Appointments
-          </router-link>
-
-          <router-link to="/appointments/create" class="sub-item">
-            New Appointment
-          </router-link>
-        </div>
+        </router-link>
       </div>
+    
 
       <!-- SERVICES -->
       <div class="group">
-        <div
-            class="group-title"
-            @click="handleGroupClick('svc', '/services')"
-        >
+        <div class="group-title" @click="handleGroupClick('svc', '/services')">
           <i class="bi bi-clipboard-pulse icon"></i>
 
           <span v-if="!collapsed">Services</span>
 
-          <i
-              v-if="!collapsed"
-              class="arrow"
-              :class="{ rotated: open.svc }"
-          >
+          <i v-if="!collapsed" class="arrow" :class="{ rotated: open.svc }">
             ›
           </i>
         </div>
@@ -160,44 +131,25 @@
             All Services
           </router-link>
 
-          <router-link to="/services/create" class="sub-item">
+          <!-- <router-link to="/services/create" class="sub-item">
             New Service
+          </router-link> -->
+          <router-link to="/location-services" class="sub-item">
+            Location Services
           </router-link>
         </div>
       </div>
 
       <!-- LOCATIONS -->
       <div class="group">
-        <div
-            class="group-title"
-            @click="handleGroupClick('loc', '/locations')"
+        <router-link
+          to="/locations"
+          class="group-title"
         >
           <i class="bi bi-geo-alt icon"></i>
 
           <span v-if="!collapsed">Locations</span>
-
-          <i
-              v-if="!collapsed"
-              class="arrow"
-              :class="{ rotated: open.loc }"
-          >
-            ›
-          </i>
-        </div>
-
-        <div v-show="open.loc && !collapsed" class="submenu">
-          <router-link to="/locations" class="sub-item">
-            All Locations
-          </router-link>
-
-          <router-link to="/locations/create" class="sub-item">
-            New Location
-          </router-link>
-
-          <router-link to="/location-services" class="sub-item">
-            Location Services
-          </router-link>
-        </div>
+        </router-link>
       </div>
 
       <!-- SCHEDULES -->
@@ -220,43 +172,17 @@
 
       <!-- USERS -->
       <div class="group">
-        <div
-            class="group-title"
-            @click="handleGroupClick('usr', '/users')"
+        <router-link
+          to="/users"
+          class="group-title"
         >
           <i class="bi bi-person icon"></i>
 
           <span v-if="!collapsed">Users</span>
-
-          <i
-              v-if="!collapsed"
-              class="arrow"
-              :class="{ rotated: open.usr }"
-          >
-            ›
-          </i>
-        </div>
-
-        <div v-show="open.usr && !collapsed" class="submenu">
-          <router-link to="/users" class="sub-item">
-            All Users
-          </router-link>
-
-          <router-link to="/users/create" class="sub-item">
-            New User
-          </router-link>
-        </div>
+        </router-link>
       </div>
 
     </nav>
-
-    <!-- LOGOUT -->
-    <div class="logout-section">
-      <button class="logout-btn" @click="handleLogout">
-        <i class="bi bi-box-arrow-right icon"></i>
-        <span v-if="!collapsed">Logout</span>
-      </button>
-    </div>
   </aside>
 </template>
 
@@ -292,10 +218,7 @@ function handleGroupClick(key, route) {
   }
 }
 
-async function handleLogout() {
-  await authStore.logout()
-  router.push('/login')
-}
+
 </script>
 
 <style scoped>

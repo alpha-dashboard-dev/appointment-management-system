@@ -10,7 +10,7 @@ class ScheduleService {
             data.business_code = actor.businessCode;
         }
 
-        const { business_code, user_code, working_days, employee_type, location_code, start_time, end_time, status } = data;
+        const { business_code, user_code, working_days, location_code, start_time, end_time, status } = data;
 
         validateSchedule(data);
 
@@ -18,7 +18,6 @@ class ScheduleService {
             business_code,
             user_code,
             working_days,
-            employee_type,
             location_code,
             start_time,
             end_time,
@@ -115,13 +114,7 @@ class ScheduleService {
         return await repo.delete(id);
     }
 
-    async checkAvailability(
-        businessCode: string,
-        locationCode: string,
-        date: string,
-        startTime: string,
-        endTime: string
-    ) {
+    async checkAvailability(businessCode: string, locationCode: string, date: string, startTime: string, endTime: string) {
         if (!businessCode || !locationCode || !date || !startTime || !endTime) {
             throw new Error("businessCode, locationCode, date, startTime, endTime are all required");
         }

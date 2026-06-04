@@ -31,13 +31,13 @@
       <div v-if="loading" class="loading">Loading...</div>
       <table v-else class="table">
         <thead>
-          <tr><th>Code</th><th>Start</th><th>End</th><th>Location</th><th>Status</th></tr>
+          <tr><th>Code</th><th>Start Time</th><th>End Time</th><th>Location</th><th>Status</th></tr>
         </thead>
         <tbody>
           <tr v-for="appt in todayAppts" :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code }}</code></td>
-            <td>{{ appt.start_time ?? '—' }}</td>
-            <td>{{ appt.end_time ?? '—' }}</td>
+            <td>{{ formatTime(appt.start_time) }}</td>
+            <td>{{ formatTime(appt.end_time) }}</td>
             <td>{{ appt.location_code ?? '—' }}</td>
             <td><span :class="['badge', appt.status]">{{ appt.status }}</span></td>
           </tr>
@@ -64,6 +64,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
 
 const authStore = useAuthStore()
 const appointments = ref([])

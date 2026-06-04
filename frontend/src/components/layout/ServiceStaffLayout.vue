@@ -2,7 +2,7 @@
   <div class="layout">
     <aside :class="['sidebar', { collapsed }]">
       <div class="logo">
-        <span v-if="!collapsed">Staff Portal</span>
+        <span v-if="!collapsed">Service Staff Portal</span>
         <button class="toggle" @click="collapsed = !collapsed">☰</button>
       </div>
 
@@ -23,26 +23,10 @@
         </router-link>
       </nav>
 
-      <div class="logout-section">
-        <div v-if="!collapsed" class="user-info">
-          <span class="user-name">{{ authStore.user?.name || authStore.user?.email }}</span>
-          <span class="user-role">Service Staff</span>
-        </div>
-        <button class="logout-btn" @click="handleLogout">
-          <i class="bi bi-box-arrow-right icon"></i>
-          <span v-if="!collapsed">Logout</span>
-        </button>
-      </div>
     </aside>
 
     <div class="main">
-      <header class="topbar">
-        <h3 class="page-title">{{ pageTitle }}</h3>
-        <div class="topbar-right">
-          <span class="tb-name">{{ authStore.user?.name || authStore.user?.email }}</span>
-          <span class="tb-role">Service Staff</span>
-        </div>
-      </header>
+      <Topbar />
       <div class="content">
         <router-view />
       </div>
@@ -54,6 +38,7 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import Topbar from "./Topbar.vue";
 
 const router = useRouter()
 const route = useRoute()
@@ -65,12 +50,8 @@ const titleMap = {
   '/staff/schedule': 'My Schedule',
   '/staff/appointments': 'My Appointments',
 }
-const pageTitle = computed(() => titleMap[route.path] || 'Staff Portal')
+// const pageTitle = computed(() => titleMap[route.path] || 'Staff Portal')
 
-async function handleLogout() {
-  await authStore.logout()
-  router.push('/login')
-}
 </script>
 
 <style scoped>

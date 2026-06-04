@@ -33,10 +33,10 @@ module.exports = {
         ),
         allowNull: false,
       },
-      employee_type:{
-        type: Sequelize.ENUM("visiting", "permanent", "remote"),
-        allowNull: false,
-      },
+      // employee_type:{
+      //   type: Sequelize.ENUM("visiting", "permanent", "remote"),
+      //   allowNull: false,
+      // },
       location_code: {
         type: Sequelize.STRING(8),
         allowNull: false,

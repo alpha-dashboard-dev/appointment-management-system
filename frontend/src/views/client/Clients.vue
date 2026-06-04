@@ -5,14 +5,11 @@
     <div class="d-flex align-items-center justify-content-between">
       <div>
         <h2 class="mb-0">Clients</h2>
-        <p class="text-muted small mb-0">Manage all clients</p>
+        <!-- <p class="text-muted small mb-0">Manage all clients</p> -->
       </div>
-      <router-link to="/clients/create" class="btn btn-ams">+ New Client</router-link>
-    </div>
-
-    <!-- FILTER -->
-    <div class="d-flex gap-2">
+      <div class="d-flex gap-2">
       <input v-model="search" class="form-control" style="max-width:300px" placeholder="Search by name or email..." />
+    </div>
     </div>
 
 
@@ -27,7 +24,7 @@
               <th class="ps-3">Full Name</th>
               <th>Email</th>
               <th>Phone</th>
-              <th>User Code</th>
+              <th>Status</th>
               <th class="pe-3" style="width:140px">Actions</th>
             </tr>
           </thead>
@@ -36,10 +33,33 @@
               <td class="ps-3">{{ client.name }}</td>
               <td>{{ client.email }}</td>
               <td>{{ client.phone || '—' }}</td>
-              <td><code>{{ client.user_code }}</code></td>
+              <td>
+                <span :class="['ams-badge', client.is_active === 'active' ? 'active' : 'inactive']">
+                  {{ client.is_active === 'active' ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(client)">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" @click="openDelete(client)">Delete</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(client)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(client)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredClients.length === 0">
@@ -72,6 +92,20 @@
                 <label class="form-label fw-semibold">Phone</label>
                 <input v-model="editForm.phone" class="form-control" placeholder="Phone" />
               </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">New Password</label>
+                <input v-model="editForm.password" type="password" class="form-control" placeholder="Leave blank to keep current password"/>
+                <small class="text-muted">
+                  Leave empty if you don't want to change the password.
+                </small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Status</label>
+                <select v-model="editForm.is_active" class="form-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
               <p v-if="formError" class="text-danger small mb-0">{{ formError }}</p>
             </div>
             <div class="modal-footer">
@@ -82,13 +116,12 @@
         </div>
       </div>
     </div>
-
-    <!-- DELETE CONFIRM MODAL -->
+<!--  Deactivate Client-->
     <div v-if="showDeleteModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
       <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Delete Client</h5>
+            <h5 class="modal-title">Deactivate Client</h5>
             <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
           </div>
           <div class="modal-body text-center">
@@ -96,11 +129,30 @@
           </div>
           <div class="modal-footer justify-content-center">
             <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
-            <button class="btn btn-danger btn-sm" @click="deleteClient" :disabled="saving">{{ saving ? '...' : 'Delete' }}</button>
+            <button class="btn btn-danger btn-sm" @click="deactivateClient" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- DELETE CONFIRM MODAL -->
+<!--    <div v-if="showDeleteModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">-->
+<!--      <div class="modal-dialog modal-sm modal-dialog-centered">-->
+<!--        <div class="modal-content">-->
+<!--          <div class="modal-header">-->
+<!--            <h5 class="modal-title">Delete Client</h5>-->
+<!--            <button type="button" class="btn-close" @click="showDeleteModal = false"></button>-->
+<!--          </div>-->
+<!--          <div class="modal-body text-center">-->
+<!--            <p class="mb-0">Delete <strong>{{ selected?.name }}</strong>?</p>-->
+<!--          </div>-->
+<!--          <div class="modal-footer justify-content-center">-->
+<!--            <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>-->
+<!--            <button class="btn btn-danger btn-sm" @click="deleteClient" :disabled="saving">{{ saving ? '...' : 'Delete' }}</button>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
 
   </div>
 </template>
@@ -120,7 +172,7 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
 
-const editForm = reactive({ name: '', email: '', phone: '' })
+const editForm = reactive({ name: '', email: '', phone: '', password: '', is_active: '' })
 
 const filteredClients = computed(() => {
   const s = search.value.toLowerCase()
@@ -149,6 +201,8 @@ function openEdit(client) {
   editForm.name = client.name
   editForm.email = client.email
   editForm.phone = client.phone || ''
+  editForm.password = client.password || ''
+  editForm.is_active = client.is_active
   formError.value = ''
   showEditModal.value = true
 }
@@ -172,18 +226,31 @@ async function updateClient() {
   }
 }
 
-async function deleteClient() {
+async function deactivateClient() {
   saving.value = true
   try {
-    await api.delete(`/clients/delete-client/${selected.value.user_code}`)
+    await api.patch(`/users/update-user-status${selected.value.user_code}`, { is_active: 'inactive' })
     showDeleteModal.value = false
     await fetchClients()
   } catch (err) {
-    error.value = err.response?.data?.message || 'Delete failed'
+    error.value = err.response?.data?.message || 'Deactivation failed'
   } finally {
     saving.value = false
   }
 }
+
+// async function deleteClient() {
+//   saving.value = true
+//   try {
+//     await api.delete(`/clients/delete-client/${selected.value.user_code}`)
+//     showDeleteModal.value = false
+//     await fetchClients()
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Delete failed'
+//   } finally {
+//     saving.value = false
+//   }
+// }
 
 onMounted(fetchClients)
 </script>

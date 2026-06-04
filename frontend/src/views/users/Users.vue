@@ -20,8 +20,8 @@
             <tr>
               <th class="ps-3">Full Name</th>
               <th>Email</th>
-              <th>Type</th>
-              <th>Code</th>
+              <th>Phone</th>
+              <th>Role</th>
               <th>Status</th>
               <th class="pe-3" style="width:160px">Actions</th>
             </tr>
@@ -30,16 +30,33 @@
             <tr v-for="user in users" :key="user.user_code">
               <td class="ps-3">{{ user.name }}</td>
               <td>{{ user.email }}</td>
+              <td>{{user.phone}}</td>
               <td>{{ user.user_type }}</td>
-              <td><code>{{ user.user_code }}</code></td>
               <td>
                 <span :class="['ams-badge', user.is_active === 'active' ? 'active' : 'inactive']">
                   {{ user.is_active === 'active' ? 'Active' : 'Inactive' }}
                 </span>
               </td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(user)">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" @click="openDelete(user)">Deactivate</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(user)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(user)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="users.length === 0">
@@ -67,6 +84,18 @@
               <div class="mb-3">
                 <label class="form-label fw-semibold">Email *</label>
                 <input v-model="editForm.email" type="email" class="form-control" placeholder="Email" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Phone *</label>
+                <input v-model="editForm.phone" type="text" class="form-control" placeholder="Phone" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">New Password</label>
+
+                <input v-model="editForm.password" type="password" class="form-control" placeholder="Leave blank to keep current password"/>
+                <small class="text-muted">
+                  Leave empty if you don't want to change the password.
+                </small>
               </div>
               <div class="mb-3">
                 <label class="form-label fw-semibold">Status</label>
@@ -122,7 +151,7 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
 
-const editForm = reactive({ name: '', email: '', is_active: 'active' })
+const editForm = reactive({ name: '', email: '', phone: '', password: '', is_active: 'active' })
 
 async function fetchUsers() {
   loading.value = true
@@ -141,6 +170,8 @@ function openEdit(user) {
   selected.value = user
   editForm.name = user.name
   editForm.email = user.email
+  editForm.phone = user.phone
+  editForm.password = user.password
   editForm.is_active = user.is_active
   formError.value = ''
   showEditModal.value = true

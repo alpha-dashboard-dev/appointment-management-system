@@ -18,14 +18,14 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Code</th><th>Date</th><th>Start</th><th>End</th><th>Location</th><th class="pe-3">Status</th></tr>
+            <tr><th class="ps-3">Code</th><th>Start Date</th><th>Start Time</th><th>End Time</th><th>Location</th><th class="pe-3">Status</th></tr>
           </thead>
           <tbody>
             <tr v-for="appt in appointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
-              <td>{{ appt.appointment_start_date?.split('T')[0] ?? '—' }}</td>
-              <td>{{ appt.start_time ?? '—' }}</td>
-              <td>{{ appt.end_time ?? '—' }}</td>
+              <td>{{ formatDate(appt.appointment_start_date) }}</td>
+              <td>{{ formatTime(appt.start_time) }}</td>
+              <td>{{ formatTime(appt.end_time) }}</td>
               <td>{{ appt.location_code ?? '—' }}</td>
               <td class="pe-3"><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
             </tr>
@@ -40,6 +40,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
+import formatDate from "../../utils/formatDate.js";
 
 const appointments = ref([])
 const loading = ref(true)

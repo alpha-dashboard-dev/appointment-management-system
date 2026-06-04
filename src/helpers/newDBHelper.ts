@@ -123,6 +123,7 @@ class DbHelper {
     }
 
     async update(table: any, id: number, data: any) {
+        // console.log(data)
         if (this.orm === "sequelize") {
             return await table.sequelize.update(data, {
                 where: { id },

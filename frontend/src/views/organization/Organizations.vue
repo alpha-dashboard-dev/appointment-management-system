@@ -19,7 +19,7 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Name</th>
-              <th>Code</th>
+              <th>Organization Code</th>
               <th>Status</th>
               <th class="pe-3" style="width:180px">Actions</th>
             </tr>
@@ -27,11 +27,29 @@
           <tbody>
             <tr v-for="org in organizations" :key="org.organization_code">
               <td class="ps-3">{{ org.name }}</td>
-              <td><code>{{ org.organization_code }}</code></td>
+              <td><strong>{{ org.organization_code }}</strong></td>
               <td><span :class="['ams-badge', org.status]">{{ org.status }}</span></td>
               <td class="pe-3">
-                <button class="btn btn-sm btn-outline-primary me-1" @click="openEdit(org)">Edit</button>
-                <button class="btn btn-sm btn-outline-danger" @click="openDelete(org)">Deactivate</button>
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(org)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(org)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </td>
             </tr>
             <tr v-if="organizations.length === 0">
