@@ -176,8 +176,8 @@
         <form @submit.prevent="updateCharge">
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label fw-semibold">Business Name *</label>
-              <input v-model="editForm.name" class="form-control" placeholder="Business Name" required />
+              <label class="form-label fw-semibold">Charge Name *</label>
+              <input v-model="editForm.name" class="form-control" placeholder="Charge Name" required />
             </div>
             <div class="mb-3">
               <label class="form-label fw-semibold">Description</label>

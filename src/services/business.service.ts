@@ -70,16 +70,6 @@ class BusinessService {
 
         return await repo.update(businessCode, allowed);
     }
-
-    // async assignUser(businessCode: string, userCode: string, adminUser: any) {
-    //     const user = await repo.findByCode(businessCode);
-    //
-    //     if (!user) throw new Error("Business not found");
-    //
-    //     return await repo.update(businessCode, {
-    //         user_code: userCode,
-    //     });
-    // }
     async changeStatus(businessCode: string, status: string) {
         if (!["active", "inactive"].includes(status)) {
             throw new Error("Status must be 'active' or 'inactive'");

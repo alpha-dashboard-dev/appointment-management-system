@@ -8,6 +8,8 @@ import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.rep
 import chargeRepo from "../repositories/charge.repository";
 import invoiceRepo from "../repositories/invoice.repository";
 import scheduleRepo from "../repositories/schedule.repository";
+import locationServiceRepo from "../repositories/locationService.repository";
+import locationRepo from "../repositories/location.repository";
 import serviceRepo from "../repositories/service.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { ROLES } from "../utils/roles";
@@ -60,7 +62,218 @@ function normalizeTimeToHHMM(input: any, label: "startTime" | "endTime"): string
     return `${match[1]}:${match[2]}`;
 }
 
+function normalizeTimeToHHMMSS(input: any): string {
+    const raw = input == null ? "" : String(input).trim();
+    const match = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/.exec(raw);
+    if (!match) return raw;
+    return `${match[1]}:${match[2]}:${match[3] || "00"}`;
+}
+
 class AppointmentService {
+
+    private toRow<T = any>(value: any): T {
+        return (value?.dataValues || value) as T;
+    }
+
+    private scheduleCoversSlot(scheduleStart: any, scheduleEnd: any, slotStart: any, slotEnd: any): boolean {
+        const sStart = normalizeTimeToHHMMSS(scheduleStart);
+        const sEnd = normalizeTimeToHHMMSS(scheduleEnd);
+        const aStart = normalizeTimeToHHMMSS(slotStart);
+        const aEnd = normalizeTimeToHHMMSS(slotEnd);
+        return sStart <= aStart && sEnd >= aEnd;
+    }
+
+    private simplifyStaffRows(rows: any[] = []) {
+        return rows.map((row: any) => ({
+            user_code: row.user_code,
+            staff_name: row.staff_name || null,
+            location_code: row.location_code,
+            working_day: row.working_days,
+            start_time: normalizeTimeToHHMMSS(row.start_time),
+            end_time: normalizeTimeToHHMMSS(row.end_time),
+        }));
+    }
+
+    private uniqStaffSlots(rows: any[] = []) {
+        const seen = new Set<string>();
+        const result: any[] = [];
+
+        for (const row of rows) {
+            const key = [row.user_code, row.location_code, row.start_time, row.end_time].join("|");
+            if (seen.has(key)) continue;
+            seen.add(key);
+            result.push(row);
+        }
+
+        return result;
+    }
+
+    private groupByLocation(rows: any[] = []) {
+        const groups = new Map<string, any[]>();
+
+        for (const row of rows) {
+            const loc = row.location_code;
+            if (!loc) continue;
+            if (!groups.has(loc)) groups.set(loc, []);
+            groups.get(loc)!.push(row);
+        }
+
+        return [...groups.entries()].map(([location_code, staff]) => ({
+            location_code,
+            staff: this.uniqStaffSlots(this.simplifyStaffRows(staff)),
+        }));
+    }
+
+    private async attachLocationMeta(groups: any[] = []) {
+        const out: any[] = [];
+        for (const group of groups) {
+            const location = await locationRepo.findByCode(group.location_code);
+            const row = location ? this.toRow(location) : null;
+            out.push({
+                ...group,
+                location: row
+                    ? {
+                        city: row.city || null,
+                        address: row.address || null,
+                        status: row.status || null,
+                    }
+                    : null,
+            });
+        }
+        return out;
+    }
+
+    private async buildAvailabilityInsights(appointment: any, appointmentCode: string) {
+        const row = this.toRow(appointment);
+        const date = normalizeDateOnly(row.appointment_start_date);
+        const workingDay = getWorkingDayFromDate(row.appointment_start_date);
+        const startTime = normalizeTimeToHHMM(row.start_time, "startTime");
+        const endTime = normalizeTimeToHHMM(row.end_time, "endTime");
+
+        const locationConflicts = await repo.findLocationSlotConflicts(
+            row.business_code,
+            row.location_code,
+            date,
+            startTime,
+            endTime,
+            appointmentCode
+        );
+
+        const busyStaffCodes = new Set(
+            await participantRepo.findBusyStaffCodes(date, startTime, endTime, appointmentCode)
+        );
+
+        const sameSlotAtLocationRaw = await scheduleRepo.findAvailableStaff(
+            row.business_code,
+            row.location_code,
+            workingDay,
+            startTime,
+            endTime
+        );
+
+        const availableSameSlot = (sameSlotAtLocationRaw || []).filter(
+            (staff: any) => !busyStaffCodes.has(staff.user_code)
+        );
+
+        const sameLocationSchedules = await scheduleRepo.findStaffSchedulesByDay(
+            row.business_code,
+            workingDay,
+            row.location_code
+        );
+        const sameLocationOtherSlots = (sameLocationSchedules || []).filter(
+            (slot: any) => !this.scheduleCoversSlot(slot.start_time, slot.end_time, startTime, endTime)
+        );
+
+        const allSchedulesForDay = await scheduleRepo.findStaffSchedulesByDay(row.business_code, workingDay);
+        const otherLocationSameSlot = (allSchedulesForDay || []).filter(
+            (slot: any) =>
+                slot.location_code !== row.location_code &&
+                this.scheduleCoversSlot(slot.start_time, slot.end_time, startTime, endTime) &&
+                !busyStaffCodes.has(slot.user_code)
+        );
+
+        const appointmentServices = await appointmentServiceRepo.findByAppointment(appointmentCode);
+        const selectedServiceCodes = (appointmentServices || [])
+            .map((s: any) => this.toRow(s).service_code)
+            .filter(Boolean);
+
+        const selectedServiceLocations: any[] = [];
+        if (selectedServiceCodes.length > 0) {
+            const locServices = await locationServiceRepo.findAll({
+                business_code: row.business_code,
+                availability: "available",
+            });
+
+            const grouped = new Map<string, Set<string>>();
+            for (const lsItem of locServices || []) {
+                const ls = this.toRow(lsItem);
+                if (!selectedServiceCodes.includes(ls.service_code)) continue;
+                if (!grouped.has(ls.location_code)) grouped.set(ls.location_code, new Set<string>());
+                grouped.get(ls.location_code)!.add(ls.service_code);
+            }
+
+            for (const [locationCode, serviceSet] of grouped.entries()) {
+                if (locationCode === row.location_code) continue;
+
+                const sameSlotRaw = await scheduleRepo.findAvailableStaff(
+                    row.business_code,
+                    locationCode,
+                    workingDay,
+                    startTime,
+                    endTime
+                );
+                const sameSlot = (sameSlotRaw || []).filter(
+                    (staff: any) => !busyStaffCodes.has(staff.user_code)
+                );
+
+                const daySchedules = await scheduleRepo.findStaffSchedulesByDay(
+                    row.business_code,
+                    workingDay,
+                    locationCode
+                );
+                const otherSlots = (daySchedules || []).filter(
+                    (slot: any) => !this.scheduleCoversSlot(slot.start_time, slot.end_time, startTime, endTime)
+                );
+
+                const location = await locationRepo.findByCode(locationCode);
+                const locationRow = location ? this.toRow(location) : null;
+
+                selectedServiceLocations.push({
+                    location_code: locationCode,
+                    location: locationRow
+                        ? {
+                            city: locationRow.city || null,
+                            address: locationRow.address || null,
+                            status: locationRow.status || null,
+                        }
+                        : null,
+                    matched_service_codes: [...serviceSet],
+                    available_staff_same_slot: this.uniqStaffSlots(this.simplifyStaffRows(sameSlot)),
+                    alternative_staff_time_slots: this.uniqStaffSlots(this.simplifyStaffRows(otherSlots)),
+                });
+            }
+        }
+
+        const groupedOtherLocations = this.groupByLocation(otherLocationSameSlot);
+        const groupedOtherLocationsWithMeta = await this.attachLocationMeta(groupedOtherLocations);
+
+        return {
+            appointment_code: appointmentCode,
+            date,
+            start_time: normalizeTimeToHHMMSS(startTime),
+            end_time: normalizeTimeToHHMMSS(endTime),
+            location_code: row.location_code,
+            working_day: workingDay,
+            location_slot_already_booked: (locationConflicts || []).length > 0,
+            conflicting_appointments: (locationConflicts || []).map((c: any) => c.appointment_code),
+            available_staff: this.uniqStaffSlots(this.simplifyStaffRows(availableSameSlot)),
+            alternatives: {
+                different_time_same_location: this.uniqStaffSlots(this.simplifyStaffRows(sameLocationOtherSlots)),
+                different_location_same_time: groupedOtherLocationsWithMeta,
+                selected_service_other_locations: selectedServiceLocations,
+            },
+        };
+    }
 
     private toAmount(value: any): number {
         const n = Number(value ?? 0);
@@ -415,10 +628,11 @@ class AppointmentService {
 
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
+        const appointmentRow = this.toRow(appointment);
 
         // Non-admin actors can only change status for appointments in their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
-            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            const apptBusiness = appointmentRow.business_code;
             if (apptBusiness !== actor.businessCode) {
                 throw new Error("Access denied: appointment does not belong to your business");
             }
@@ -426,31 +640,52 @@ class AppointmentService {
 
         // Schedule conflict check when approving
         if (status === "approved") {
-            if (!appointment.location_code) {
+            if (!appointmentRow.location_code) {
                 throw new Error("Cannot approve appointment without a location");
             }
-            if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time) {
+            if (!appointmentRow.appointment_start_date || !appointmentRow.start_time || !appointmentRow.end_time) {
                 throw new Error("Appointment is missing date or time information");
             }
 
-            const workingDay = getWorkingDayFromDate(appointment.appointment_start_date);
+            const date = normalizeDateOnly(appointmentRow.appointment_start_date);
+            const startTime = normalizeTimeToHHMM(appointmentRow.start_time, "startTime");
+            const endTime = normalizeTimeToHHMM(appointmentRow.end_time, "endTime");
+            const locationConflicts = await repo.findLocationSlotConflicts(
+                appointmentRow.business_code,
+                appointmentRow.location_code,
+                date,
+                startTime,
+                endTime,
+                appointmentCode
+            );
+            if (locationConflicts.length > 0) {
+                throw new Error("Cannot approve appointment: this location time slot is already booked");
+            }
 
-            const availableStaff = await scheduleRepo.findAvailableStaff(
-                appointment.business_code,
-                appointment.location_code,
-                workingDay,
-                appointment.start_time,
-                appointment.end_time
+            const workingDay = getWorkingDayFromDate(appointmentRow.appointment_start_date);
+            const busyStaffCodes = new Set(
+                await participantRepo.findBusyStaffCodes(date, startTime, endTime, appointmentCode)
             );
 
-            if (!availableStaff || availableStaff.length === 0) {
+            const availableStaff = await scheduleRepo.findAvailableStaff(
+                appointmentRow.business_code,
+                appointmentRow.location_code,
+                workingDay,
+                startTime,
+                endTime
+            );
+            const freeStaff = (availableStaff || []).filter(
+                (staff: any) => !busyStaffCodes.has(staff.user_code)
+            );
+
+            if (!freeStaff || freeStaff.length === 0) {
                 throw new Error(
-                    `No available staff for this appointment time slot (${workingDay} ${appointment.start_time}–${appointment.end_time} at location ${appointment.location_code})`
+                    `No available service_staff for this appointment time slot (${workingDay} ${startTime}–${endTime} at location ${appointmentRow.location_code})`
                 );
             }
         }
 
-        const oldStatus = appointment.status;
+        const oldStatus = appointmentRow.status;
 
         const updateData: any = { status };
         if (status === "approved") updateData.approved_by = actor?.userCode || null;
@@ -468,10 +703,10 @@ class AppointmentService {
         await repo.update(appointmentCode, updateData);
 
         if (status === "approved") {
-            await this.applyActiveChargesToAppointment(appointment.business_code, appointmentCode);
-            const pricing = await this.computeAppointmentPricing(appointment.business_code, appointmentCode);
+            await this.applyActiveChargesToAppointment(appointmentRow.business_code, appointmentCode);
+            const pricing = await this.computeAppointmentPricing(appointmentRow.business_code, appointmentCode);
             await this.upsertDraftInvoice(
-                appointment.business_code,
+                appointmentRow.business_code,
                 appointmentCode,
                 pricing.subtotal,
                 pricing.total,
@@ -480,7 +715,7 @@ class AppointmentService {
         }
 
         await historyRepo.create({
-            business_code: appointment.business_code,
+            business_code: appointmentRow.business_code,
             appointment_code: appointmentCode,
             action: actionMap[status] || "updated",
             changed_by: actor?.userCode,
@@ -878,40 +1113,22 @@ class AppointmentService {
      */
     async checkAvailability(appointmentCode: string, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
-        // console.log(appointment)
         if (!appointment) throw new Error("Appointment not found");
+        const appointmentRow = this.toRow(appointment);
 
         if (actor && actor.userType !== ROLES.ADMIN) {
-            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            const apptBusiness = appointmentRow.business_code;
             if (apptBusiness !== actor.businessCode) {
                 throw new Error("Access denied: appointment does not belong to your business");
             }
         }
 
-        if (!appointment.location_code)
+        if (!appointmentRow.location_code)
             throw new Error("Appointment has no location assigned — cannot check staff availability");
-        if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time)
+        if (!appointmentRow.appointment_start_date || !appointmentRow.start_time || !appointmentRow.end_time)
             throw new Error("Appointment is missing date or time information");
 
-        const workingDay = getWorkingDayFromDate(appointment.appointment_start_date);
-
-        const availableStaff = await scheduleRepo.findAvailableStaff(
-            appointment.business_code,
-            appointment.location_code,
-            workingDay,
-            appointment.start_time,
-            appointment.end_time
-        );
-
-        return {
-            appointment_code: appointmentCode,
-            date: appointment.appointment_start_date,
-            start_time: appointment.start_time,
-            end_time: appointment.end_time,
-            location_code: appointment.location_code,
-            working_day: workingDay,
-            available_staff: availableStaff || [],
-        };
+        return await this.buildAvailabilityInsights(appointmentRow, appointmentCode);
     }
 
     /**
@@ -923,44 +1140,65 @@ class AppointmentService {
     async approveWithStaff(appointmentCode: string, staffCode: string, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
+        const appointmentRow = this.toRow(appointment);
 
         if (actor && actor.userType !== ROLES.ADMIN) {
-            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            const apptBusiness = appointmentRow.business_code;
             if (apptBusiness !== actor.businessCode) {
                 throw new Error("Access denied: appointment does not belong to your business");
             }
         }
 
-        const currentStatus = appointment.dataValues?.status ?? appointment.status;
+        const currentStatus = appointmentRow.status;
         if (currentStatus !== "pending")
             throw new Error("Only pending appointments can be approved this way");
 
-        if (!appointment.location_code)
+        if (!appointmentRow.location_code)
             throw new Error("Cannot approve appointment without a location");
-        if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time)
+        if (!appointmentRow.appointment_start_date || !appointmentRow.start_time || !appointmentRow.end_time)
             throw new Error("Appointment is missing date or time information");
 
-        const workingDay = getWorkingDayFromDate(appointment.appointment_start_date);
+        const dateStr = normalizeDateOnly(appointmentRow.appointment_start_date);
+        const startTime = normalizeTimeToHHMM(appointmentRow.start_time, "startTime");
+        const endTime = normalizeTimeToHHMM(appointmentRow.end_time, "endTime");
+        const workingDay = getWorkingDayFromDate(appointmentRow.appointment_start_date);
+
+        const locationConflicts = await repo.findLocationSlotConflicts(
+            appointmentRow.business_code,
+            appointmentRow.location_code,
+            dateStr,
+            startTime,
+            endTime,
+            appointmentCode
+        );
+        if (locationConflicts.length > 0) {
+            throw new Error("Cannot approve appointment: this location time slot is already booked");
+        }
+
+        const busyStaffCodes = new Set(
+            await participantRepo.findBusyStaffCodes(dateStr, startTime, endTime, appointmentCode)
+        );
 
         // Confirm the chosen staff is still in an available schedule slot
         const availableStaff = await scheduleRepo.findAvailableStaff(
-            appointment.business_code,
-            appointment.location_code,
+            appointmentRow.business_code,
+            appointmentRow.location_code,
             workingDay,
-            appointment.start_time,
-            appointment.end_time
+            startTime,
+            endTime
         );
-        const staffRecord = (availableStaff || []).find((s: any) => s.user_code === staffCode);
+        const staffRecord = (availableStaff || []).find(
+            (s: any) => s.user_code === staffCode && !busyStaffCodes.has(s.user_code)
+        );
         if (!staffRecord)
-            throw new Error("Selected staff member is not available for this appointment slot");
+            throw new Error("Selected service_staff is not available for this appointment slot");
 
         // Check for double-booking
-        const dateStr = normalizeDateOnly(appointment.appointment_start_date);
         const conflicts = await participantRepo.findConflictsForStaff(
             staffCode,
             dateStr,
-            appointment.start_time,
-            appointment.end_time,
+            startTime,
+            endTime,
             appointmentCode
         );
         if (conflicts && conflicts.length > 0)
@@ -968,7 +1206,7 @@ class AppointmentService {
 
         // Assign the staff member as participant
         await participantRepo.create({
-            business_code: appointment.business_code,
+            business_code: appointmentRow.business_code,
             appointment_code: appointmentCode,
             user_code: staffCode,
             user_type: ROLES.SERVICE_STAFF,
@@ -979,10 +1217,10 @@ class AppointmentService {
         // Approve
         await repo.update(appointmentCode, { status: "approved", approved_by: actor?.userCode || null });
 
-        await this.applyActiveChargesToAppointment(appointment.business_code, appointmentCode);
-        const pricing = await this.computeAppointmentPricing(appointment.business_code, appointmentCode);
+        await this.applyActiveChargesToAppointment(appointmentRow.business_code, appointmentCode);
+        const pricing = await this.computeAppointmentPricing(appointmentRow.business_code, appointmentCode);
         await this.upsertDraftInvoice(
-            appointment.business_code,
+            appointmentRow.business_code,
             appointmentCode,
             pricing.subtotal,
             pricing.total,
@@ -990,7 +1228,7 @@ class AppointmentService {
         );
 
         await historyRepo.create({
-            business_code: appointment.business_code,
+            business_code: appointmentRow.business_code,
             appointment_code: appointmentCode,
             action: "approved",
             changed_by: actor?.userCode,

@@ -2,66 +2,93 @@
 
   <div class="forgot-page">
 
-    <div class="forgot-card">
+    <!-- LEFT SIDE -->
 
-      <!-- HEADER -->
+    <div class="forgot-left">
 
-      <div class="forgot-header">
+      <div class="forgot-card">
 
-        <h2>Forgot Password</h2>
+        <!-- HEADER -->
 
-        <p>
-          No worries, we'll send you reset instructions
-        </p>
+        <div class="forgot-header">
 
-      </div>
+          <h2>Forgot Password</h2>
 
-      <!-- FORM -->
-
-      <form class="form" @submit.prevent="resetPassword">
-
-        <!-- EMAIL -->
-
-        <div class="input-wrapper">
-
-          <i class="bi bi-envelope input-icon"></i>
-
-          <input
-              v-model="email"
-              type="email"
-              class="custom-input"
-              :class="{ 'input-error': emailError }"
-              placeholder="Enter your email"
-              @blur="validateEmail"
-          />
+          <p>
+            No worries, we'll send you reset instructions
+          </p>
 
         </div>
 
-        <p v-if="emailError" class="field-error">{{ emailError }}</p>
+        <!-- FORM -->
 
-        <!-- BUTTON -->
+        <form class="form" @submit.prevent="resetPassword">
 
-        <button
-            type="submit"
-            class="submit-btn"
-        >
-          Send Reset Link
-        </button>
+          <!-- EMAIL -->
 
-      </form>
+          <div class="input-wrapper">
 
-      <!-- RETURN LOGIN -->
+            <i class="bi bi-envelope input-icon"></i>
 
-      <div class="return-login">
+            <input
+                v-model="email"
+                type="email"
+                class="custom-input"
+                :class="{ 'input-error': emailError }"
+                placeholder="Enter your email"
+                @blur="validateEmail"
+            />
 
-        <RouterLink
-            to="/login"
-            class="login-link"
-        >
-          <i class="bi bi-arrow-left"></i>
+          </div>
 
-          Return to Login
-        </RouterLink>
+          <p v-if="emailError" class="field-error">{{ emailError }}</p>
+
+          <!-- BUTTON -->
+
+          <button
+              type="submit"
+              class="btn btn-primary w-100 forgot-btn"
+          >
+            Send Reset Link
+          </button>
+
+        </form>
+
+        <!-- RETURN LOGIN -->
+
+        <div class="return-login">
+
+          <RouterLink
+              to="/login"
+              class="login-link"
+          >
+            <i class="bi bi-arrow-left"></i>
+
+            Return to Login
+          </RouterLink>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDE -->
+
+    <div class="forgot-right">
+
+      <div class="overlay">
+
+        <div class="right-content">
+
+          <h1>Appointment Management System</h1>
+
+          <p>
+            Manage your appointments efficiently.<br>
+            Reset your password to regain access.
+          </p>
+
+        </div>
 
       </div>
 
@@ -95,13 +122,22 @@ function resetPassword() {
 
   min-height: 100vh;
 
-  background: var(--color-bg, #f4f6f9);
+  display: flex;
+
+  background: #f4f6f9;
+}
+
+/* LEFT SIDE */
+
+.forgot-left {
+
+  width: 50%;
 
   display: flex;
   justify-content: center;
   align-items: center;
 
-  padding: 20px;
+  padding: 40px;
 }
 
 .forgot-card {
@@ -109,37 +145,33 @@ function resetPassword() {
   width: 100%;
   max-width: 500px;
 
-  background: var(--color-surface, white);
+  background: white;
 
   padding: 50px;
 
-  border-radius: 18px;
+  border-radius: 20px;
 
   box-shadow: 0 10px 35px rgba(0,0,0,0.08);
 }
 
 .forgot-header {
 
-  text-align: center;
-
   margin-bottom: 35px;
 }
 
 .forgot-header h2 {
 
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 700;
 
-  color: var(--color-text, #111827);
-
-  margin-bottom: 10px;
+  color: #111827;
 }
 
 .forgot-header p {
 
-  color: var(--color-muted, #6b7280);
+  margin-top: 10px;
 
-  margin: 0;
+  color: #6b7280;
 }
 
 .form {
@@ -151,8 +183,9 @@ function resetPassword() {
   gap: 20px;
 }
 
-.input-wrapper {
+/* INPUT */
 
+.input-wrapper {
   position: relative;
 }
 
@@ -178,25 +211,20 @@ function resetPassword() {
 
   padding-left: 45px;
 
-  border: 1px solid var(--color-border, #d1d5db);
-
   border-radius: 12px;
+
+  border: 1px solid #d1d5db;
 
   font-size: 14px;
 
   outline: none;
 
-  background: var(--color-input-bg, white);
-  color: var(--color-text);
-
   transition: border-color 0.2s;
 }
 
 .custom-input:focus {
-
-  border-color: #6366f1;
-
   box-shadow: none;
+  border-color: #0d6efd;
 }
 
 .custom-input.input-error {
@@ -209,31 +237,19 @@ function resetPassword() {
   margin: -12px 0 0 4px;
 }
 
-.submit-btn {
+/* BUTTON */
+
+.forgot-btn {
 
   height: 55px;
-
-  background: #6366f1;
-
-  color: white;
-
-  border: none;
 
   border-radius: 12px;
 
   font-size: 16px;
-
   font-weight: 600;
-
-  cursor: pointer;
-
-  transition: background 0.2s;
 }
 
-.submit-btn:hover {
-
-  background: #4f46e5;
-}
+/* RETURN */
 
 .return-login {
 
@@ -246,16 +262,78 @@ function resetPassword() {
 
   text-decoration: none;
 
-  color: #6366f1;
-
-  font-size: 14px;
+  color: #0d6efd;
 
   font-weight: 500;
 }
 
 .login-link:hover {
-
   text-decoration: underline;
+}
+
+/* RIGHT SIDE */
+
+.forgot-right {
+
+  width: 50%;
+
+  background-image:
+      url('https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1600');
+
+  background-size: cover;
+  background-position: center;
+
+  position: relative;
+}
+
+.overlay {
+
+  width: 100%;
+  height: 100%;
+
+  background: rgba(13, 110, 253, 0.75);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 40px;
+}
+
+.right-content {
+
+  color: white;
+
+  text-align: center;
+}
+
+.right-content h1 {
+
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.right-content p {
+
+  margin-top: 20px;
+
+  font-size: 18px;
+
+  line-height: 1.7;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 992px) {
+
+  .forgot-right {
+    display: none;
+  }
+
+  .forgot-left {
+    width: 100%;
+  }
+
 }
 
 /* DARK MODE */
@@ -272,20 +350,22 @@ function resetPassword() {
   border-color:#374151;
 }
 
-:global(body.dark-mode .custom-input){
+:global(body.dark-mode input){
 
   background:#111827;
 
-  color:white;
-
   border-color:#374151;
+
+  color:white;
 }
+
+:global(body.dark-mode .forgot-header h1),
 
 :global(body.dark-mode .forgot-header h2),
 
 :global(body.dark-mode .forgot-header p),
 
-:global(body.dark-mode .login-link){
+:global(body.dark-mode .forgot-header label){
 
   color:white;
 }

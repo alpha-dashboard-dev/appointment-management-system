@@ -45,6 +45,31 @@ class AppointmentRepository {
     async update(appointmentCode: string, data: any) {
         return dbHelper.updateByCode(this.tables, "appointment_code", appointmentCode, data);
     }
+
+    async findLocationSlotConflicts(
+        businessCode: string,
+        locationCode: string,
+        date: string,
+        startTime: string,
+        endTime: string,
+        excludeAppointmentCode?: string
+    ) {
+        return await db.Appointment.findAll({
+            where: {
+                business_code: businessCode,
+                location_code: locationCode,
+                appointment_start_date: date,
+                status: { [Op.in]: ["approved", "in_progress"] },
+                ...(excludeAppointmentCode ? { appointment_code: { [Op.ne]: excludeAppointmentCode } } : {}),
+                [Op.or]: [
+                    { start_time: { [Op.lte]: startTime }, end_time: { [Op.gt]: startTime } },
+                    { start_time: { [Op.lt]: endTime }, end_time: { [Op.gte]: endTime } },
+                    { start_time: { [Op.gte]: startTime }, end_time: { [Op.lte]: endTime } },
+                ],
+            },
+            raw: true,
+        });
+    }
 }
 
 export default new AppointmentRepository();

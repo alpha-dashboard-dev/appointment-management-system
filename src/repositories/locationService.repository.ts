@@ -19,6 +19,7 @@ class LocationServiceRepository {
         if (filters.business_code) where.business_code = filters.business_code;
         if (filters.location_code) where.location_code = filters.location_code;
         if (filters.service_code) where.service_code = filters.service_code;
+        if (filters.availability) where.availability = filters.availability;
         return dbHelper.findAll(this.tables, { where });
     }
 

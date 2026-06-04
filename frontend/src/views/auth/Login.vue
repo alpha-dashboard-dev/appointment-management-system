@@ -82,7 +82,7 @@
 
           </div>
 
-          <RouterLink to="/reset-password" class="forgot-link">
+          <RouterLink to="/forgot-password" class="forgot-link">
             Forgot Password?
           </RouterLink>
 
@@ -195,32 +195,92 @@ async function submit() {
 
 <style scoped>
 
+/* FULL PAGE */
+
 .login-page {
 
   min-height: 100vh;
-
-  background: #f4f6f9;
 
   display: flex;
   justify-content: center;
   align-items: center;
 
+  background-image:
+      url('https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1600');
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+/* BLUE OVERLAY */
+
+.login-page::before {
+
+  content: '';
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+      rgba(13,110,253,.75);
+
+  z-index: 1;
+}
+
+/* CENTER LOGIN */
+
+.login-left {
+
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  position: relative;
+
+  z-index: 2;
+
   padding: 20px;
 }
+
+/* HIDE RIGHT PANEL */
+
+.login-right {
+
+  display: none;
+}
+
+/* LOGIN CARD */
 
 .login-card {
 
   width: 100%;
   max-width: 500px;
 
-  background: white;
+  background: rgba(255,255,255,.96);
+
+  backdrop-filter: blur(12px);
 
   padding: 50px;
 
-  border-radius: 18px;
+  border-radius: 20px;
 
-  box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+  box-shadow:
+      0 20px 60px rgba(0,0,0,.25);
+
+  position: relative;
+
+  z-index: 3;
 }
+
+/* HEADER */
 
 .login-header {
 
@@ -232,6 +292,7 @@ async function submit() {
 .login-header h2 {
 
   font-size: 30px;
+
   font-weight: 700;
 
   color: #111827;
@@ -255,10 +316,14 @@ async function submit() {
   gap: 20px;
 }
 
+/* INPUT WRAPPER */
+
 .input-wrapper {
 
   position: relative;
 }
+
+/* INPUT ICON */
 
 .input-icon {
 
@@ -274,6 +339,8 @@ async function submit() {
   z-index: 10;
 }
 
+/* INPUTS */
+
 .custom-input {
 
   width: 100%;
@@ -283,9 +350,9 @@ async function submit() {
   padding-left: 45px;
   padding-right: 45px;
 
-  border: 1px solid #d1d5db;
-
   border-radius: 12px;
+
+  border: 1px solid #d1d5db;
 
   font-size: 14px;
 
@@ -296,9 +363,9 @@ async function submit() {
 
 .custom-input:focus {
 
-  border-color: #6366f1;
-
   box-shadow: none;
+
+  border-color: #0d6efd;
 }
 
 .custom-input.input-error {
@@ -310,6 +377,8 @@ async function submit() {
   font-size: 12px;
   margin: -12px 0 0 4px;
 }
+
+/* PASSWORD TOGGLE */
 
 .password-toggle {
 
@@ -327,41 +396,13 @@ async function submit() {
   z-index: 10;
 }
 
-.options {
-
-  display: flex;
-
-  justify-content: flex-end;
-}
-
-.forgot-link {
-
-  text-decoration: none;
-
-  font-size: 14px;
-
-  color: #6366f1;
-}
-
-.forgot-link:hover {
-
-  text-decoration: underline;
-}
-
-.error {
-
-  color: #ef4444;
-
-  font-size: 13px;
-
-  margin: 0;
-}
+/* BUTTON */
 
 .submit-btn {
 
   height: 55px;
 
-  background: #6366f1;
+  background: #0d6efd;
 
   color: white;
 
@@ -380,7 +421,7 @@ async function submit() {
 
 .submit-btn:hover:not(:disabled) {
 
-  background: #4f46e5;
+  background: #0b5ed7;
 }
 
 .submit-btn:disabled {
@@ -390,18 +431,38 @@ async function submit() {
   cursor: not-allowed;
 }
 
-/* DARK MODE */
+/* FORGOT PASSWORD */
 
-:global(body.dark-mode .login-page){
+.forgot-link {
 
-  background:#111827;
+  text-decoration: none;
+
+  font-size: 14px;
+
+  color: #0d6efd;
 }
+
+.forgot-link:hover {
+
+  text-decoration: underline;
+}
+
+.error {
+
+  color: #ef4444;
+
+  font-size: 13px;
+
+  margin: 0;
+}
+
+/* DARK MODE */
 
 :global(body.dark-mode .login-card){
 
-  background:#1f2937;
+  background: rgba(31,41,55,.95);
 
-  border-color:#374151;
+  border: 1px solid #374151;
 }
 
 :global(body.dark-mode .custom-input){
@@ -413,175 +474,43 @@ async function submit() {
   border-color:#374151;
 }
 
+:global(body.dark-mode .custom-input::placeholder){
+
+  color:#9ca3af;
+}
+
 :global(body.dark-mode .login-header h2),
 
-:global(body.dark-mode .login-header p){
+:global(body.dark-mode .login-header p),
+
+:global(body.dark-mode label),
+
+:global(body.dark-mode .form-check-label){
 
   color:white;
 }
 
+:global(body.dark-mode .input-icon),
+
+:global(body.dark-mode .password-toggle){
+
+  color:#9ca3af;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+  .login-card {
+
+    padding: 30px;
+  }
+
+  .login-header h2 {
+
+    font-size: 24px;
+  }
+
+}
+
 </style>
-
-<!--<template>-->
-
-<!--  <div class="login-page">-->
-<!--    <div class="login-card">-->
-
-<!--      <div class="brand">-->
-<!--        <h1>AMS Portal</h1>-->
-<!--        <p>Appointment Management System</p>-->
-<!--      </div>-->
-
-<!--      <form class="form" @submit.prevent="submit">-->
-
-<!--        <div class="field">-->
-<!--          <label>Email</label>-->
-<!--          <input-->
-<!--              v-model="form.email"-->
-<!--              type="email"-->
-<!--              placeholder="Enter your email"-->
-<!--              required-->
-<!--          />-->
-<!--        </div>-->
-
-<!--        <div class="field">-->
-<!--          <label>Password</label>-->
-<!--          <input-->
-<!--              v-model="form.password"-->
-<!--              type="password"-->
-<!--              placeholder="Enter your password"-->
-<!--              required-->
-<!--          />-->
-<!--        </div>-->
-
-<!--        <p v-if="error" class="error">{{ error }}</p>-->
-
-<!--        <button type="submit" class="submit-btn" :disabled="loading">-->
-<!--          {{ loading ? 'Signing in...' : 'Sign In' }}-->
-<!--        </button>-->
-
-<!--      </form>-->
-
-<!--    </div>-->
-<!--  </div>-->
-<!--</template>-->
-
-<!--<script setup>-->
-<!--import { reactive, ref } from 'vue'-->
-<!--import { useRouter } from 'vue-router'-->
-<!--import { useAuthStore } from '@/stores/auth.store'-->
-
-<!--const router = useRouter()-->
-<!--const authStore = useAuthStore()-->
-
-<!--const form = reactive({ email: '', password: '' })-->
-<!--const loading = ref(false)-->
-<!--const error = ref('')-->
-
-<!--async function submit() {-->
-<!--  loading.value = true-->
-<!--  error.value = ''-->
-<!--  try {-->
-<!--    await authStore.login(form.email, form.password)-->
-<!--    router.push(authStore.dashboardRoute)-->
-<!--  } catch (err) {-->
-<!--    error.value = err.response?.data?.message || 'Login failed. Check credentials.'-->
-<!--  } finally {-->
-<!--    loading.value = false-->
-<!--  }-->
-<!--}-->
-<!--</script>-->
-
-<!--<style scoped>-->
-<!--.login-page {-->
-<!--  min-height: 100vh;-->
-<!--  background: #f1f5f9;-->
-<!--  display: flex;-->
-<!--  align-items: center;-->
-<!--  justify-content: center;-->
-<!--}-->
-
-<!--.login-card {-->
-<!--  background: white;-->
-<!--  padding: 40px;-->
-<!--  border-radius: 12px;-->
-<!--  width: 100%;-->
-<!--  max-width: 420px;-->
-<!--  box-shadow: 0 4px 20px rgba(0,0,0,0.08);-->
-<!--}-->
-
-<!--.brand {-->
-<!--  text-align: center;-->
-<!--  margin-bottom: 30px;-->
-<!--}-->
-
-<!--.brand h1 {-->
-<!--  margin: 0 0 4px;-->
-<!--  font-size: 26px;-->
-<!--  color: #1e293b;-->
-<!--}-->
-
-<!--.brand p {-->
-<!--  margin: 0;-->
-<!--  color: #64748b;-->
-<!--  font-size: 14px;-->
-<!--}-->
-
-<!--.form {-->
-<!--  display: flex;-->
-<!--  flex-direction: column;-->
-<!--  gap: 16px;-->
-<!--}-->
-
-<!--.field {-->
-<!--  display: flex;-->
-<!--  flex-direction: column;-->
-<!--  gap: 6px;-->
-<!--}-->
-
-<!--.field label {-->
-<!--  font-size: 13px;-->
-<!--  font-weight: 600;-->
-<!--  color: #374151;-->
-<!--}-->
-
-<!--.field input {-->
-<!--  padding: 10px 12px;-->
-<!--  border: 1px solid #e2e8f0;-->
-<!--  border-radius: 6px;-->
-<!--  font-size: 14px;-->
-<!--  outline: none;-->
-<!--  transition: border-color 0.2s;-->
-<!--}-->
-
-<!--.field input:focus {-->
-<!--  border-color: #6366f1;-->
-<!--}-->
-
-<!--.error {-->
-<!--  color: #ef4444;-->
-<!--  font-size: 13px;-->
-<!--  margin: 0;-->
-<!--}-->
-
-<!--.submit-btn {-->
-<!--  background: #6366f1;-->
-<!--  color: white;-->
-<!--  border: none;-->
-<!--  padding: 12px;-->
-<!--  border-radius: 6px;-->
-<!--  font-size: 15px;-->
-<!--  font-weight: 600;-->
-<!--  cursor: pointer;-->
-<!--  transition: background 0.2s;-->
-<!--}-->
-
-<!--.submit-btn:hover:not(:disabled) {-->
-<!--  background: #4f46e5;-->
-<!--}-->
-
-<!--.submit-btn:disabled {-->
-<!--  opacity: 0.7;-->
-<!--  cursor: not-allowed;-->
-<!--}-->
-<!--</style>-->
