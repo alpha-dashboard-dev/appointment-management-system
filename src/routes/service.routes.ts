@@ -29,6 +29,13 @@ router.get(
 );
 
 router.get(
+    "/get-all-services-with-business",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.getAllServicesWithBusiness
+);
+
+router.get(
     "/get-service/:serviceCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),

@@ -427,6 +427,7 @@ const rescheduleForm = reactive({
   reason: '',
 })
 
+// fetch appointments without BusinessDetails
 async function fetchAppointments() {
   loading.value = true
   error.value = ''

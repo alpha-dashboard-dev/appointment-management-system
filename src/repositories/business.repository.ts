@@ -16,8 +16,53 @@ class BusinessRepository {
 
     async findAll(filters: any = {}) {
         const where: any = {};
-        if (filters.organization_code) where.organization_code = filters.organization_code;
-        return dbHelper.findAll(this.tables, { where });
+
+        if (filters.organization_code) {
+            where.organization_code = filters.organization_code;
+        }
+
+        return dbHelper.findAll(this.tables, {
+            where,
+            include: [
+                {
+                    association: "organization",
+                },
+            ],
+        });
+    }
+
+    // async findAll(filters: any = {}) {
+    //     const where: any = {};
+    //     if (filters.organization_code) where.organization_code = filters.organization_code;
+    //     return dbHelper.findAll(this.tables, { where });
+    // }
+
+    // find by business code with organization
+    async findByCodeWithOrganization(businessCode: string) {
+        return dbHelper.findOne(this.tables, {
+            where: {
+                business_code: businessCode,
+            },
+            include: [
+                {
+                    model: db.Organization,
+                    as: "organization",
+                },
+            ],
+        });
+    }
+    async findByBusinessCodeWithUser(businessCode: string) {
+        return dbHelper.findOne(this.tables, {
+            where: {
+                business_code: businessCode,
+            },
+            include: [
+                {
+                    model: db.User,
+                    as: "users",
+                },
+            ],
+        });
     }
 
     async findByCode(businessCode: string) {

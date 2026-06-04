@@ -58,6 +58,17 @@ class BusinessService {
         return business;
     }
 
+    async getByCodeWithOrganization(businessCode: string) {
+        const business = await repo.findByCodeWithOrganization(businessCode);
+        if (!business) throw new Error("Business not found");
+        return business;
+    }
+
+    async getByBusinessCodeWithUser(businessCode: string) {
+        const business = await repo.findByBusinessCodeWithUser(businessCode);
+        if (!business) throw new Error("Business not found");
+        return business;
+    }
     async update(businessCode: string, data: any, actor?: any) {
         const business = await repo.findByCode(businessCode);
         if (!business) throw new Error("Business not found");

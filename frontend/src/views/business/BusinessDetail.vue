@@ -150,7 +150,7 @@ const appointments = ref([])
 
 onMounted(async () => {
   try {
-    const res = await api.get(`/businesses/get-business${businessCode}`)
+    const res = await api.get(`/businesses/get-business/${businessCode}`)
     business.value = res.data.data
   } catch (_) {}
   loading.value = false

@@ -151,7 +151,7 @@
             <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
           </div>
           <div class="modal-body text-center">
-            <p class="mb-0">Delete location <strong>{{ selected?.location_code }}</strong>?</p>
+            <p class="mb-0">Delete location <strong>{{ selected?.address + " " + selected?.city }}</strong>?</p>
           </div>
           <div class="modal-footer justify-content-center">
             <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
@@ -181,39 +181,36 @@ const showDeleteModal = ref(false)
 const selected = ref(null)
 const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active', apartment: '' })
 
+// fetch location with business details
 
 async function fetchLocations() {
   loading.value = true
   error.value = ''
 
   try {
-    const params = bizFilter.value
-        ? { business_code: bizFilter.value }
-        : {}
 
-    const [locationRes, businessRes] = await Promise.all([
-      api.get('/locations/get-location', { params }),
-      api.get('/businesses/get-business'),
-    ])
-
-    const businesses = businessRes.data.data || []
-
-    const businessNameByCode = new Map(
-        businesses.map((bus) => [bus.business_code, bus.name])
+    const response = await api.get('/locations/get-location-with-business',
+        {
+          params: { business_code: bizFilter.value}
+        }
     )
 
-    locations.value = (locationRes.data.data || []).map((location) => ({
-      ...location,
-      business_name:
-          businessNameByCode.get(location.business_code) || '',
-    }))
+    locations.value = (response.data.data || []).map(
+        (location) => ({
+          ...location,
+          business_name: location.business?.name || '',
+        })
+    )
   } catch (err) {
     error.value =
-        err.response?.data?.message || 'Failed to load locations'
+        err.response?.data?.message ||
+        'Failed to load Locations'
   } finally {
     loading.value = false
   }
 }
+
+// fetch location without business
 // async function fetchLocations() {
 //   loading.value = true
 //   error.value = ''

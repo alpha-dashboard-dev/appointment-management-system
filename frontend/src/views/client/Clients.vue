@@ -21,6 +21,7 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Full Name</th>
+              <th>Business Name</th>
               <th>Email</th>
               <th>Phone</th>
               <th>Status</th>
@@ -30,6 +31,7 @@
           <tbody>
             <tr v-for="client in filteredClients" :key="client.user_code">
               <td class="ps-3">{{ client.name }}</td>
+              <td>{{client.business_name}}</td>
               <td>{{ client.email }}</td>
               <td>{{ client.phone || '—' }}</td>
               <td>
@@ -62,7 +64,7 @@
               </td>
             </tr>
             <tr v-if="filteredClients.length === 0">
-              <td colspan="5" class="text-center text-muted py-4">No clients found</td>
+              <td colspan="6" class="text-center text-muted py-4">No clients found</td>
             </tr>
           </tbody>
         </table>
@@ -182,18 +184,43 @@ const filteredClients = computed(() => {
   )
 })
 
+// fetch all clients with business name
 async function fetchClients() {
   loading.value = true
   error.value = ''
+
   try {
-    const res = await api.get('/clients/get-client')
-    clients.value = res.data.data || []
+    const response = await api.get('/users/get-all-users-with-business')
+
+    clients.value = (response.data.data || []).map(
+        (clients) => ({
+          ...clients,
+          business_name:
+              clients.business?.name || '',
+        })
+    )
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load clients'
+    error.value =
+        err.response?.data?.message ||
+        'Failed to load Clients'
   } finally {
     loading.value = false
   }
 }
+
+// fetch all clients without business details
+// async function fetchClients() {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const res = await api.get('/clients/get-client')
+//     clients.value = res.data.data || []
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to load clients'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 function openEdit(client) {
   selected.value = client

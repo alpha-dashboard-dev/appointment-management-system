@@ -148,7 +148,7 @@ async function fetchStaff() {
     const params = {}
     if (biz) params.business_code = biz
     if (typeFilter.value) params.user_type = typeFilter.value
-    const res = await api.get('/users/get-users', { params })
+    const res = await api.get('/users/get-all-users', { params })
     staff.value = (res.data.data || []).filter(u => ['operational_staff','service_staff'].includes(u.user_type))
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load staff'

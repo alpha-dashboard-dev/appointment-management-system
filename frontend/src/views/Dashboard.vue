@@ -139,7 +139,7 @@ onMounted(async () => {
       api.get('/businesses/get-business'),
       api.get('/clients/get-client'),
       api.get('/appointments'),
-      api.get('/users/get-users'),
+      api.get('/users/get-all-users'),
       api.get('/services/get-service'),
       api.get('/invoices/get-invoice'),
       api.get('/locations/get-location'),

@@ -171,5 +171,15 @@ class ServiceService {
 
         return { services, charges };
     }
+
+    async getAllServicesWithBusiness(filters: any = {}, actor?: any) {
+        // Non-admin, non-client actors can only see services from their own business
+        if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
+            filters.business_code = actor.businessCode;
+        }
+        // Clients pass business_code as a query param; don't override it
+        return await repo.findAllServicesWithBusiness(filters);
+    }
+
 }
 export default new ServiceService();

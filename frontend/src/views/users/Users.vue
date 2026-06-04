@@ -21,6 +21,7 @@
               <th class="ps-3">Full Name</th>
               <th>Email</th>
               <th>Phone</th>
+              <th>Business Name</th>
               <th>Role</th>
               <th>Status</th>
               <th class="pe-3" style="width:160px">Actions</th>
@@ -31,6 +32,7 @@
               <td class="ps-3">{{ user.name }}</td>
               <td>{{ user.email }}</td>
               <td>{{user.phone}}</td>
+              <td>{{user.business_name}}</td>
               <td>{{ user.user_type }}</td>
               <td>
                 <span :class="['ams-badge', user.is_active === 'active' ? 'active' : 'inactive']">
@@ -60,7 +62,7 @@
               </td>
             </tr>
             <tr v-if="users.length === 0">
-              <td colspan="6" class="text-center text-muted py-4">No users found</td>
+              <td colspan="7" class="text-center text-muted py-4">No users found</td>
             </tr>
           </tbody>
         </table>
@@ -153,18 +155,43 @@ const selected = ref(null)
 
 const editForm = reactive({ name: '', email: '', phone: '', password: '', is_active: 'active' })
 
+
+// fetch all users with their business details
 async function fetchUsers() {
   loading.value = true
   error.value = ''
+
   try {
-    const res = await api.get('/users/get-users')
-    users.value = res.data.data || []
+    const response = await api.get('/users/get-all-users-with-business')
+
+    users.value = (response.data.data || []).map(
+        (users) => ({
+          ...users,
+          business_name:
+              users.business?.name || '',
+        })
+    )
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load users'
+    error.value =
+        err.response?.data?.message ||
+        'Failed to load Users'
   } finally {
     loading.value = false
   }
 }
+// fetch all users without business details
+// async function fetchUsers() {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const res = await api.get('/users/get-all-users')
+//     users.value = res.data.data || []
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to load users'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 function openEdit(user) {
   selected.value = user
@@ -186,7 +213,7 @@ async function updateUser() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/users/update-user${selected.value.user_code}`, editForm)
+    await api.put(`/users/update-user/${selected.value.user_code}`, editForm)
     showEditModal.value = false
     await fetchUsers()
   } catch (err) {
@@ -199,7 +226,7 @@ async function updateUser() {
 async function deactivateUser() {
   saving.value = true
   try {
-    await api.patch(`/users/update-user-status${selected.value.user_code}`, { is_active: 'inactive' })
+    await api.patch(`/users/update-user-status/${selected.value.user_code}`, { is_active: 'inactive' })
     showDeleteModal.value = false
     await fetchUsers()
   } catch (err) {
