@@ -92,7 +92,6 @@ async function fetchAppointments() {
 
 onMounted(fetchAppointments)
 </script>
-
 <style scoped>
 .dashboard { display: flex; flex-direction: column; gap: 20px; }
 

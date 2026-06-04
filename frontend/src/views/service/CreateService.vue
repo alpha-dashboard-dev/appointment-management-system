@@ -58,7 +58,6 @@
           <input v-model.number="form.duration_value" type="number" placeholder="e.g. 30" min="1" :class="{ 'field-input-error': errors.duration_value }" @blur="validateField('duration_value')" />
           <p v-if="errors.duration_value" class="field-error">{{ errors.duration_value }}</p>
         </div>
-
         <div class="field">
           <label>Duration Unit</label>
           <select v-model="form.duration_uom" :class="{ 'field-input-error': errors.duration_uom }" @change="validateField('duration_uom')">
@@ -103,6 +102,7 @@ const durationUnits = ['hour', 'minutes', 'day', 'week']
 const form = reactive({ business_code: '', name: '', duration_value: null, price: '', description: '', cost: '', duration_uom: null,
   status: 'active', currency: '' })
 const businesses = ref([])
+
 const loading = ref(false)
 const error = ref('')
 const errors = reactive({})
@@ -122,6 +122,8 @@ onMounted(async () => {
     businesses.value = res.data.data || []
   } catch (_) {}
 })
+
+
 
 async function submit() {
   const validationErrors = validateServiceForm(form)

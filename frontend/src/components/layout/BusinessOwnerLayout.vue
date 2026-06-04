@@ -52,13 +52,12 @@
           </router-link>
         </div>
 
-        <!-- SCHEDULES -->
         <router-link to="/business/schedules" class="item">
           <i class="bi bi-calendar3 icon"></i>
           <span v-if="!collapsed">Schedules</span>
         </router-link>
 
-        <!-- CHARGES -->
+
         <router-link to="/business/charges" class="item">
           <i class="bi bi-cash-coin icon"></i>
           <span v-if="!collapsed">Charges</span>

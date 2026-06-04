@@ -42,48 +42,48 @@ module.exports = {
         // await queryInterface.bulkDelete("organizations", { organization_code: { [Op.in]: organizationCodes } }, {});
 
         const hashAdmin = await bcrypt.hash("123456", 12);
-        // const hashPass = await bcrypt.hash("password123", 12);
+        const hashPass = await bcrypt.hash("password123", 12);
         //
         // // 1. Organization
-        // await queryInterface.bulkInsert("organizations", [
-        //     {
-        //         organization_code: "ORG00001",
-        //         name: "Wellness Hub Inc.",
-        //         status: "active",
-        //         created_at: now,
-        //         updated_at: now,
-        //     },
-        // ]);
+        await queryInterface.bulkInsert("organizations", [
+            {
+                organization_code: "ORG00001",
+                name: "Wellness Hub Inc.",
+                status: "active",
+                created_at: now,
+                updated_at: now,
+            },
+        ]);
 
         // 2. Businesses
-        // await queryInterface.bulkInsert("businesses", [
-        //     {
-        //         business_code: "BIZ00001",
-        //         organization_code: "ORG00001",
-        //         name: "Downtown Spa & Wellness",
-        //         email: "contact@downtownspa.com",
-        //         phone: "03001110001",
-        //         address: "123 Main Street, Downtown District",
-        //         status: "active",
-        //         user_code: "OWN00001",
-        //         timezone: "America/New_York",
-        //         created_at: now,
-        //         updated_at: now,
-        //     },
-        //     {
-        //         business_code: "BIZ00002",
-        //         organization_code: "ORG00001",
-        //         name: "Eastside Medical Clinic",
-        //         email: "contact@eastsideclinic.com",
-        //         phone: "03001110002",
-        //         address: "456 East Avenue, Eastside",
-        //         status: "active",
-        //         user_code: "OWN00002",
-        //         timezone: "America/Chicago",
-        //         created_at: now,
-        //         updated_at: now,
-        //     },
-        // ]);
+        await queryInterface.bulkInsert("businesses", [
+            {
+                business_code: "BIZ00001",
+                organization_code: "ORG00001",
+                name: "Downtown Spa & Wellness",
+                email: "contact@downtownspa.com",
+                phone: "03001110001",
+                address: "123 Main Street, Downtown District",
+                status: "active",
+                user_code: "OWN00001",
+                timezone: "America/New_York",
+                created_at: now,
+                updated_at: now,
+            },
+            {
+                business_code: "BIZ00002",
+                organization_code: "ORG00001",
+                name: "Eastside Medical Clinic",
+                email: "contact@eastsideclinic.com",
+                phone: "03001110002",
+                address: "456 East Avenue, Eastside",
+                status: "active",
+                user_code: "OWN00002",
+                timezone: "America/Chicago",
+                created_at: now,
+                updated_at: now,
+            },
+        ]);
 
         // 3. Users
         await queryInterface.bulkInsert("users", [

@@ -84,7 +84,6 @@ const titleMap = {
 const pageTitle = computed(() => titleMap[route.path] || 'Operations')
 
 </script>
-
 <style scoped>
 .layout { display: flex; }
 .sidebar { width: 260px; height: 100vh; background: #1e293b; color: white; display: flex; flex-direction: column; position: sticky; top: 0; transition: 0.3s; overflow-y: auto; }

@@ -152,7 +152,7 @@ async function onBusinessChange() {
   if (!form.business_code) return
   try {
     const [svcRes, locRes] = await Promise.all([
-      api.get('/services/client-view', { params: { business_code: form.business_code } }),
+      api.get('/services/get-service', { params: { business_code: form.business_code } }),
       api.get('/locations/get-location', { params: { business_code: form.business_code } }),
         // api.get('/charges/get-charge', { params: { business_code: form.business_code } }),
     ])
