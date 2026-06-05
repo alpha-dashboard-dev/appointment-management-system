@@ -96,6 +96,13 @@ class Business extends Model {
             constraints: false,
         });
 
+        Business.belongsTo(models.User, {
+            foreignKey: "user_code",
+            targetKey: "user_code",
+            as: "owner",
+            constraints: false,
+        });
+
         Business.hasMany(models.User, {
             foreignKey: "business_code",
             sourceKey: "business_code",
