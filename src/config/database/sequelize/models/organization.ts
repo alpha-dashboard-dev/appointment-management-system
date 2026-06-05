@@ -55,7 +55,7 @@ class Organization extends Model {
         Organization.hasMany(models.Business, {
             foreignKey: "organization_code",
             sourceKey: "organization_code",
-            as: "business",
+            as: "businesses",
             constraints: false,
         })
     }
