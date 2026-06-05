@@ -139,7 +139,8 @@
           </div>
           <form @submit.prevent="updateMapping">
             <div class="modal-body">
-              <p class="text-muted small mb-3">Location: <code>{{ selected?.location_code }}</code> / Service: <code>{{ selected?.service_code }}</code></p>
+              <p class="text-muted small mb-3">Service: {{ selected?.service_name }}</p>
+              <p class="text-muted small mb-3">Location: {{ selected?.location_address }}</p>
               <div class="mb-3">
                 <label class="form-label fw-semibold">Availability</label>
                 <select v-model="editForm.availability" class="form-select">
@@ -167,7 +168,7 @@
             <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
           </div>
           <div class="modal-body text-center">
-            <p class="mb-0">Remove service <strong>{{ selected?.service_code }}</strong> from location <strong>{{ selected?.location_code }}</strong>?</p>
+            <p class="mb-0">Remove service <strong>{{ selected?.service_name }}</strong> from location <strong>{{ selected?.location_address }}</strong>?</p>
           </div>
           <div class="modal-footer justify-content-center">
             <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
@@ -227,47 +228,41 @@ async function fetchMappings() {
 
   try {
     const params = {}
-    if (bizFilter.value) params.business_code = bizFilter.value
-    if (locFilter.value) params.location_code = locFilter.value
 
-    const [mappingRes, businessRes, serviceRes, locationRes] = await Promise.all([
-      api.get('/location-services/get-location-service', { params }),
-      api.get('/businesses/get-business'),
-      api.get('/services/get-service'),
-      api.get('/locations/get-location'),
-    ])
+    if (bizFilter.value)
+      params.business_code = bizFilter.value
 
-    const businesses = businessRes.data.data || []
-    const services = serviceRes.data.data || []
-    const locations = locationRes.data.data || []
+    if (locFilter.value)
+      params.location_code = locFilter.value
 
-    const businessNameByCode = new Map(
-        businesses.map((b) => [b.business_code, b.name])
+    const response = await api.get(
+        '/location-services/get-location-service',
+        { params }
     )
 
-    const serviceNameByCode = new Map(
-        services.map((s) => [s.service_code, s.name])
-    )
+    mappings.value = (response.data.data || []).map(
+        (mapping) => ({
+          ...mapping,
 
-    const locationAddressByCode = new Map(
-        locations.map((l) => [
-          l.location_code,
-          l.address + " " + l.street + " " + l.city,
-        ])
-    )
+          business_name:
+              mapping.business?.name || '',
 
-    mappings.value = (mappingRes.data.data || []).map((mapping) => ({
-      ...mapping,
-      business_name:
-          businessNameByCode.get(mapping.business_code) || '',
-      service_name:
-          serviceNameByCode.get(mapping.service_code) || '',
-      location_address:
-          locationAddressByCode.get(mapping.location_code) || '',
-    }))
+          service_name:
+              mapping.service?.name || '',
+
+          location_address: [
+            mapping.location?.address,
+            mapping.location?.street,
+            mapping.location?.city,
+          ]
+              .filter(Boolean)
+              .join(' '),
+        })
+    )
   } catch (err) {
     error.value =
-        err.response?.data?.message || 'Failed to load mappings'
+        err.response?.data?.message ||
+        'Failed to load mappings'
   } finally {
     loading.value = false
   }

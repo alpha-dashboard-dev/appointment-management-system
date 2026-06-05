@@ -31,6 +31,24 @@ class BusinessController {
         }
     }
 
+    async getByCodeWithOrganization(req: Request, res: Response) {
+        try {
+            const data = await service.getByCodeWithOrganization(String(req.params.businessCode));
+            return res.status(200).json({ success: true, data });
+        } catch (err: any) {
+            return res.status(404).json({ success: false, message: err.message });
+        }
+    }
+
+    async getByBusinessCodeWithUser(req: Request, res: Response) {
+        try {
+            const data = await service.getByBusinessCodeWithUser(String(req.params.businessCode));
+            return res.status(200).json({ success: true, data });
+        } catch (err: any) {
+            return res.status(404).json({ success: false, message: err.message });
+        }
+    }
+
     async update(req: Request, res: Response) {
         try {
             const data = await service.update(String(req.params.businessCode), req.body, req.user);
@@ -39,33 +57,6 @@ class BusinessController {
             return res.status(400).json({ success: false, message: err.message });
         }
     }
-
-    // async assignUser(req: Request, res: Response) {
-    //     try {
-    //         const businessCode = String(req.params.businessCode);
-    //         const { user_code } = req.body;
-    //
-    //         // console.log(user_code, businessCode);
-    //
-    //         const data = await service.assignUser(
-    //             businessCode,
-    //             user_code,
-    //             req.user
-    //         );
-    //
-    //         return res.status(200).json({
-    //             success: true,
-    //             message: "User assigned successfully",
-    //             data,
-    //         });
-    //
-    //     } catch (err: any) {
-    //         return res.status(400).json({
-    //             success: false,
-    //             message: err.message,
-    //         });
-    //     }
-    // }
 
     async changeStatus(req: Request, res: Response) {
         try {

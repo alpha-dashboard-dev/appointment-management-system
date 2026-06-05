@@ -14,42 +14,50 @@ router.post(
 );
 
 router.get(
-    "/get-users",
+    "/get-all-users",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.getAll
 );
 
 router.get(
-    "/get-user:userCode",
+    "/get-all-users-with-business",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.getById
+    controller.getAllUsersWithBusiness
 );
 
+router.get(
+    "/get-one-user/:userCode",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.getByCode
+);
+
+router.get(
+    "/get-user-with-business/:userCode",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.getByUserCodeWithBusiness
+);
+
+
 router.put(
-    "/update-user:userCode",
+    "/update-user/:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.patch(
-    "/update-user-status:userCode",
+    "/update-user-status/:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.changeStatus
 );
 
-// router.patch(
-//     "/:userCode/business",
-//     authenticate,
-//     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-//     controller.assignBusiness
-// );
-
 router.delete(
-    "/delete-user:userCode",
+    "/delete-user/:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete

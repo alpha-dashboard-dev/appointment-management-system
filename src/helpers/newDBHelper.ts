@@ -87,22 +87,41 @@ class DbHelper {
         }
     }
 
-    async findByField(table: any, field: string, value: any) {
+    async findByField(table: any, field: string, value: any, options: any = {}) {
         if (this.orm === "sequelize") {
             return await table.sequelize.findOne({
-                where: { [field]: value },
+                where: {
+                    [field]: value,
+                },
+                ...options,
             });
         }
+            if (this.orm === "drizzle") {
+                const result = await drizzleDb
+                    .select()
+                    .from(table.drizzle)
+                    .where(eq((table.drizzle as any)[field], value));
 
-        if (this.orm === "drizzle") {
-            const result = await drizzleDb
-                .select()
-                .from(table.drizzle)
-                .where(eq((table.drizzle as any)[field], value));
-
-            return result[0] || null;
-        }
+                return result[0] || null;
+            }
     }
+
+    // async findByField(table: any, field: string, value: any) {
+    //     if (this.orm === "sequelize") {
+    //         return await table.sequelize.findOne({
+    //             where: { [field]: value },
+    //         });
+    //     }
+    //
+    //     if (this.orm === "drizzle") {
+    //         const result = await drizzleDb
+    //             .select()
+    //             .from(table.drizzle)
+    //             .where(eq((table.drizzle as any)[field], value));
+    //
+    //         return result[0] || null;
+    //     }
+    // }
 
     async findAllByField(table: any, field: string, value: any) {
         if (this.orm === "sequelize") {
@@ -168,7 +187,7 @@ class DbHelper {
             else if (user.user_type === "client")
                 where = { clientId: user.user_code };
 
-            else if (user.user_type === "BUSINESS_OWNER")
+            else if (user.user_type === "business_owner")
                 where = { businessCode: user.business_code };
 
             return await table.sequelize.findAll({ where });
@@ -183,7 +202,7 @@ class DbHelper {
             else if (user.user_type === "client")
                 condition = eq(table.drizzle.clientId, user.user_code);
 
-            else if (user.user_type === "BUSINESS_OWNER")
+            else if (user.user_type === "business_owner")
                 condition = eq(table.drizzle.businessCode, user.business_code);
 
             if (!condition) {

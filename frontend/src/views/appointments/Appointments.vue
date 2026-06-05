@@ -203,6 +203,10 @@
 
             <!-- Staff available -->
             <template v-else-if="!showRescheduleInApproval">
+              <div v-if="slotAlreadyBooked" class="alert alert-danger py-2 mb-3">
+                This slot is already booked.
+                <span v-if="conflictingAppointments.length"> Conflicting appointments: {{ conflictingAppointments.join(', ') }}</span>
+              </div>
               <div v-if="availableStaff.length > 0">
                 <p class="fw-semibold mb-2">Available staff for this slot:</p>
                 <div class="list-group mb-3">
@@ -215,7 +219,7 @@
                   >
                     <input type="radio" :value="s.user_code" v-model="selectedStaff" class="form-check-input mt-0" />
                     <div>
-                      <div class="fw-semibold">{{ s.name || s.user_code }}</div>
+                      <div class="fw-semibold">{{ s.staff_name || s.name || s.user_code }}</div>
                       <small class="text-muted">{{ s.working_days }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</small>
                     </div>
                   </label>
@@ -228,7 +232,86 @@
                 <span class="fs-5">&#9888;</span>
                 <div>
                   <strong>No staff available</strong> for this date and time slot.
-                  <br>You can send a reschedule request to the client with a new date &amp; time.
+                  <br>See alternative staff and slots below.
+                </div>
+              </div>
+
+              <div v-if="alternativeTimeSameLocation.length" class="mb-3">
+                <div class="fw-semibold mb-2">Other service staff at different time (same location)</div>
+                <div class="list-group">
+                  <div v-for="s in alternativeTimeSameLocation" :key="`same-${s.user_code}-${s.start_time}-${s.end_time}`" class="list-group-item">
+                    <div class="fw-semibold d-flex align-items-center gap-2">
+                      <span>{{ s.staff_name || s.user_code }}</span>
+                      <span v-if="isRecommendedAlternative(selected?.location_code, s.start_time, s.end_time, s.user_code)" class="badge text-bg-success">Recommended</span>
+                    </div>
+                    <div class="small text-muted">{{ s.user_code }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</div>
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" @click="prefillApprovalReschedule({ locationCode: selected?.location_code, startTime: s.start_time, endTime: s.end_time })">
+                      Use This Slot
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="alternativeLocationSameTime.length" class="mb-3">
+                <div class="fw-semibold mb-2">Other locations at the same time slot</div>
+                <div class="border rounded p-2 mb-2" v-for="loc in alternativeLocationSameTime" :key="`loc-${loc.location_code}`">
+                  <div class="small fw-semibold mb-2">Location: {{ loc.location_code }}</div>
+                  <div class="small text-muted mb-2" v-if="loc.location?.city || loc.location?.address">
+                    {{ loc.location?.city || '—' }} &bull; {{ loc.location?.address || '—' }}
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-primary mb-2" @click="prefillApprovalReschedule({ locationCode: loc.location_code, startTime: selected?.start_time, endTime: selected?.end_time })">
+                    Reschedule To This Location
+                  </button>
+                  <div class="list-group">
+                    <div v-for="s in loc.staff" :key="`loc-staff-${loc.location_code}-${s.user_code}-${s.start_time}-${s.end_time}`" class="list-group-item">
+                      <div class="fw-semibold d-flex align-items-center gap-2">
+                        <span>{{ s.staff_name || s.user_code }}</span>
+                        <span v-if="isRecommendedAlternative(loc.location_code, s.start_time, s.end_time, s.user_code)" class="badge text-bg-success">Recommended</span>
+                      </div>
+                      <div class="small text-muted">{{ s.user_code }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="serviceLocationsAlternatives.length" class="mb-3">
+                <div class="fw-semibold mb-2">Selected service available at other locations</div>
+                <div class="border rounded p-2 mb-2" v-for="loc in serviceLocationsAlternatives" :key="`svc-${loc.location_code}`">
+                  <div class="small fw-semibold">Location: {{ loc.location_code }}</div>
+                  <div class="small text-muted mb-2" v-if="loc.location?.city || loc.location?.address">
+                    {{ loc.location?.city || '—' }} &bull; {{ loc.location?.address || '—' }}
+                  </div>
+                  <div class="small text-muted mb-2">Services: {{ (loc.matched_service_codes || []).join(', ') || '—' }}</div>
+                  <div v-if="loc.available_staff_same_slot?.length" class="mb-2">
+                    <div class="small fw-semibold">Available at same slot</div>
+                    <div class="list-group">
+                      <div v-for="s in loc.available_staff_same_slot" :key="`svc-same-${loc.location_code}-${s.user_code}-${s.start_time}-${s.end_time}`" class="list-group-item">
+                        <div class="fw-semibold d-flex align-items-center gap-2">
+                          <span>{{ s.staff_name || s.user_code }}</span>
+                          <span v-if="isRecommendedAlternative(loc.location_code, s.start_time, s.end_time, s.user_code)" class="badge text-bg-success">Recommended</span>
+                        </div>
+                        <div class="small text-muted">{{ s.user_code }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" @click="prefillApprovalReschedule({ locationCode: loc.location_code, startTime: selected?.start_time, endTime: selected?.end_time })">
+                          Use Location & Current Time
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="loc.alternative_staff_time_slots?.length">
+                    <div class="small fw-semibold">Alternative time slots</div>
+                    <div class="list-group">
+                      <div v-for="s in loc.alternative_staff_time_slots" :key="`svc-alt-${loc.location_code}-${s.user_code}-${s.start_time}-${s.end_time}`" class="list-group-item">
+                        <div class="fw-semibold d-flex align-items-center gap-2">
+                          <span>{{ s.staff_name || s.user_code }}</span>
+                          <span v-if="isRecommendedAlternative(loc.location_code, s.start_time, s.end_time, s.user_code)" class="badge text-bg-success">Recommended</span>
+                        </div>
+                        <div class="small text-muted">{{ s.user_code }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" @click="prefillApprovalReschedule({ locationCode: loc.location_code, startTime: s.start_time, endTime: s.end_time })">
+                          Use This Location & Slot
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </template>
@@ -254,6 +337,10 @@
                 <div class="col-6">
                   <label class="form-label fw-semibold">End Time *</label>
                   <input type="time" v-model="approvalRescheduleForm.end_time" class="form-control" required />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Location Code</label>
+                  <input type="text" v-model="approvalRescheduleForm.location_code" class="form-control" />
                 </div>
                 <div class="col-12">
                   <label class="form-label fw-semibold">Reason / Notes</label>
@@ -340,6 +427,7 @@ const rescheduleForm = reactive({
   reason: '',
 })
 
+// fetch appointments without BusinessDetails
 async function fetchAppointments() {
   loading.value = true
   error.value = ''
@@ -426,6 +514,12 @@ const showApproval = ref(false)
 const availabilityLoading = ref(false)
 const availabilityError = ref('')
 const availableStaff = ref([])
+const slotAlreadyBooked = ref(false)
+const conflictingAppointments = ref([])
+const alternativeTimeSameLocation = ref([])
+const alternativeLocationSameTime = ref([])
+const serviceLocationsAlternatives = ref([])
+const recommendedAlternativeKey = ref('')
 const selectedStaff = ref('')
 const approvalSaving = ref(false)
 const approvalError = ref('')
@@ -436,27 +530,140 @@ const approvalRescheduleForm = reactive({
   appointment_end_date: '',
   start_time: '',
   end_time: '',
+  location_code: '',
   notes: '',
 })
+
+function toDateInput(v) {
+  return String(v || '').split('T')[0] || ''
+}
+
+function toTimeInput(v) {
+  return String(v || '').slice(0, 5) || ''
+}
+
+function slotTimeValue(v) {
+  const normalized = toTimeInput(v)
+  const [h, m] = normalized.split(':').map(Number)
+  if (Number.isNaN(h) || Number.isNaN(m)) return Number.MAX_SAFE_INTEGER
+  return h * 60 + m
+}
+
+function slotKey(locationCode, startTime, endTime, userCode) {
+  return [locationCode || '', toTimeInput(startTime), toTimeInput(endTime), userCode || ''].join('|')
+}
+
+function isRecommendedAlternative(locationCode, startTime, endTime, userCode) {
+  return recommendedAlternativeKey.value !== '' && recommendedAlternativeKey.value === slotKey(locationCode, startTime, endTime, userCode)
+}
+
+function sortAlternativeSlots(slots, locationCode) {
+  return [...(slots || [])].sort((a, b) => {
+    const aPriority = isRecommendedAlternative(locationCode, a.start_time, a.end_time, a.user_code) ? 0 : 1
+    const bPriority = isRecommendedAlternative(locationCode, b.start_time, b.end_time, b.user_code) ? 0 : 1
+    if (aPriority !== bPriority) return aPriority - bPriority
+    return slotTimeValue(a.start_time) - slotTimeValue(b.start_time)
+  })
+}
+
+function applyRecommendationOrdering() {
+  alternativeTimeSameLocation.value = sortAlternativeSlots(
+    alternativeTimeSameLocation.value,
+    selected.value?.location_code
+  )
+
+  alternativeLocationSameTime.value = (alternativeLocationSameTime.value || []).map((loc) => ({
+    ...loc,
+    staff: sortAlternativeSlots(loc.staff, loc.location_code),
+  }))
+
+  serviceLocationsAlternatives.value = (serviceLocationsAlternatives.value || []).map((loc) => ({
+    ...loc,
+    available_staff_same_slot: sortAlternativeSlots(loc.available_staff_same_slot, loc.location_code),
+    alternative_staff_time_slots: sortAlternativeSlots(loc.alternative_staff_time_slots, loc.location_code),
+  }))
+}
+
+function pickRecommendedAlternative() {
+  const candidates = []
+
+  for (const s of alternativeTimeSameLocation.value || []) {
+    candidates.push({
+      key: slotKey(selected.value?.location_code, s.start_time, s.end_time, s.user_code),
+      time: slotTimeValue(s.start_time),
+      priority: 1,
+    })
+  }
+
+  for (const loc of alternativeLocationSameTime.value || []) {
+    for (const s of loc.staff || []) {
+      candidates.push({
+        key: slotKey(loc.location_code, s.start_time, s.end_time, s.user_code),
+        time: slotTimeValue(s.start_time),
+        priority: 2,
+      })
+    }
+  }
+
+  for (const loc of serviceLocationsAlternatives.value || []) {
+    for (const s of loc.available_staff_same_slot || []) {
+      candidates.push({
+        key: slotKey(loc.location_code, s.start_time, s.end_time, s.user_code),
+        time: slotTimeValue(s.start_time),
+        priority: 3,
+      })
+    }
+
+    for (const s of loc.alternative_staff_time_slots || []) {
+      candidates.push({
+        key: slotKey(loc.location_code, s.start_time, s.end_time, s.user_code),
+        time: slotTimeValue(s.start_time),
+        priority: 4,
+      })
+    }
+  }
+
+  candidates.sort((a, b) => a.time - b.time || a.priority - b.priority)
+  recommendedAlternativeKey.value = candidates[0]?.key || ''
+  applyRecommendationOrdering()
+}
 
 async function openApprovalDialog(appt) {
   selected.value = appt
   showApproval.value = true
+  await loadApprovalAvailability(appt)
+}
+
+async function loadApprovalAvailability(appt) {
   availabilityError.value = ''
   availableStaff.value = []
+  slotAlreadyBooked.value = false
+  conflictingAppointments.value = []
+  alternativeTimeSameLocation.value = []
+  alternativeLocationSameTime.value = []
+  serviceLocationsAlternatives.value = []
+  recommendedAlternativeKey.value = ''
   selectedStaff.value = ''
   approvalError.value = ''
   showRescheduleInApproval.value = false
-  approvalRescheduleForm.appointment_start_date = appt.appointment_start_date || ''
-  approvalRescheduleForm.appointment_end_date = appt.appointment_end_date || ''
-  approvalRescheduleForm.start_time = appt.start_time || ''
-  approvalRescheduleForm.end_time = appt.end_time || ''
+  approvalRescheduleForm.appointment_start_date = toDateInput(appt.appointment_start_date)
+  approvalRescheduleForm.appointment_end_date = toDateInput(appt.appointment_end_date || appt.appointment_start_date)
+  approvalRescheduleForm.start_time = toTimeInput(appt.start_time)
+  approvalRescheduleForm.end_time = toTimeInput(appt.end_time)
+  approvalRescheduleForm.location_code = appt.location_code || ''
   approvalRescheduleForm.notes = ''
 
   availabilityLoading.value = true
   try {
     const res = await api.get(`/appointments/${appt.appointment_code}/availability`)
-    availableStaff.value = res.data.data?.available_staff || []
+    const payload = res.data.data || {}
+    availableStaff.value = payload.available_staff || []
+    slotAlreadyBooked.value = Boolean(payload.location_slot_already_booked)
+    conflictingAppointments.value = payload.conflicting_appointments || []
+    alternativeTimeSameLocation.value = payload.alternatives?.different_time_same_location || []
+    alternativeLocationSameTime.value = payload.alternatives?.different_location_same_time || []
+    serviceLocationsAlternatives.value = payload.alternatives?.selected_service_other_locations || []
+    pickRecommendedAlternative()
   } catch (err) {
     availabilityError.value = err.response?.data?.message || 'Could not check availability'
   } finally {
@@ -480,6 +687,9 @@ async function submitApproveWithStaff() {
     await fetchAppointments()
   } catch (err) {
     approvalError.value = err.response?.data?.message || 'Approval failed'
+    if (selected.value?.appointment_code) {
+      await loadApprovalAvailability(selected.value)
+    }
   } finally {
     approvalSaving.value = false
   }
@@ -501,6 +711,16 @@ async function submitApprovalReschedule() {
   } finally {
     approvalSaving.value = false
   }
+}
+
+function prefillApprovalReschedule({ locationCode, startTime, endTime }) {
+  approvalRescheduleForm.appointment_start_date = toDateInput(selected.value?.appointment_start_date)
+  approvalRescheduleForm.appointment_end_date = toDateInput(selected.value?.appointment_end_date || selected.value?.appointment_start_date)
+  approvalRescheduleForm.start_time = toTimeInput(startTime)
+  approvalRescheduleForm.end_time = toTimeInput(endTime)
+  approvalRescheduleForm.location_code = locationCode || selected.value?.location_code || ''
+  showRescheduleInApproval.value = true
+  approvalError.value = ''
 }
 
 function toggleActionDropdown(appointmentCode) {

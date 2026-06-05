@@ -25,6 +25,29 @@ class LocationController {
         }
     }
 
+    async getAllLocationsWithBusiness(req: Request, res: Response) {
+        try {
+            const filters = {
+                business_code: req.query.business_code,
+                location_type: req.query.location_type,
+            };
+            const data = await service.getAllLocationsWithBusiness(filters, req.user);
+            return res.status(200).json({ success: true, data });
+        } catch (err: any) {
+            return res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
+    async getByLocationCodeWithBusiness(req: Request, res: Response) {
+        try {
+            const data = await service.getByLocationCodeWithBusiness(String(req.params.locationCode), req.user);
+            return res.status(200).json({ success: true, data });
+        } catch (err: any) {
+            return res.status(404).json({ success: false, message: err.message });
+        }
+    }
+
+
     async getByCode(req: Request, res: Response) {
         try {
             const data = await service.getByCode(String(req.params.locationCode), req.user);

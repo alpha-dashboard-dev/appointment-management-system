@@ -24,8 +24,8 @@
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
             <tr>
-              <th class="ps-3">Name</th>
-<!--              <th>Service Code</th>-->
+              <th class="ps-3">Business Name</th>
+              <th>Service Name</th>
               <th>Description</th>
               <th>Price</th>
               <th>Cost</th>
@@ -36,8 +36,8 @@
           </thead>
           <tbody>
             <tr v-for="svc in filteredServices" :key="svc.service_code">
-              <td class="ps-3">{{ svc.name }}</td>
-<!--              <td><code>{{ svc.service_code }}</code></td>-->
+              <td class="ps-3">{{ svc.business_name }}</td>
+              <td>{{ svc.name }}</td>
               <td>{{ svc.description }}</td>
               <td>{{ svc.price != null ? svc.price : '—' }} {{ svc.currency }}</td>
               <td>{{ svc.cost != null ? svc.cost : '—' }} {{ svc.currency }}</td>
@@ -179,19 +179,51 @@ const filteredServices = computed(() => {
   return services.value.filter(svc => (svc.name || '').toLowerCase().includes(s))
 })
 
+// fetch all services with business details
 async function fetchServices() {
   loading.value = true
   error.value = ''
+
   try {
-    const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/services/get-service', { params })
-    services.value = res.data.data || []
+    const response = await api.get('/services/get-all-services-with-business',
+        {
+          params: {
+            business_code: bizFilter.value
+          }
+        }
+    )
+
+    services.value = (response.data.data || []).map(
+        (services) => ({
+          ...services,
+          business_name:
+              services.business?.name || '',
+        })
+    )
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load services'
+    error.value =
+        err.response?.data?.message ||
+        'Failed to load Services'
   } finally {
     loading.value = false
   }
 }
+
+
+// fetch all services without business details
+// async function fetchServices() {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
+//     const res = await api.get('/services/get-service', { params })
+//     services.value = res.data.data || []
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to load services'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 function openEdit(svc) {
   selected.value = svc

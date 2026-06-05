@@ -16,11 +16,54 @@ class LocationServiceRepository {
 
     async findAll(filters: any = {}) {
         const where: any = {};
-        if (filters.business_code) where.business_code = filters.business_code;
-        if (filters.location_code) where.location_code = filters.location_code;
-        if (filters.service_code) where.service_code = filters.service_code;
-        return dbHelper.findAll(this.tables, { where });
+
+        if (filters.business_code)
+            where.business_code = filters.business_code;
+
+        if (filters.location_code)
+            where.location_code = filters.location_code;
+
+        if (filters.service_code)
+            where.service_code = filters.service_code;
+
+        if (filters.availability)
+            where.availability = filters.availability;
+
+        return dbHelper.findAll(this.tables, {
+            where,
+            include: [
+                {
+                    model: db.Business,
+                    as: "business",
+                    // attributes: ["business_code", "name"],
+                },
+                {
+                    model: db.Service,
+                    as: "service",
+                    // attributes: ["service_code", "name"],
+                },
+                {
+                    model: db.Location,
+                    as: "location",
+                    // attributes: [
+                    //     "location_code",
+                    //     "address",
+                    //     "street",
+                    //     "city",
+                    // ],
+                },
+            ]
+        });
     }
+
+    // async findAll(filters: any = {}) {
+    //     const where: any = {};
+    //     if (filters.business_code) where.business_code = filters.business_code;
+    //     if (filters.location_code) where.location_code = filters.location_code;
+    //     if (filters.service_code) where.service_code = filters.service_code;
+    //     if (filters.availability) where.availability = filters.availability;
+    //     return dbHelper.findAll(this.tables, { where });
+    // }
 
     async findById(id: number) {
         return dbHelper.findById(this.tables, id);

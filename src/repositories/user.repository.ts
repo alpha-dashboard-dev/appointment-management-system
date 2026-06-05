@@ -29,6 +29,37 @@ class UserRepository {
     });
   }
 
+  async findByUserCodeWithBusiness(userCode: string) {
+    return dbHelper.findOne(this.tables, {
+      where: {
+        user_code: userCode,
+      },
+      include: [
+        {
+          model: db.Business,
+          as: "business",
+        },
+      ],
+    });
+  }
+
+  async findAllUsersWithBusiness(filters: any = {}) {
+    const where: any = {};
+
+    if (filters.business_code) {
+      where.business_code = filters.business_code;
+    }
+
+    return dbHelper.findAll(this.tables, {
+      where,
+      include: [
+        {
+          association: "business",
+        },
+      ],
+    });
+  }
+
   async findAll(filters: any = {}) {
     const where: any = {};
 

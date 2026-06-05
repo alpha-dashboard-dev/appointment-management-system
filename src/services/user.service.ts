@@ -62,8 +62,33 @@ class UserService {
         return await repo.findAll(filters);
     }
 
+    async getAllUsersWithBusiness(filters: any = {}, actor: any) {
+        // Non-admin actors can only see users from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            filters.business_code = actor.businessCode;
+        }
+        return await repo.findAllUsersWithBusiness(filters);
+    }
+
+
     async getByCode(userCode: string, actor?: any) {
         const user = await repo.findByCode(userCode);
+
+        if (!user) throw new Error("User not found");
+
+        // Non-admin actors can only view users from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const userBusinessCode = user.dataValues?.business_code ?? user.business_code;
+            if (userBusinessCode !== actor.businessCode) {
+                throw new Error("Access denied: user does not belong to your business");
+            }
+        }
+
+        return user;
+    }
+
+    async getByUserCodeWithBusiness(userCode: string, actor?: any) {
+        const user = await repo.findByUserCodeWithBusiness(userCode);
 
         if (!user) throw new Error("User not found");
 
@@ -148,15 +173,6 @@ class UserService {
         return this.getByCode(userCode, actor);
     }
 
-    // async assignBusiness(userCode: string, businessCode: string, adminUser: any) {
-    //     const user = await repo.findByCode(userCode);
-    //
-    //     if (!user) throw new Error("User not found");
-    //
-    //     return await repo.update(userCode, {
-    //         business_code: businessCode,
-    //     });
-    // }
 }
 
 export default new UserService();

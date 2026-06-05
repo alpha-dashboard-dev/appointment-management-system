@@ -10,6 +10,7 @@ import {
 import { validateUser } from "../utils/validator";
 import { hashPassword, comparePassword } from "../utils/hashPassword";
 import {generateCode} from "../utils/codeGenerator";
+import { console } from "inspector";
 
 class AuthService {
 
@@ -40,16 +41,18 @@ class AuthService {
 
     async login(email: string, password: string) {
 
+        console.log(email, password);
+
         const user = await repo.findByEmail(email.trim().toLowerCase());
 
         if (!user) {
-            throw new Error("Invalid email or password");
+            throw new Error("Invalid email");
         }
 
         const passwordMatch = await comparePassword(password, user.password);
 
         if (!passwordMatch) {
-            throw new Error("Invalid email or password");
+            throw new Error("Invalid password");
         }
 
         if (user.is_active !== "active") {

@@ -22,6 +22,35 @@ class LocationRepository {
         return dbHelper.findAll(this.tables, { where });
     }
 
+    async findAllLocationsWithBusiness(filters: any = {}) {
+        const where: any = {};
+        if (filters.business_code) where.business_code = filters.business_code;
+        if (filters.location_type) where.location_type = filters.location_type;
+
+        return dbHelper.findAll(this.tables, {
+            where,
+            include: [
+                {
+                    association: "business",
+                },
+            ],
+        });
+    }
+
+    async findByLocationCodeWithBusiness(businessCode: string) {
+        return dbHelper.findOne(this.tables, {
+            where: {
+                business_code: businessCode,
+            },
+            include: [
+                {
+                    model: db.Business,
+                    as: "business",
+                },
+            ],
+        });
+    }
+
     async findByCode(locationCode: string) {
         return dbHelper.findByField(this.tables, "location_code", locationCode);
     }

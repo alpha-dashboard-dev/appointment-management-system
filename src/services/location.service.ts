@@ -40,6 +40,31 @@ class LocationService {
         return await repo.findAll(filters);
     }
 
+    async getAllLocationsWithBusiness(filters: any = {}, actor?: any) {
+        // Non-admin, non-client actors can only see locations from their own business
+        if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
+            filters.business_code = actor.businessCode;
+        }
+        // Clients pass business_code as query param; don't override it
+        return await repo.findAllLocationsWithBusiness(filters);
+    }
+
+    async getByLocationCodeWithBusiness(locationCode: string, actor?: any) {
+        const loc = await repo.findByLocationCodeWithBusiness(locationCode);
+        if (!loc) throw new Error("Location not found");
+
+        // Non-admin actors can only view locations from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const locBusiness = loc.dataValues?.business_code ?? loc.business_code;
+            if (locBusiness !== actor.businessCode) {
+                throw new Error("Access denied: location does not belong to your business");
+            }
+        }
+
+        return loc;
+    }
+
+
     async getByCode(locationCode: string, actor?: any) {
         const loc = await repo.findByCode(locationCode);
         if (!loc) throw new Error("Location not found");

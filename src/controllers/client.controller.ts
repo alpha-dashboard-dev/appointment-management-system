@@ -34,6 +34,15 @@ class ClientController {
         }
     }
 
+    async getByUserCodeWithBusiness(req: Request, res: Response) {
+        try {
+            const data = await service.getByUserCodeWithBusiness(String(req.params.userCode), req.user);
+            return res.status(200).json({ success: true, data });
+        } catch (err: any) {
+            return res.status(404).json({ success: false, message: err.message });
+        }
+    }
+
     async update(req: Request, res: Response) {
         try {
             const data = await service.update(String(req.params.userCode), req.body, req.user);

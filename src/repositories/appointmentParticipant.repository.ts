@@ -82,6 +82,42 @@ class AppointmentParticipantRepository {
         return conflicts;
     }
 
+    async findBusyStaffCodes(
+        date: string,
+        startTime: string,
+        endTime: string,
+        excludeAppointmentCode?: string
+    ): Promise<string[]> {
+        const conflicts = await db.AppointmentParticipant.findAll({
+            attributes: [[db.sequelize.col("AppointmentParticipant.user_code"), "user_code"]],
+            include: [
+                {
+                    model: db.Appointment,
+                    as: "appointment",
+                    required: true,
+                    attributes: [],
+                    where: {
+                        appointment_start_date: date,
+                        status: { [Op.in]: ["approved", "in_progress"] },
+                        ...(excludeAppointmentCode ? { appointment_code: { [Op.ne]: excludeAppointmentCode } } : {}),
+                        [Op.or]: [
+                            { start_time: { [Op.lte]: startTime }, end_time: { [Op.gt]: startTime } },
+                            { start_time: { [Op.lt]: endTime }, end_time: { [Op.gte]: endTime } },
+                            { start_time: { [Op.gte]: startTime }, end_time: { [Op.lte]: endTime } },
+                        ],
+                    },
+                },
+            ],
+            where: {
+                user_type: "service_staff",
+                status: "active",
+            },
+            raw: true,
+        });
+
+        return [...new Set(conflicts.map((c: any) => c.user_code).filter(Boolean))];
+    }
+
     async update(id: number, data: any) {
         return dbHelper.update(this.tables, id, data);
     }

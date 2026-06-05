@@ -27,6 +27,13 @@ router.get(
     controller.getByCode
 );
 
+router.get(
+    "/get-client-with-business/:userCode",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
+    controller.getByUserCodeWithBusiness
+);
+
 router.put(
     "/update-client/:userCode",
     authenticate,

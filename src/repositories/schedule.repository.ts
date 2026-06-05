@@ -1,6 +1,7 @@
 import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 import {Op} from "sequelize";
+import { ROLES } from "../utils/roles";
 
 const db = initModels();
 
@@ -48,16 +49,73 @@ class ScheduleRepository {
         const normalizedStartTime = normalizeTime(startTime);
         const normalizedEndTime = normalizeTime(endTime);
 
-        return await db.UserShiftSchedule.findAll({
+        const rows = await db.UserShiftSchedule.findAll({
             where: {
                 business_code: businessCode,
                 location_code: locationCode,
                 working_days: String(workingDay || "").toLowerCase(),
+                status: "active",
                 start_time: { [Op.lte]: normalizedStartTime },
                 end_time: { [Op.gte]: normalizedEndTime },
             },
+            include: [
+                {
+                    model: db.User,
+                    as: "user",
+                    required: true,
+                    attributes: ["user_code", "name", "user_type", "is_active"],
+                    where: {
+                        user_type: ROLES.SERVICE_STAFF,
+                        is_active: "active",
+                    },
+                },
+            ],
             raw: true,
         });
+
+        return rows.map((row: any) => ({
+            user_code: row["user.user_code"] ?? row.user_code,
+            staff_name: row["user.name"] || null,
+            user_type: row["user.user_type"] || ROLES.SERVICE_STAFF,
+            location_code: row.location_code,
+            working_days: row.working_days,
+            start_time: row.start_time,
+            end_time: row.end_time,
+        }));
+    }
+
+    async findStaffSchedulesByDay(businessCode: string, workingDay: string, locationCode?: string) {
+        const rows = await db.UserShiftSchedule.findAll({
+            where: {
+                business_code: businessCode,
+                working_days: String(workingDay || "").toLowerCase(),
+                status: "active",
+                ...(locationCode ? { location_code: locationCode } : {}),
+            },
+            include: [
+                {
+                    model: db.User,
+                    as: "user",
+                    required: true,
+                    attributes: ["user_code", "name", "user_type", "is_active"],
+                    where: {
+                        user_type: ROLES.SERVICE_STAFF,
+                        is_active: "active",
+                    },
+                },
+            ],
+            raw: true,
+        });
+
+        return rows.map((row: any) => ({
+            user_code: row["user.user_code"] ?? row.user_code,
+            staff_name: row["user.name"] || null,
+            user_type: row["user.user_type"] || ROLES.SERVICE_STAFF,
+            location_code: row.location_code,
+            working_days: row.working_days,
+            start_time: row.start_time,
+            end_time: row.end_time,
+        }));
     }
 
     async delete(id: number) {

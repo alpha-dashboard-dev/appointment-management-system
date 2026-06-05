@@ -45,11 +45,49 @@ class UserController {
         }
     }
 
-    async getById(req: Request, res: Response) {
+    async getAllUsersWithBusiness(req: Request, res: Response) {
+        try {
+            const filters = {business_code: req.query.business_code,};
+
+            const data = await service.getAllUsersWithBusiness(filters, req.user);
+
+            return res.status(200).json({
+                success: true,
+                data,
+            });
+
+        } catch (err: any) {
+            return res.status(500).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+
+    async getByCode(req: Request, res: Response) {
         try {
             const userCode = String(req.params.userCode);
 
             const data = await service.getByCode(userCode, req.user);
+
+            return res.status(200).json({
+                success: true,
+                data,
+            });
+
+        } catch (err: any) {
+            return res.status(404).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+
+    async getByUserCodeWithBusiness(req: Request, res: Response) {
+        try {
+            const userCode = String(req.params.userCode);
+
+            const data = await service.getByUserCodeWithBusiness(userCode, req.user);
 
             return res.status(200).json({
                 success: true,
@@ -129,31 +167,6 @@ class UserController {
             });
         }
     }
-
-    // async assignBusiness(req: Request, res: Response) {
-    //     try {
-    //         const userCode = String(req.params.userCode);
-    //         const { business_code } = req.body;
-    //
-    //         const data = await service.assignBusiness(
-    //             userCode,
-    //             business_code,
-    //             req.user
-    //         );
-    //
-    //         return res.status(200).json({
-    //             success: true,
-    //             message: "Business assigned successfully",
-    //             data,
-    //         });
-    //
-    //     } catch (err: any) {
-    //         return res.status(400).json({
-    //             success: false,
-    //             message: err.message,
-    //         });
-    //     }
-    // }
 }
 
 export default new UserController();

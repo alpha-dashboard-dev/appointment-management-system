@@ -372,7 +372,7 @@ async function fetchStaff(business_code) {
   staffList.value = []
   if (!business_code) return
   try {
-    const res = await api.get('/users/get-users', { params: { business_code } })
+    const res = await api.get('/users/get-all-users', { params: { business_code } })
     const all = res.data.data || []
     staffList.value = all.filter(u => u.user_type === 'operational_staff' || u.user_type === 'service_staff')
   } catch (_) {}
@@ -402,7 +402,7 @@ async function fetchSchedules() {
 
     const [scheduleRes, usersRes] = await Promise.all([
       api.get('/schedules/get-schedule', { params }),
-      api.get('/users/get-users', { params })
+      api.get('/users/get-all-users', { params })
     ])
 
     const users = usersRes.data.data || []

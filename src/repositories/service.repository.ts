@@ -35,6 +35,23 @@ class ServiceRepository {
     async delete(serviceCode: string) {
         return dbHelper.deleteByField(this.tables, "service_code", serviceCode);
     }
+
+    async findAllServicesWithBusiness(filters: any = {}) {
+        const where: any = {};
+
+        if (filters.business_code) {
+            where.business_code = filters.business_code;
+        }
+
+        return dbHelper.findAll(this.tables, {
+            where,
+            include: [
+                {
+                    association: "business",
+                },
+            ],
+        });
+    }
 }
 
 export default new ServiceRepository();

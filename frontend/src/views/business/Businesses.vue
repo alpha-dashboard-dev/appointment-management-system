@@ -146,30 +146,52 @@ const editForm = reactive({ name: '', status: 'active' })
 async function fetchBusinesses() {
   loading.value = true
   error.value = ''
+
   try {
-    const [businessRes, organizationRes] = await Promise.all([
-      api.get('/businesses/get-business'),
-      api.get('/organizations/get-organization'),
-    ])
+    const response = await api.get('/businesses/get-business')
 
-    const organizations = organizationRes.data.data || []
-    const organizationNameByCode = new Map(
-      organizations.map((org) => [org.organization_code, org.name])
+    businesses.value = (response.data.data || []).map(
+        (business) => ({
+          ...business,
+          organization_name:
+              business.organization?.name || '',
+        })
     )
-
-    businesses.value = (businessRes.data.data || []).map((business) => ({
-      ...business,
-      organization_name:
-        organizationNameByCode.get(business.organization_code) ||
-        business.organization_name ||
-        '',
-    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load businesses'
+    error.value =
+        err.response?.data?.message ||
+        'Failed to load businesses'
   } finally {
     loading.value = false
   }
 }
+// async function fetchBusinesses() {
+//   loading.value = true
+//   error.value = ''
+//   try {
+//     const [businessRes, organizationRes] = await Promise.all([
+//       api.get('/businesses/get-business'),
+//       api.get('/organizations/get-organization'),
+//     ])
+//
+//     const organizations = organizationRes.data.data || []
+//     const organizationNameByCode = new Map(
+//       organizations.map((org) => [org.organization_code, org.name])
+//     )
+//
+//     businesses.value = (businessRes.data.data || []).map((business) => ({
+//       ...business,
+//       organization_name:
+//         organizationNameByCode.get(business.organization_code) ||
+//         business.organization_name ||
+//         '',
+//     }))
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Failed to load businesses'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 
 function openEdit(business){
   selected.value = business
