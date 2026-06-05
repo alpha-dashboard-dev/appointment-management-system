@@ -173,15 +173,6 @@ class UserService {
         return this.getByCode(userCode, actor);
     }
 
-    // async assignBusiness(userCode: string, businessCode: string, adminUser: any) {
-    //     const user = await repo.findByCode(userCode);
-    //
-    //     if (!user) throw new Error("User not found");
-    //
-    //     return await repo.update(userCode, {
-    //         business_code: businessCode,
-    //     });
-    // }
 }
 
 export default new UserService();
