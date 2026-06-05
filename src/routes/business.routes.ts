@@ -27,36 +27,22 @@ router.get(
     controller.getByCode
 );
 
-router.get(
-    "/get-business-with-organization/:businessCode",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN),
-    controller.getByCodeWithOrganization
-);
-
-router.get(
-    "/get-business-with-user/:businessCode",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN),
-    controller.getByBusinessCodeWithUser
-);
-
 router.put(
-    "/update-business:businessCode",
+    "/update-business/:businessCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.patch(
-    "/update-business-status:businessCode",
+    "/update-business-status/:businessCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.changeStatus
 )
 
 router.delete(
-    "/delete-business:businessCode",
+    "/delete-business/:businessCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.delete

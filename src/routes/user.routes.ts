@@ -21,24 +21,10 @@ router.get(
 );
 
 router.get(
-    "/get-all-users-with-business",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.getAllUsersWithBusiness
-);
-
-router.get(
     "/get-one-user/:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.getByCode
-);
-
-router.get(
-    "/get-user-with-business/:userCode",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.getByUserCodeWithBusiness
 );
 
 

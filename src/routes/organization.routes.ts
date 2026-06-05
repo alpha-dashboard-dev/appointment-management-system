@@ -14,28 +14,28 @@ router.post(
 );
 
 router.get(
-    "/get-organization",
+    "/get-all-organization",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.getAll
 );
 
 router.get(
-    "/get-organization:organizationCode",
+    "/get-organization-by-code/:organizationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.getByCode
 );
 
 router.put(
-    "/update-organization:organizationCode",
+    "/update-organization/:organizationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.update
 );
 
 router.patch(
-    "/update-organization-status:organizationCode",
+    "/update-organization-status/:organizationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.changeStatus
