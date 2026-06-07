@@ -143,12 +143,18 @@ const selected = ref(null)
 
 const editForm = reactive({ name: '', status: 'active' })
 
+
 async function fetchBusinesses() {
   loading.value = true
   error.value = ''
 
   try {
-    const response = await api.get('/businesses/get-business')
+    const response = await api.get('/businesses/get-business', {
+      params: {
+        include: "organization"
+      }
+    })
+    console.log(response)
 
     businesses.value = (response.data.data || []).map(
         (business) => ({
@@ -165,33 +171,6 @@ async function fetchBusinesses() {
     loading.value = false
   }
 }
-// async function fetchBusinesses() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const [businessRes, organizationRes] = await Promise.all([
-//       api.get('/businesses/get-business'),
-//       api.get('/organizations/get-organization'),
-//     ])
-//
-//     const organizations = organizationRes.data.data || []
-//     const organizationNameByCode = new Map(
-//       organizations.map((org) => [org.organization_code, org.name])
-//     )
-//
-//     businesses.value = (businessRes.data.data || []).map((business) => ({
-//       ...business,
-//       organization_name:
-//         organizationNameByCode.get(business.organization_code) ||
-//         business.organization_name ||
-//         '',
-//     }))
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load businesses'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 
 function openEdit(business){
   selected.value = business
@@ -210,7 +189,7 @@ async function updateBusiness() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/businesses/update-business${selected.value.business_code}`, editForm)
+    await api.put(`/businesses/update-business/${selected.value.business_code}`, editForm)
     showEditModal.value = false
     await fetchBusinesses()
   } catch (err) {
@@ -220,26 +199,12 @@ async function updateBusiness() {
   }
 }
 
-// async function updateBusiness() {
-//   saving.value = true
-//   formError.value = ''
-//   try {
-//     await api.put(`/businesses/update-business${selected.value.business_code}`, editForm)
-//     showEditModal.value = false
-//     await fetchBusinesses()
-//   } catch (err) {
-//     formError.value = err.response?.data?.message || 'Update failed'
-//   } finally {
-//     saving.value = false
-//   }
-// }
-
 // Deactivate Business
 
 async function deactivateBusiness() {
   saving.value = true
   try {
-    await api.patch(`/businesses/update-business-status${selected.value.business_code}`, { status: 'inactive' })
+    await api.patch(`/businesses/update-business-status/${selected.value.business_code}`, { status: 'inactive' })
     showDeleteModal.value = false
     await fetchBusinesses()
   } catch (err) {

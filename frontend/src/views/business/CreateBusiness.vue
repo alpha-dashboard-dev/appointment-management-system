@@ -98,7 +98,7 @@ function validateField(field) {
 
 onMounted(async () => {
   try {
-    const res = await api.get('/organizations/get-organization')
+    const res = await api.get('/organizations/get-all-organization')
     organizations.value = res.data.data || []
   } catch (_) {}
 })
