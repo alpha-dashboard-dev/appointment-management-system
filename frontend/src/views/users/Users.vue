@@ -156,19 +156,23 @@ const selected = ref(null)
 const editForm = reactive({ name: '', email: '', phone: '', password: '', is_active: 'active' })
 
 
-// fetch all users with their business details
 async function fetchUsers() {
   loading.value = true
   error.value = ''
 
   try {
-    const response = await api.get('/users/get-all-users-with-business')
+    const response = await api.get('/users/get-all-users', {
+      params: {
+        include: "business"
+      }
+    })
+    console.log(response)
 
     users.value = (response.data.data || []).map(
-        (users) => ({
-          ...users,
+        (user) => ({
+          ...user,
           business_name:
-              users.business?.name || '',
+              user.business?.name || '',
         })
     )
   } catch (err) {
@@ -179,19 +183,6 @@ async function fetchUsers() {
     loading.value = false
   }
 }
-// fetch all users without business details
-// async function fetchUsers() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const res = await api.get('/users/get-all-users')
-//     users.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load users'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 
 function openEdit(user) {
   selected.value = user
