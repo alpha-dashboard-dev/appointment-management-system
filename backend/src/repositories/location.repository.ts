@@ -39,25 +39,25 @@ class LocationRepository {
         });
     }
 
-    async findAllLocationsWithBusiness(filters: any = {}) {
-        const where: any = {};
-        if (filters.business_code) where.business_code = filters.business_code;
-        if (filters.location_type) where.location_type = filters.location_type;
+    // async findAllLocationsWithBusiness(filters: any = {}) {
+    //     const where: any = {};
+    //     if (filters.business_code) where.business_code = filters.business_code;
+    //     if (filters.location_type) where.location_type = filters.location_type;
 
-        return dbHelper.findAll(this.tables, {
-            where,
-            include: this.buildIncludes(["business"]),
-        });
-    }
+    //     return dbHelper.findAll(this.tables, {
+    //         where,
+    //         include: this.buildIncludes(["business"]),
+    //     });
+    // }
 
-    async findByLocationCodeWithBusiness(locationCode: string) {
-        return dbHelper.findOne(this.tables, {
-            where: {
-                location_code: locationCode,
-            },
-            include: this.buildIncludes(["business"]),
-        });
-    }
+    // async findByLocationCodeWithBusiness(locationCode: string) {
+    //     return dbHelper.findOne(this.tables, {
+    //         where: {
+    //             location_code: locationCode,
+    //         },
+    //         include: this.buildIncludes(["business"]),
+    //     });
+    // }
 
     async findByCode(locationCode: string, options: any = {}) {
         return dbHelper.findOne(this.tables, {
@@ -73,12 +73,25 @@ class LocationRepository {
     }
 
     async update(locationCode: string, data: any) {
-        return dbHelper.updateByCode(this.tables, "location_code", locationCode, data);
+        return dbHelper.update(this.tables, {"location_code": locationCode}, data);
     }
 
     async delete(locationCode: string) {
-        return dbHelper.deleteByField(this.tables, "location_code", locationCode);
-    }
+    
+        return dbHelper.update(
+            this.tables,
+            {
+              location_code: locationCode,
+            },
+            {
+              status: "inactive",
+            }
+        );
+      }
+
+    // async delete(locationCode: string) {
+    //     return dbHelper.deleteByField(this.tables, "location_code", locationCode);
+    // }
 }
 
 export default new LocationRepository();

@@ -14,18 +14,18 @@ router.post(
 );
 
 router.get(
-    "/get-location",
+    "/get-all-locations",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.CLIENT),
     controller.getAll
 );
 
-router.get(
-    "/get-location-with-business",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.CLIENT),
-    controller.getAllLocationsWithBusiness
-);
+// router.get(
+//     "/get-location-with-business",
+//     authenticate,
+//     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.CLIENT),
+//     controller.getAllLocationsWithBusiness
+// );
 
 router.get(
     "/get-location/:locationCode",
@@ -34,16 +34,16 @@ router.get(
     controller.getByCode
 );
 
-router.get(
-    "/get-location-with-business/:locationCode",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
-    controller.getByLocationCodeWithBusiness
-);
+// router.get(
+//     "/get-location-with-business/:locationCode",
+//     authenticate,
+//     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
+//     controller.getByLocationCodeWithBusiness
+// );
 
 
 router.put(
-    "/update-location:locationCode",
+    "/update-location/:locationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
@@ -57,7 +57,7 @@ router.patch(
 );
 
 router.delete(
-    "/delete-location:locationCode",
+    "/delete-location/:locationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete

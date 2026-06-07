@@ -55,25 +55,28 @@ class ServiceRepository {
     }
 
     async update(serviceCode: string, data: any) {
-        return dbHelper.updateByCode(this.tables, "service_code", serviceCode, data);
-    }
+    
+        return dbHelper.update(
+            this.tables,
+            {
+              service_code: serviceCode,
+            },
+            data
+        );
+      }
 
     async delete(serviceCode: string) {
-        return dbHelper.deleteByField(this.tables, "service_code", serviceCode);
-    }
-
-    async findAllServicesWithBusiness(filters: any = {}) {
-        const where: any = {};
-
-        if (filters.business_code) {
-            where.business_code = filters.business_code;
-        }
-
-        return dbHelper.findAll(this.tables, {
-            where,
-            include: this.buildIncludes(["business"]),
-        });
-    }
+    
+        return dbHelper.update(
+            this.tables,
+            {
+              service_code: serviceCode,
+            },
+            {
+              status: "inactive",
+            }
+        );
+      }
 }
 
 export default new ServiceRepository();

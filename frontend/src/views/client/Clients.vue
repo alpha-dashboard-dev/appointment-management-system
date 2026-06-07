@@ -184,13 +184,18 @@ const filteredClients = computed(() => {
   )
 })
 
+
 // fetch all clients with business name
 async function fetchClients() {
   loading.value = true
   error.value = ''
 
   try {
-    const response = await api.get('/users/get-all-users-with-business')
+    const response = await api.get('/users/get-all-users', {
+      params: {
+        include: "business"
+      }
+    })
 
     clients.value = (response.data.data || []).map(
         (clients) => ({
@@ -208,19 +213,6 @@ async function fetchClients() {
   }
 }
 
-// fetch all clients without business details
-// async function fetchClients() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const res = await api.get('/clients/get-client')
-//     clients.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load clients'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 
 function openEdit(client) {
   selected.value = client
@@ -255,7 +247,7 @@ async function updateClient() {
 async function deactivateClient() {
   saving.value = true
   try {
-    await api.patch(`/users/update-user-status${selected.value.user_code}`, { is_active: 'inactive' })
+    await api.patch(`/users/update-user-status/${selected.value.user_code}`, { is_active: 'inactive' })
     showDeleteModal.value = false
     await fetchClients()
   } catch (err) {

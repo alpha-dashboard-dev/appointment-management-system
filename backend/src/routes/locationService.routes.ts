@@ -21,21 +21,21 @@ router.get(
 );
 
 router.get(
-    "/get-location-service:id",
+    "/get-location-service/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.getById
 );
 
 router.put(
-    "/update-location-service:id",
+    "/update-location-service/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.delete(
-    "/delete-location-service:id",
+    "/delete-location-service/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete

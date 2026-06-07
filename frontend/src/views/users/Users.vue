@@ -166,7 +166,6 @@ async function fetchUsers() {
         include: "business"
       }
     })
-    console.log(response)
 
     users.value = (response.data.data || []).map(
         (user) => ({

@@ -227,7 +227,9 @@ async function fetchMappings() {
   error.value = ''
 
   try {
-    const params = {}
+    const params = {
+      include: "business,service,location"
+    }
 
     if (bizFilter.value)
       params.business_code = bizFilter.value
@@ -312,7 +314,7 @@ async function updateMapping() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/location-services/update-location-service${selected.value.id}`, editForm)
+    await api.put(`/location-services/update-location-service/${selected.value.id}`, editForm)
     showEditModal.value = false
     await fetchMappings()
   } catch (err) {
@@ -325,7 +327,7 @@ async function updateMapping() {
 async function deleteMapping() {
   saving.value = true
   try {
-    await api.delete(`/location-services/delete-location-service${selected.value.id}`)
+    await api.delete(`/location-services/delete-location-service/${selected.value.id}`)
     showDeleteModal.value = false
     await fetchMappings()
   } catch (err) {
@@ -342,8 +344,8 @@ onMounted(async () => {
   const [_, bizRes, locRes, svcRes] = await Promise.allSettled([
     fetchMappings(),
     isAdmin.value ? api.get('/businesses/get-business') : Promise.resolve({ data: { data: [] } }),
-    api.get('/locations/get-location', { params: locParams }),
-    api.get('/services/get-service', { params: svcParams }),
+    api.get('/locations/get-all-locations', { params: locParams }),
+    api.get('/services/get-all-services', { params: svcParams }),
   ])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
   if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []

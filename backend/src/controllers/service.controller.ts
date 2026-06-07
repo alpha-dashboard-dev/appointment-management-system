@@ -88,14 +88,6 @@ class ServiceController {
         }
     }
 
-    async getAllServicesWithBusiness(req: Request, res: Response) {
-        try {
-            const data = await service.getAllServicesWithBusiness(req.query, req.user);
-            return res.status(200).json({ success: true, data });
-        } catch (err: any) {
-            return res.status(500).json({ success: false, message: err.message });
-        }
-    }
 }
 
 export default new ServiceController();

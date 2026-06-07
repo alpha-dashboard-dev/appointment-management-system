@@ -135,7 +135,7 @@ const stats = ref({
 onMounted(async () => {
   try {
     const [orgs, bizs, clients, appts, users, svcs, invs, locs] = await Promise.allSettled([
-      api.get('/organizations/get-organization'),
+      api.get('/organizations/get-all-organization'),
       api.get('/businesses/get-business'),
       api.get('/clients/get-client'),
       api.get('/appointments'),

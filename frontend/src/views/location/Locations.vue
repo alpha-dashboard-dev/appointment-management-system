@@ -78,14 +78,14 @@
 
     <!-- EDIT MODAL -->
     <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
-      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-height:90vh; max-width:760px; width:auto">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Edit Location</h5>
             <button type="button" class="btn-close" @click="showEditModal = false"></button>
           </div>
           <form @submit.prevent="updateLocation">
-            <div class="modal-body">
+            <div class="modal-body" style="overflow-y:auto; max-height:calc(90vh - 190px);">
 <!--              <div class="mb-3">-->
 <!--                <label class="form-label fw-semibold">Location Type</label>-->
 <!--                <select v-model="editForm.location_type" class="form-select">-->
@@ -189,9 +189,11 @@ async function fetchLocations() {
 
   try {
 
-    const response = await api.get('/locations/get-location-with-business',
+    const response = await api.get('/locations/get-all-locations',
         {
-          params: { business_code: bizFilter.value}
+          params: {
+            include: "business"
+          }
         }
     )
 
@@ -209,21 +211,6 @@ async function fetchLocations() {
     loading.value = false
   }
 }
-
-// fetch location without business
-// async function fetchLocations() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-//     const res = await api.get('/locations/get-location', { params })
-//     locations.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load locations'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 
 function openEdit(loc) {
   selected.value = loc
@@ -249,7 +236,7 @@ async function updateLocation() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/locations/update-location${selected.value.location_code}`, editForm)
+    await api.put(`/locations/update-location/${selected.value.location_code}`, editForm)
     showEditModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -262,7 +249,7 @@ async function updateLocation() {
 async function deleteLocation() {
   saving.value = true
   try {
-    await api.delete(`/locations/delete-location${selected.value.location_code}`)
+    await api.delete(`/locations/delete-location/${selected.value.location_code}`)
     showDeleteModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -277,5 +264,3 @@ onMounted(async () => {
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>
-
-

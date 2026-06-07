@@ -69,21 +69,44 @@ class LocationServiceRepository {
         });
     }
 
-    async findByLocation(locationCode: string) {
-        return dbHelper.findAllByField(this.tables, "location_code", locationCode);
-    }
+    // async findByLocation(locationCode: string) {
+    //     return dbHelper.findAllByField(this.tables, "location_code", locationCode);
+    // }
 
-    async findByService(serviceCode: string) {
-        return dbHelper.findAllByField(this.tables, "service_code", serviceCode);
-    }
+    // async findByService(serviceCode: string) {
+    //     return dbHelper.findAllByField(this.tables, "service_code", serviceCode);
+    // }
 
+    // async update(id: number, data: any) {
+    //     return dbHelper.update(this.tables, id, data);
+    // }
     async update(id: number, data: any) {
-        return dbHelper.update(this.tables, id, data);
-    }
+        
+            return dbHelper.update(
+                this.tables,
+                {
+                  id: id,
+                },
+                data
+            );
+          }
+
+    // async delete(id: number) {
+    //     return dbHelper.delete(this.tables, id);
+    // }
 
     async delete(id: number) {
-        return dbHelper.delete(this.tables, id);
-    }
+        
+            return dbHelper.update(
+                this.tables,
+                {
+                  id: id,
+                },
+                {
+                  availability: "not_available",
+                }
+            );
+          }
 }
 
 export default new LocationServiceRepository();

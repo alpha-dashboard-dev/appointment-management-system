@@ -22,18 +22,12 @@ router.get(
 );
 
 router.get(
-    "/get-service",
+    "/get-all-services",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getAll
 );
 
-router.get(
-    "/get-all-services-with-business",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.getAllServicesWithBusiness
-);
 
 router.get(
     "/get-service/:serviceCode",

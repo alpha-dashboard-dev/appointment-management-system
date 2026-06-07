@@ -185,10 +185,10 @@ async function fetchServices() {
   error.value = ''
 
   try {
-    const response = await api.get('/services/get-all-services-with-business',
+    const response = await api.get('/services/get-all-services',
         {
           params: {
-            business_code: bizFilter.value
+            include: "business"
           }
         }
     )
@@ -208,22 +208,6 @@ async function fetchServices() {
     loading.value = false
   }
 }
-
-
-// fetch all services without business details
-// async function fetchServices() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-//     const res = await api.get('/services/get-service', { params })
-//     services.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load services'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 
 function openEdit(svc) {
   selected.value = svc
