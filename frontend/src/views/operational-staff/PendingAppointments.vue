@@ -95,7 +95,7 @@
                     <input type="radio" :value="s.user_code" v-model="approvalSelectedStaff" class="form-check-input mt-0" />
                     <div>
                       <div class="fw-semibold">{{ s.staff_name || s.user_code }}</div>
-                      <small class="text-muted">{{ s.working_days }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</small>
+                      <small class="text-muted">{{ s.working_day || s.working_days }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</small>
                     </div>
                   </label>
                 </div>

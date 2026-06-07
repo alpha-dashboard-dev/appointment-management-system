@@ -55,12 +55,12 @@ class ChargeRepository {
         });
     }
 
-    async findByBusiness(businessCode: string) {
-        return dbHelper.findAllByField(this.tables, "business_code", businessCode);
-    }
+    // async findByBusiness(businessCode: string) {
+    //     return dbHelper.findAllByField(this.tables, "business_code", businessCode);
+    // }
 
     async update(chargeCode: string, data: any) {
-        return dbHelper.updateByCode(this.tables, "charge_code", chargeCode, data);
+        return dbHelper.update(this.tables, {"charge_code": chargeCode}, data);
     }
 
     async delete(chargeCode: string) {

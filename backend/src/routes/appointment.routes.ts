@@ -16,7 +16,7 @@ const ALL_STAFF = [ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF];
 const MANAGERS = [ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF];
 
 router.post(
-    "/",
+    "/create-appointment",
     authenticate,
     authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
     controller.create
@@ -30,7 +30,7 @@ router.post(
 );
 
 router.get(
-    "/",
+    "/get-all-appointments",
     authenticate,
     authorizeRoles(...ALL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getAll

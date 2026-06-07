@@ -56,12 +56,12 @@
                         Deactivate
                       </button>
                     </li>
-                    <li>
+                    <!-- <li>
                       <button class="dropdown-item text-danger" @click="openDelete(charge)">
                         <i class="bi bi-trash me-2"></i>
                         Delete
                       </button>
-                    </li>
+                    </li> -->
                   </ul>
                 </div>
               </td>

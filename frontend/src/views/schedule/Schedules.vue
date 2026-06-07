@@ -382,7 +382,7 @@ async function fetchLocations(business_code) {
   locationsList.value = []
   if (!business_code) return
   try {
-    const res = await api.get('/locations/get-location', { params: { business_code } })
+    const res = await api.get('/locations/get-all-locations', { params: { business_code } })
     locationsList.value = res.data.data || []
   } catch (_) {}
 }

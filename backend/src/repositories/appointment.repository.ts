@@ -80,12 +80,12 @@ class AppointmentRepository {
         });
     }
 
-    async findByBusiness(businessCode: string) {
-        return dbHelper.findAllByField(this.tables, "business_code", businessCode);
-    }
+    // async findByBusiness(businessCode: string) {
+    //     return dbHelper.findAllByField(this.tables, "business_code", businessCode);
+    // }
 
     async update(appointmentCode: string, data: any) {
-        return dbHelper.updateByCode(this.tables, "appointment_code", appointmentCode, data);
+        return dbHelper.update(this.tables, {"appointment_code": appointmentCode}, data);
     }
 
     async findLocationSlotConflicts(

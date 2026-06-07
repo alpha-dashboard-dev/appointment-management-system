@@ -165,8 +165,8 @@ async function onBusinessChange() {
   form.location_code = ''
   if (!form.business_code) { services.value = []; locations.value = []; return }
   const [svcRes, locRes] = await Promise.allSettled([
-    api.get('/services/get-service', { params: { business_code: form.business_code } }),
-    api.get('/locations/get-location', { params: { business_code: form.business_code } }),
+    api.get('/services/get-all-services', { params: { business_code: form.business_code } }),
+    api.get('/locations/get-all-locations', { params: { business_code: form.business_code } }),
   ])
   if (svcRes.status === 'fulfilled') services.value = svcRes.value.data.data || []
   if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []
