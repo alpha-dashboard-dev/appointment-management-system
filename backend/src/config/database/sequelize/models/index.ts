@@ -20,7 +20,7 @@ const UserShiftSchedule = require('./user_shift_schedule');
 const UserAbility = require('./user_abilities');
 const Charge = require('./charges');
 
-module.exports = () => {
+const initModels = () => {
     const models = {
         Organization: Organization.initModel(sequelize),
         User: User.initModel(sequelize),
@@ -54,3 +54,6 @@ module.exports = () => {
         ...models,
     };
 };
+
+module.exports = initModels;
+export default initModels;

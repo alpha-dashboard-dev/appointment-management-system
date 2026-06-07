@@ -14,8 +14,7 @@ class ServiceController {
 
     async getAll(req: Request, res: Response) {
         try {
-            const filters = { business_code: req.query.business_code };
-            const data = await service.getAll(filters, req.user);
+            const data = await service.getAll(req.query, req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -25,7 +24,11 @@ class ServiceController {
 
     async getByCode(req: Request, res: Response) {
         try {
-            const data = await service.getByCode(String(req.params.serviceCode), req.user);
+            const data = await service.getByCode(
+                String(req.params.serviceCode),
+                req.user,
+                req.query
+            );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(404).json({ success: false, message: err.message });
@@ -87,8 +90,7 @@ class ServiceController {
 
     async getAllServicesWithBusiness(req: Request, res: Response) {
         try {
-            const filters = { business_code: req.query.business_code };
-            const data = await service.getAllServicesWithBusiness(filters, req.user);
+            const data = await service.getAllServicesWithBusiness(req.query, req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });

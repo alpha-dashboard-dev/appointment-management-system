@@ -31,13 +31,50 @@ class LocationService {
         });
     }
 
-    async getAll(filters: any = {}, actor?: any) {
+    async getAll(query: any = {}, actor?: any) {
+        const filters: any = {
+            business_code:
+                query.business_code,
+
+            location_type:
+                query.location_type,
+        };
+
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+
         // Non-admin, non-client actors can only see locations from their own business
         if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
             filters.business_code = actor.businessCode;
         }
         // Clients pass business_code as query param; don't override it
-        return await repo.findAll(filters);
+        return await repo.findAll(
+            filters,
+            options
+        );
     }
 
     async getAllLocationsWithBusiness(filters: any = {}, actor?: any) {
@@ -65,8 +102,23 @@ class LocationService {
     }
 
 
-    async getByCode(locationCode: string, actor?: any) {
-        const loc = await repo.findByCode(locationCode);
+    async getByCode(
+        locationCode: string,
+        actor?: any,
+        query: any = {}
+    ) {
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+        };
+
+        const loc = await repo.findByCode(
+            locationCode,
+            options
+        );
         if (!loc) throw new Error("Location not found");
 
         // Non-admin actors can only view locations from their own business

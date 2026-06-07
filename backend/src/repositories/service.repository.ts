@@ -10,18 +10,44 @@ class ServiceRepository {
         this.tables = { sequelize: db.Service };
     }
 
+    buildIncludes(include: string[] = []) {
+        const associations =
+            db.Service.associations || {};
+
+        return [...new Set(include)]
+            .filter((alias) => associations[alias])
+            .map((alias) => ({
+                association: alias,
+            }));
+    }
+
     async create(data: any) {
         return dbHelper.create(this.tables, data);
     }
 
-    async findAll(filters: any = {}) {
+    async findAll(filters: any = {}, options: any = {}) {
         const where: any = {};
         if (filters.business_code) where.business_code = filters.business_code;
-        return dbHelper.findAll(this.tables, { where });
+        return dbHelper.findAll(this.tables, {
+            where,
+            include: this.buildIncludes(
+                options.include || []
+            ),
+            limit: options.limit,
+            offset: options.offset,
+            order: options.order || [["created_at", "DESC"]],
+        });
     }
 
-    async findByCode(serviceCode: string) {
-        return dbHelper.findByField(this.tables, "service_code", serviceCode);
+    async findByCode(serviceCode: string, options: any = {}) {
+        return dbHelper.findOne(this.tables, {
+            where: {
+                service_code: serviceCode,
+            },
+            include: this.buildIncludes(
+                options.include || []
+            ),
+        });
     }
 
     async findByBusiness(businessCode: string) {
@@ -45,11 +71,7 @@ class ServiceRepository {
 
         return dbHelper.findAll(this.tables, {
             where,
-            include: [
-                {
-                    association: "business",
-                },
-            ],
+            include: this.buildIncludes(["business"]),
         });
     }
 }

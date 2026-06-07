@@ -52,16 +52,74 @@ class LocationServiceService {
         });
     }
 
-    async getAll(filters: any = {}, actor?: any) {
+    async getAll(query: any = {}, actor?: any) {
+        const filters: any = {
+            business_code:
+                query.business_code,
+
+            location_code:
+                query.location_code,
+
+            service_code:
+                query.service_code,
+
+            availability:
+                query.availability,
+        };
+
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+
         // Non-admin actors can only see location services from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
             filters.business_code = actor.businessCode;
         }
-        return await repo.findAll(filters);
+        return await repo.findAll(
+            filters,
+            options
+        );
     }
 
-    async getById(id: number, actor?: any) {
-        const record = await repo.findById(id);
+    async getById(
+        id: number,
+        actor?: any,
+        query: any = {}
+    ) {
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+        };
+
+        const record = await repo.findById(
+            id,
+            options
+        );
 
         // Non-admin actors can only view location services from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {

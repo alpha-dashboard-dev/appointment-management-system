@@ -4,7 +4,6 @@ import participantRepo from "../repositories/appointmentParticipant.repository";
 import appointmentServiceRepo from "../repositories/appointmentService.repository";
 import appointmentChargeRepo from "../repositories/appointmentCharge.repository";
 import appointmentDiscountRepo from "../repositories/appointmentDiscount.repository";
-import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.repository";
 import chargeRepo from "../repositories/charge.repository";
 import invoiceRepo from "../repositories/invoice.repository";
 import scheduleRepo from "../repositories/schedule.repository";
@@ -17,11 +16,6 @@ import {
     validateAppointment,
     validateReschedule,
     validateAppointmentStatus,
-    validateAppointmentParticipant,
-    validateAppointmentService,
-    validateAppointmentCharge,
-    validateAppointmentDiscount,
-    validateAppointmentRecurrence,
 } from "../utils/validator";
 
 const DAYS_OF_WEEK = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -527,7 +521,42 @@ class AppointmentService {
         return appointment;
     }
 
-    async getAll(filters: any = {}, actor?: any) {
+    async getAll(query: any = {}, actor?: any) {
+        const filters: any = {
+            business_code:
+                query.business_code,
+
+            status: query.status,
+
+            user_code: query.user_code,
+        };
+
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+
         // Non-admin actors can only see appointments from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
             filters.business_code = actor.businessCode;
@@ -536,7 +565,14 @@ class AppointmentService {
         // Service staff can only see appointments where they are a participant
         if (actor && actor.userType === ROLES.SERVICE_STAFF) {
             const participantCodes = await participantRepo.findAppointmentCodesByUser(actor.userCode);
-            return repo.findByParticipantCodes(participantCodes, { business_code: filters.business_code, status: filters.status });
+            return repo.findByParticipantCodes(
+                participantCodes,
+                {
+                    business_code: filters.business_code,
+                    status: filters.status,
+                },
+                options
+            );
         }
 
         // Client can filter by their own user_code (created_by)
@@ -544,12 +580,30 @@ class AppointmentService {
             filters.user_code = actor.userCode;
         }
 
-        return await repo.findAll(filters);
+        return await repo.findAll(
+            filters,
+            options
+        );
     }
 
 
-    async getByCode(appointmentCode: string, actor?: any) {
-        const appointment = await repo.findByCode(appointmentCode);
+    async getByCode(
+        appointmentCode: string,
+        actor?: any,
+        query: any = {}
+    ) {
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+        };
+
+        const appointment = await repo.findByCode(
+            appointmentCode,
+            options
+        );
         if (!appointment) throw new Error("Appointment not found");
 
         // Non-admin actors can only view appointments from their own business
@@ -864,246 +918,6 @@ class AppointmentService {
         }
     }
 
-
-    async addParticipant(appointmentCode: string, data: any, actor: any) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-
-        const { user_code, user_type, user_role } = data;
-        validateAppointmentParticipant({
-            business_code: appointment.business_code,
-            user_code,
-            user_type,
-        });
-
-        // Double-booking conflict check for service staff assignment
-        if (user_type === ROLES.SERVICE_STAFF) {
-            if (!appointment.appointment_start_date || !appointment.start_time || !appointment.end_time) {
-                throw new Error("Appointment is missing date or time — cannot check for conflicts");
-            }
-
-            const dateStr = new Date(appointment.appointment_start_date).toISOString().split("T")[0];
-
-            const conflicts = await participantRepo.findConflictsForStaff(
-                user_code,
-                dateStr,
-                appointment.start_time,
-                appointment.end_time,
-                appointmentCode
-            );
-
-            if (conflicts.length > 0) {
-                const conflictCodes = conflicts.map((c: any) => c.appointment_code).join(", ");
-                throw new Error(
-                    `Conflict detected: staff ${user_code} is already assigned to appointment(s) [${conflictCodes}] ` +
-                    `that overlap with ${dateStr} ${appointment.start_time}–${appointment.end_time}`
-                );
-            }
-        }
-
-        const participant = await participantRepo.create({
-            business_code: appointment.business_code,
-            appointment_code: appointmentCode,
-            user_code: user_code,
-            user_type: user_type,
-            user_role: user_role || null,
-            status: "active",
-        });
-
-        await historyRepo.create({
-            business_code: appointment.business_code,
-            appointment_code: appointmentCode,
-            action: "assigned",
-            changed_by: actor?.userCode,
-            old_value: null,
-            new_value: { user_code, user_type, user_role: user_role || null },
-        });
-
-        return participant;
-    }
-
-    async getParticipants(appointmentCode: string) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-        return await participantRepo.findByAppointment(appointmentCode);
-    }
-
-    async removeParticipant(appointmentCode: string, participantId: number, actor: any) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-
-        const participant = await participantRepo.findById(participantId);
-        if (!participant) throw new Error("Participant not found");
-
-        return await participantRepo.delete(participantId);
-    }
-
-
-    async addService(appointmentCode: string, data: any, actor: any) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-
-        const { service_code } = data;
-        validateAppointmentService({
-            business_code: appointment.business_code,
-            service_code,
-        });
-
-        return await appointmentServiceRepo.create({
-            business_code: appointment.business_code,
-            service_code,
-            appointment_code: appointmentCode,
-        });
-    }
-
-    async getServices(appointmentCode: string) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-        return await appointmentServiceRepo.findByAppointment(appointmentCode);
-    }
-
-    async removeService(appointmentCode: string, serviceId: number, actor: any) {
-        const item = await appointmentServiceRepo.findById(serviceId);
-        if (!item) throw new Error("Appointment service not found");
-        return await appointmentServiceRepo.delete(serviceId);
-    }
-
-
-    async addCharge(appointmentCode: string, data: any, actor: any) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-
-        const { charge_code, charge_uom, charge_value } = data;
-        validateAppointmentCharge({
-            business_code: appointment.business_code,
-            appointment_code: appointmentCode,
-        });
-
-        return await appointmentChargeRepo.create({
-            business_code: appointment.business_code,
-            appointment_code: appointmentCode,
-            charge_code: charge_code || null,
-            charge_uom: charge_uom || null,
-            charge_value: charge_value || null,
-        });
-    }
-
-    async getCharges(appointmentCode: string) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-        return await appointmentChargeRepo.findByAppointment(appointmentCode);
-    }
-
-    async removeCharge(appointmentCode: string, chargeId: number, actor: any) {
-        const item = await appointmentChargeRepo.findById(chargeId);
-        if (!item) throw new Error("Appointment charge not found");
-        return await appointmentChargeRepo.delete(chargeId);
-    }
-
-
-    async addDiscount(appointmentCode: string, data: any, actor: any) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-
-        const { service_code, discount_uom, discount_value } = data;
-        validateAppointmentDiscount({
-            business_code: appointment.business_code,
-            service_code,
-            appointment_code: appointmentCode,
-            discount_uom,
-            discount_value,
-        });
-
-        return await appointmentDiscountRepo.create({
-            business_code: appointment.business_code,
-            service_code,
-            appointment_code: appointmentCode,
-            discount_uom,
-            discount_value,
-        });
-    }
-
-    async getDiscounts(appointmentCode: string) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-        return await appointmentDiscountRepo.findByAppointment(appointmentCode);
-    }
-
-    async removeDiscount(appointmentCode: string, discountId: number, actor: any) {
-        const item = await appointmentDiscountRepo.findById(discountId);
-        if (!item) throw new Error("Appointment discount not found");
-        return await appointmentDiscountRepo.delete(discountId);
-    }
-
-
-    async getHistory(appointmentCode: string) {
-        const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
-        return await historyRepo.findByAppointment(appointmentCode);
-    }
-
-
-    async createRecurrence(data: any, actor: any) {
-        // Non-admin actors can only create recurrences for their own business
-        if (actor && actor.userType !== ROLES.ADMIN) {
-            data.business_code = actor.businessCode;
-        }
-
-        const { business_code, service_code, recurrence_uom, recurrence_Value, auto_cancel_after_days, reschedule_after_days } = data;
-
-        validateAppointmentRecurrence(data);
-
-        return await appointmentRecurrenceRepo.create({
-            business_code,
-            service_code,
-            recurrence_uom,
-            recurrence_value: recurrence_Value,
-            status: "active",
-            auto_cancel_after_days: auto_cancel_after_days || null,
-            reschedule_after_days: reschedule_after_days || null,
-        });
-    }
-
-    async getAllRecurrences(filters: any = {}, actor?: any) {
-        // Non-admin actors can only see recurrences from their own business
-        if (actor && actor.userType !== ROLES.ADMIN) {
-            filters.business_code = actor.businessCode;
-        }
-        return await appointmentRecurrenceRepo.findAll(filters);
-    }
-
-    async getRecurrenceById(id: number) {
-        const recurrence = await appointmentRecurrenceRepo.findById(id);
-        if (!recurrence) throw new Error("Recurrence not found");
-        return recurrence;
-    }
-
-    // async updateRecurrence(id: number, data: any, actor: any) {
-    //     const recurrence = await appointmentRecurrenceRepo.findById(id);
-    //     if (!recurrence) throw new Error("Recurrence not found");
-    //
-    //     const allowed: any = {};
-    //     const fields = ["recurrence_uom", "recurrence_value", "status", "auto_cancel_after_days", "reschedule_after_days"];
-    //     for (const f of fields) {
-    //         if (data[f] !== undefined) allowed[f] = data[f];
-    //     }
-    //
-    //     return await appointmentRecurrenceRepo.update(id, allowed);
-    // }
-
-    async update_recurrence(id: number, data: any, actor: any) {
-        const recurrence = await appointmentRecurrenceRepo.findById(id)
-        if(!recurrence) throw new Error("Recurrence not found");
-
-        const allowed: any = {};
-        const fields = ['recurrence_uom, "recurrence_value', "status", "auto_cancel_"]
-    }
-
-    async deleteRecurrence(id: number, actor: any) {
-        const recurrence = await appointmentRecurrenceRepo.findById(id);
-        if (!recurrence) throw new Error("Recurrence not found");
-        return await appointmentRecurrenceRepo.delete(id);
-    }
 
     // ─── Approval Flow ───────────────────────────────────────────────────────────
 

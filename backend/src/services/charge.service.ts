@@ -27,16 +27,67 @@ class ChargeService {
         });
     }
 
-    async getAll(filters: any = {}, actor?: any) {
+    async getAll(query: any = {}, actor?: any) {
+        const filters: any = {
+            business_code:
+                query.business_code,
+
+            status: query.status,
+        };
+
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+
         // Non-admin actors can only see charges from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
             filters.business_code = actor.businessCode;
         }
-        return await repo.findAll(filters);
+        return await repo.findAll(
+            filters,
+            options
+        );
     }
 
-    async getByCode(chargeCode: string, actor?: any) {
-        const charge = await repo.findByCode(chargeCode);
+    async getByCode(
+        chargeCode: string,
+        actor?: any,
+        query: any = {}
+    ) {
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+        };
+
+        const charge = await repo.findByCode(
+            chargeCode,
+            options
+        );
         if (!charge) throw new Error("Charge not found");
 
         // Non-admin actors can only view charges from their own business

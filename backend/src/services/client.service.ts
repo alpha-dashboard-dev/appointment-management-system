@@ -28,16 +28,65 @@ class ClientService {
         });
     }
 
-    async getAll(filters: any = {}, actor?: any) {
+    async getAll(query: any = {}, actor?: any) {
+        const filters: any = {
+            business_code:
+                query.business_code,
+        };
+
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+
         // Non-admin actors can only list clients from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
             filters.business_code = actor.businessCode;
         }
-        return await repo.findAll(filters);
+        return await repo.findAll(
+            filters,
+            options
+        );
     }
 
-    async getByUserCode(userCode: string, actor?: any) {
-        const client = await repo.findByUserCode(userCode);
+    async getByUserCode(
+        userCode: string,
+        actor?: any,
+        query: any = {}
+    ) {
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+        };
+
+        const client = await repo.findByUserCode(
+            userCode,
+            options
+        );
         if (!client) throw new Error("Client not found");
 
         // Non-admin actors can only view clients from their own business

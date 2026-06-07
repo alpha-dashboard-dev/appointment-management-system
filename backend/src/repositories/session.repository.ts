@@ -27,6 +27,17 @@ class SessionRepository {
         };
     }
 
+    buildIncludes(include: string[] = []) {
+        const associations =
+            db.Session.associations || {};
+
+        return [...new Set(include)]
+            .filter((alias) => associations[alias])
+            .map((alias) => ({
+                association: alias,
+            }));
+    }
+
     async create(userCode: string, refreshToken: string): Promise<any> {
         const expiresAt = parseExpiry(
             process.env.JWT_REFRESH_TOKEN_EXPIRES ?? "7d"
@@ -39,11 +50,21 @@ class SessionRepository {
         });
     }
 
-    async findByToken(refreshToken: string): Promise<any> {
-        return dbHelper.findByField(
+    async findByToken(
+        refreshToken: string,
+        options: any = {}
+    ): Promise<any> {
+        return dbHelper.findOne(
             this.tables,
-            "refresh_token",
-            refreshToken
+            {
+                where: {
+                    refresh_token:
+                    refreshToken,
+                },
+                include: this.buildIncludes(
+                    options.include || []
+                ),
+            }
         );
     }
 

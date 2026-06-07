@@ -47,16 +47,67 @@ class ScheduleService {
         return results;
     }
 
-    async getAll(filters: any = {}, actor?: any) {
+    async getAll(query: any = {}, actor?: any) {
+        const filters: any = {
+            business_code:
+                query.business_code,
+
+            user_code: query.user_code,
+        };
+
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+
         // Non-admin actors can only see schedules from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
             filters.business_code = actor.businessCode;
         }
-        return await repo.findAll(filters);
+        return await repo.findAll(
+            filters,
+            options
+        );
     }
 
-    async getById(id: number, actor?: any) {
-        const schedule = await repo.findById(id);
+    async getById(
+        id: number,
+        actor?: any,
+        query: any = {}
+    ) {
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+        };
+
+        const schedule = await repo.findById(
+            id,
+            options
+        );
         if (!schedule) throw new Error("Schedule not found");
 
         // Non-admin actors can only view schedules from their own business

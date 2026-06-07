@@ -12,30 +12,72 @@ class AppointmentRepository {
         this.tables = { sequelize: db.Appointment };
     }
 
+    buildIncludes(include: string[] = []) {
+        const associations =
+            db.Appointment.associations || {};
+
+        return [...new Set(include)]
+            .filter((alias) => associations[alias])
+            .map((alias) => ({
+                association: alias,
+            }));
+    }
+
     async create(data: any) {
         return dbHelper.create(this.tables, data);
     }
 
-    async findAll(filters: any = {}) {
+    async findAll(filters: any = {}, options: any = {}) {
         const where: any = {};
         if (filters.business_code) where.business_code = filters.business_code;
         if (filters.status) where.status = filters.status;
         if (filters.user_code) where.created_by = filters.user_code;
         if (filters.rescheduled_from) where.rescheduled_from = filters.rescheduled_from;
-        return dbHelper.findAll(this.tables, { where });
+        return dbHelper.findAll(this.tables, {
+            where,
+            include: this.buildIncludes(
+                options.include || []
+            ),
+            limit: options.limit,
+            offset: options.offset,
+            order: options.order || [["created_at", "DESC"]],
+        });
     }
 
     // For service_staff: returns only appointments where they are a participant
-    async findByParticipantCodes(appointmentCodes: string[], extraFilters: any = {}) {
+    async findByParticipantCodes(
+        appointmentCodes: string[],
+        extraFilters: any = {},
+        options: any = {}
+    ) {
         if (!appointmentCodes.length) return [];
         const where: any = { appointment_code: { [Op.in]: appointmentCodes } };
         if (extraFilters.business_code) where.business_code = extraFilters.business_code;
         if (extraFilters.status) where.status = extraFilters.status;
-        return dbHelper.findAll(this.tables, { where });
+        return dbHelper.findAll(this.tables, {
+            where,
+            include: this.buildIncludes(
+                options.include || []
+            ),
+            limit: options.limit,
+            offset: options.offset,
+            order: options.order || [["created_at", "DESC"]],
+        });
     }
 
-    async findByCode(appointmentCode: string) {
-        return dbHelper.findByField(this.tables, "appointment_code", appointmentCode);
+    async findByCode(
+        appointmentCode: string,
+        options: any = {}
+    ) {
+        return dbHelper.findOne(this.tables, {
+            where: {
+                appointment_code:
+                    appointmentCode,
+            },
+            include: this.buildIncludes(
+                options.include || []
+            ),
+        });
     }
 
     async findByBusiness(businessCode: string) {

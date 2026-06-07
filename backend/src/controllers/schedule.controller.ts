@@ -27,11 +27,7 @@ class ScheduleController {
 
     async getAll(req: Request, res: Response) {
         try {
-            const filters = {
-                business_code: req.query.business_code,
-                user_code: req.query.user_code,
-            };
-            const data = await service.getAll(filters, req.user);
+            const data = await service.getAll(req.query, req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -40,7 +36,11 @@ class ScheduleController {
 
     async getById(req: Request, res: Response) {
         try {
-            const data = await service.getById(Number(req.params.id), req.user);
+            const data = await service.getById(
+                Number(req.params.id),
+                req.user,
+                req.query
+            );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(404).json({ success: false, message: err.message });

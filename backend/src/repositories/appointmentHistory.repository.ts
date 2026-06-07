@@ -10,12 +10,37 @@ class AppointmentHistoryRepository {
         this.tables = { sequelize: db.AppointmentHistory };
     }
 
+    buildIncludes(include: string[] = []) {
+        const associations =
+            db.AppointmentHistory.associations || {};
+
+        return [...new Set(include)]
+            .filter((alias) => associations[alias])
+            .map((alias) => ({
+                association: alias,
+            }));
+    }
+
     async create(data: any) {
         return dbHelper.create(this.tables, data);
     }
 
-    async findByAppointment(appointmentCode: string) {
-        return dbHelper.findAllByField(this.tables, "appointment_code", appointmentCode);
+    async findByAppointment(
+        appointmentCode: string,
+        options: any = {}
+    ) {
+        return dbHelper.findAll(this.tables, {
+            where: {
+                appointment_code:
+                    appointmentCode,
+            },
+            include: this.buildIncludes(
+                options.include || []
+            ),
+            limit: options.limit,
+            offset: options.offset,
+            order: options.order || [["created_at", "DESC"]],
+        });
     }
 }
 

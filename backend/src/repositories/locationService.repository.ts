@@ -10,11 +10,22 @@ class LocationServiceRepository {
         this.tables = { sequelize: db.LocationService };
     }
 
+    buildIncludes(include: string[] = []) {
+        const associations =
+            db.LocationService.associations || {};
+
+        return [...new Set(include)]
+            .filter((alias) => associations[alias])
+            .map((alias) => ({
+                association: alias,
+            }));
+    }
+
     async create(data: any) {
         return dbHelper.create(this.tables, data);
     }
 
-    async findAll(filters: any = {}) {
+    async findAll(filters: any = {}, options: any = {}) {
         const where: any = {};
 
         if (filters.business_code)
@@ -31,28 +42,12 @@ class LocationServiceRepository {
 
         return dbHelper.findAll(this.tables, {
             where,
-            include: [
-                {
-                    model: db.Business,
-                    as: "business",
-                    // attributes: ["business_code", "name"],
-                },
-                {
-                    model: db.Service,
-                    as: "service",
-                    // attributes: ["service_code", "name"],
-                },
-                {
-                    model: db.Location,
-                    as: "location",
-                    // attributes: [
-                    //     "location_code",
-                    //     "address",
-                    //     "street",
-                    //     "city",
-                    // ],
-                },
-            ]
+            include: this.buildIncludes(
+                options.include || []
+            ),
+            limit: options.limit,
+            offset: options.offset,
+            order: options.order || [["created_at", "DESC"]],
         });
     }
 
@@ -65,8 +60,13 @@ class LocationServiceRepository {
     //     return dbHelper.findAll(this.tables, { where });
     // }
 
-    async findById(id: number) {
-        return dbHelper.findById(this.tables, id);
+    async findById(id: number, options: any = {}) {
+        return dbHelper.findOne(this.tables, {
+            where: { id },
+            include: this.buildIncludes(
+                options.include || []
+            ),
+        });
     }
 
     async findByLocation(locationCode: string) {

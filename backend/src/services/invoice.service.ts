@@ -37,15 +37,68 @@ class InvoiceService {
         });
     }
 
-    async getAll(filters: any = {}, actor?: any) {
+    async getAll(query: any = {}, actor?: any) {
+        const filters: any = {
+            business_code:
+                query.business_code,
+
+            appointment_code:
+                query.appointment_code,
+
+            status: query.status,
+        };
+
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+
         if (actor && actor.userType !== ROLES.ADMIN) {
             filters.business_code = actor.businessCode;
         }
-        return await repo.findAll(filters);
+        return await repo.findAll(
+            filters,
+            options
+        );
     }
 
-    async getById(id: number) {
-        const invoice = await repo.findById(id);
+    async getById(
+        id: number,
+        query: any = {}
+    ) {
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+        };
+
+        const invoice = await repo.findById(
+            id,
+            options
+        );
         if (!invoice) throw new Error("Invoice not found");
         return invoice;
     }
@@ -64,7 +117,6 @@ class InvoiceService {
     }
 
     async changeStatus(id: number, status: string, actor: any) {
-        // console.log(status);
         validateInvoiceStatus({ status });
         const invoice = await repo.findById(id);
         if (!invoice) throw new Error("Invoice not found");

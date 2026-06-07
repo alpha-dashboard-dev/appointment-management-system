@@ -34,17 +34,66 @@ class ServiceService {
         });
     }
 
-    async getAll(filters: any = {}, actor?: any) {
+    async getAll(query: any = {}, actor?: any) {
+        const filters: any = {
+            business_code:
+                query.business_code,
+        };
+
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+
         // Non-admin, non-client actors can only see services from their own business
         if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
             filters.business_code = actor.businessCode;
         }
         // Clients pass business_code as a query param; don't override it
-        return await repo.findAll(filters);
+        return await repo.findAll(
+            filters,
+            options
+        );
     }
 
-    async getByCode(serviceCode: string, actor?: any) {
-        const service = await repo.findByCode(serviceCode);
+    async getByCode(
+        serviceCode: string,
+        actor?: any,
+        query: any = {}
+    ) {
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+        };
+
+        const service = await repo.findByCode(
+            serviceCode,
+            options
+        );
         if (!service) throw new Error("Service not found");
 
         // Non-admin actors can only view services from their own business
@@ -172,7 +221,12 @@ class ServiceService {
         return { services, charges };
     }
 
-    async getAllServicesWithBusiness(filters: any = {}, actor?: any) {
+    async getAllServicesWithBusiness(query: any = {}, actor?: any) {
+        const filters: any = {
+            business_code:
+                query.business_code,
+        };
+
         // Non-admin, non-client actors can only see services from their own business
         if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
             filters.business_code = actor.businessCode;

@@ -10,7 +10,6 @@ import {
 import { validateUser } from "../utils/validator";
 import { hashPassword, comparePassword } from "../utils/hashPassword";
 import {generateCode} from "../utils/codeGenerator";
-import { console } from "inspector";
 
 class AuthService {
 
@@ -40,8 +39,6 @@ class AuthService {
     }
 
     async login(email: string, password: string) {
-
-        console.log(email, password);
 
         const user = await repo.findByEmail(email.trim().toLowerCase());
 

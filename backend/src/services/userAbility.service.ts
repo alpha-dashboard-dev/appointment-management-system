@@ -8,8 +8,6 @@ class UserAbilityService {
 
         validateUserAbility(data);
 
-        console.log(actor)
-
         return await repo.create({
             business_code,
             user_code,
@@ -20,12 +18,64 @@ class UserAbilityService {
         });
     }
 
-    async getAll(filters: any = {}) {
-        return await repo.findAll(filters);
+    async getAll(query: any = {}) {
+        const filters = {
+            business_code:
+                query.business_code,
+
+            user_code: query.user_code,
+
+            status: query.status,
+        };
+
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+
+        return await repo.findAll(
+            filters,
+            options
+        );
     }
 
-    async getById(id: number) {
-        const record = await repo.findById(id);
+    async getById(
+        id: number,
+        query: any = {}
+    ) {
+        const options = {
+            include:
+                query.include
+                    ? String(query.include)
+                        .split(",")
+                    : [],
+        };
+
+        const record = await repo.findById(
+            id,
+            options
+        );
         if (!record) throw new Error("User ability not found");
         return record;
     }

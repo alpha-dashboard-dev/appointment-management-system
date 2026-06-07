@@ -1,22 +1,18 @@
 import { Request, Response } from "express";
+import service from "../services/appointmentRecurrence.service";
 
-import service from "../services/organization.service";
-
-class OrganizationController {
+class AppointmentRecurrenceController {
 
     async create(req: Request, res: Response) {
-
         try {
-
-            const data =
-                await service.create(
-                    req.body
-                );
+            const data = await service.create(
+                req.body,
+                req.user
+            );
 
             return res.status(201).json({
                 success: true,
-                message:
-                    "Organization created",
+                message: "Recurrence created",
                 data,
             });
 
@@ -29,13 +25,11 @@ class OrganizationController {
     }
 
     async getAll(req: Request, res: Response) {
-
         try {
-
-            const data =
-                await service.getAll(
-                    req.query
-                );
+            const data = await service.getAll(
+                req.query,
+                req.user
+            );
 
             return res.status(200).json({
                 success: true,
@@ -50,15 +44,12 @@ class OrganizationController {
         }
     }
 
-    async getByCode(req: Request, res: Response) {
-
+    async getById(req: Request, res: Response) {
         try {
-
-            const data =
-                await service.getByCode(
-                    String(req.params.organizationCode),
-                    req.query
-                );
+            const data = await service.getById(
+                Number(req.params.id),
+                req.query
+            );
 
             return res.status(200).json({
                 success: true,
@@ -74,19 +65,15 @@ class OrganizationController {
     }
 
     async update(req: Request, res: Response) {
-
         try {
-
-            const data =
-                await service.update(
-                    String(req.params.organizationCode),
-                    req.body
-                );
+            const data = await service.update(
+                Number(req.params.id),
+                req.body
+            );
 
             return res.status(200).json({
                 success: true,
-                message:
-                    "Organization updated",
+                message: "Recurrence updated",
                 data,
             });
 
@@ -98,21 +85,15 @@ class OrganizationController {
         }
     }
 
-    async changeStatus(req: Request, res: Response) {
-
+    async delete(req: Request, res: Response) {
         try {
-
-            const data =
-                await service.changeStatus(
-                    String(req.params.organizationCode),
-                    req.body.status
-                );
+            await service.remove(
+                Number(req.params.id)
+            );
 
             return res.status(200).json({
                 success: true,
-                message:
-                    "Organization status updated",
-                data,
+                message: "Recurrence deleted",
             });
 
         } catch (err: any) {
@@ -124,4 +105,4 @@ class OrganizationController {
     }
 }
 
-export default new OrganizationController();
+export default new AppointmentRecurrenceController();

@@ -119,7 +119,6 @@ export const validateClient = (data: any) => {
 
 
 export const validateService = (data: any) => {
-    // console.log(data)
     const { name, business_code, price, duration_uom, duration_value } = data;
 
     if (!name || name.trim().length < 2) {

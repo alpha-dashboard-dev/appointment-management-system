@@ -1,5 +1,11 @@
 import { Router } from "express";
 import controller from "../controllers/appointment.controller";
+import appointmentHistoryRoutes from "./appointmentHistory.routes";
+import appointmentParticipantRoutes from "./appointmentParticipant.routes";
+import appointmentServiceItemRoutes from "./appointmentServiceItem.routes";
+import appointmentChargeRoutes from "./appointmentCharge.routes";
+import appointmentDiscountRoutes from "./appointmentDiscount.routes";
+import appointmentRecurrenceRoutes from "./appointmentRecurrence.routes";
 import { authenticate } from "../middlewares/auth.middleware";
 import { authorizeRoles } from "../middlewares/role.middleware";
 import { ROLES } from "../utils/roles";
@@ -80,135 +86,34 @@ router.post(
     controller.approveWithStaff
 );
 
-router.get(
+router.use(
     "/:appointmentCode/history",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.getHistory
+    appointmentHistoryRoutes
 );
 
-
-router.post(
+router.use(
     "/:appointmentCode/participants",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.addParticipant
+    appointmentParticipantRoutes
 );
 
-router.get(
-    "/:appointmentCode/participants",
-    authenticate,
-    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
-    controller.getParticipants
-);
-
-router.delete(
-    "/:appointmentCode/participants/:participantId",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.removeParticipant
-);
-
-
-router.post(
+router.use(
     "/:appointmentCode/services",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.addService
+    appointmentServiceItemRoutes
 );
 
-router.get(
-    "/:appointmentCode/services",
-    authenticate,
-    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
-    controller.getServices
-);
-
-router.delete(
-    "/:appointmentCode/services/:serviceId",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.removeService
-);
-
-
-router.post(
+router.use(
     "/:appointmentCode/charges",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.addCharge
+    appointmentChargeRoutes
 );
 
-router.get(
-    "/:appointmentCode/charges",
-    authenticate,
-    authorizeRoles(...MANAGERS, ROLES.CLIENT),
-    controller.getCharges
-);
-
-router.delete(
-    "/:appointmentCode/charges/:chargeId",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.removeCharge
-);
-
-
-router.post(
+router.use(
     "/:appointmentCode/discounts",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.addDiscount
+    appointmentDiscountRoutes
 );
 
-router.get(
-    "/:appointmentCode/discounts",
-    authenticate,
-    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
-    controller.getDiscounts
-);
-
-router.delete(
-    "/:appointmentCode/discounts/:discountId",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.removeDiscount
-);
-
-
-router.post(
+router.use(
     "/recurrences",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.createRecurrence
-);
-
-router.get(
-    "/recurrences",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.getAllRecurrences
-);
-
-router.get(
-    "/recurrences/:id",
-    authenticate,
-    authorizeRoles(...MANAGERS),
-    controller.getRecurrenceById
-);
-
-router.put(
-    "/recurrences/:id",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.updateRecurrence
-);
-
-router.delete(
-    "/recurrences/:id",
-    authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.deleteRecurrence
+    appointmentRecurrenceRoutes
 );
 
 export default router;

@@ -1,0 +1,127 @@
+import appointmentRepo from "../repositories/appointment.repository";
+import appointmentChargeRepo from "../repositories/appointmentCharge.repository";
+import { validateAppointmentCharge } from "../utils/validator";
+
+class AppointmentChargeService {
+
+    private buildQueryOptions(query: any = {}) {
+        return {
+            include:
+                query.include
+                    ? String(query.include).split(",")
+                    : [],
+
+            limit:
+                query.limit
+                    ? Number(query.limit)
+                    : undefined,
+
+            offset:
+                query.offset
+                    ? Number(query.offset)
+                    : undefined,
+
+            order: [
+                [
+                    query.sort_by || "created_at",
+                    query.sort_order || "DESC",
+                ],
+            ],
+        };
+    }
+
+    async add(
+        appointmentCode: string,
+        data: any
+    ) {
+        const appointment =
+            await appointmentRepo.findByCode(
+                appointmentCode
+            );
+
+        if (!appointment) {
+            throw new Error(
+                "Appointment not found"
+            );
+        }
+
+        const appointmentRow: any =
+            appointment.dataValues || appointment;
+
+        const { charge_code, charge_uom, charge_value } = data;
+
+        validateAppointmentCharge({
+            business_code:
+                appointmentRow.business_code,
+            appointment_code:
+                appointmentCode,
+        });
+
+        return await appointmentChargeRepo.create({
+            business_code:
+                appointmentRow.business_code,
+            appointment_code:
+                appointmentCode,
+            charge_code:
+                charge_code || null,
+            charge_uom:
+                charge_uom || null,
+            charge_value:
+                charge_value || null,
+        });
+    }
+
+    async getByAppointmentCode(
+        appointmentCode: string,
+        query: any = {}
+    ) {
+        const appointment =
+            await appointmentRepo.findByCode(
+                appointmentCode
+            );
+
+        if (!appointment) {
+            throw new Error(
+                "Appointment not found"
+            );
+        }
+
+        return await appointmentChargeRepo.findByAppointment(
+            appointmentCode,
+            this.buildQueryOptions(query)
+        );
+    }
+
+    async remove(
+        appointmentCode: string,
+        chargeId: number
+    ) {
+        const appointment =
+            await appointmentRepo.findByCode(
+                appointmentCode
+            );
+
+        if (!appointment) {
+            throw new Error(
+                "Appointment not found"
+            );
+        }
+
+        const item =
+            await appointmentChargeRepo.findById(
+                chargeId
+            );
+
+        if (!item) {
+            throw new Error(
+                "Appointment charge not found"
+            );
+        }
+
+        return await appointmentChargeRepo.delete(
+            chargeId
+        );
+    }
+}
+
+export default new AppointmentChargeService();

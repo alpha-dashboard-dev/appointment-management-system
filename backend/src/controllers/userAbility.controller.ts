@@ -14,12 +14,7 @@ class UserAbilityController {
 
     async getAll(req: Request, res: Response) {
         try {
-            const filters = {
-                business_code: req.query.business_code,
-                user_code: req.query.user_code,
-                status: req.query.status,
-            };
-            const data = await service.getAll(filters);
+            const data = await service.getAll(req.query);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -28,7 +23,10 @@ class UserAbilityController {
 
     async getById(req: Request, res: Response) {
         try {
-            const data = await service.getById(Number(req.params.id));
+            const data = await service.getById(
+                Number(req.params.id),
+                req.query
+            );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(404).json({ success: false, message: err.message });
