@@ -1,0 +1,79 @@
+import repo from "../repositories/invoice.repository";
+import appointmentRepo from "../repositories/appointment.repository";
+import { validateInvoice, validateInvoiceStatus } from "../utils/validator";
+import { ROLES } from "../utils/roles";
+
+class InvoiceService {
+
+    async create(data: any, actor: any) {
+        const {
+            business_code,
+            appointment_code,
+            subtotal,
+            total,
+            date,
+        } = data;
+
+        validateInvoice(data);
+
+        const appointment = await appointmentRepo.findByCode(appointment_code);
+        if (!appointment) throw new Error("Appointment not found");
+
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
+            if (apptBusiness !== actor.businessCode) {
+                throw new Error("Access denied: appointment does not belong to your business");
+            }
+        }
+
+        return await repo.create({
+            business_code,
+            appointment_code,
+            subtotal: subtotal || null,
+            total: total || null,
+            invoice_status: "draft",
+            date: date || new Date().toISOString().split("T")[0],
+            updated_by: actor?.userCode || null,
+        });
+    }
+
+    async getAll(filters: any = {}, actor?: any) {
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            filters.business_code = actor.businessCode;
+        }
+        return await repo.findAll(filters);
+    }
+
+    async getById(id: number) {
+        const invoice = await repo.findById(id);
+        if (!invoice) throw new Error("Invoice not found");
+        return invoice;
+    }
+
+    async update(id: number, data: any, actor: any) {
+        const invoice = await repo.findById(id);
+        if (!invoice) throw new Error("Invoice not found");
+
+        const allowed: any = {};
+        if (data.subtotal !== undefined) allowed.subtotal = data.subtotal;
+        if (data.total !== undefined) allowed.total = data.total;
+        if (data.date !== undefined) allowed.date = data.date;
+        allowed.updated_by = actor?.userCode || null;
+
+        return await repo.update(id, allowed);
+    }
+
+    async changeStatus(id: number, status: string, actor: any) {
+        // console.log(status);
+        validateInvoiceStatus({ status });
+        const invoice = await repo.findById(id);
+        if (!invoice) throw new Error("Invoice not found");
+
+        return await repo.update(id, {
+            invoice_status: status,
+            updated_by: actor?.userCode || null,
+        });
+    }
+}
+
+export default new InvoiceService();
