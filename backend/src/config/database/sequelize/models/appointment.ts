@@ -137,24 +137,28 @@ class Appointment extends Model {
 
         Appointment.belongsTo(models.User, {
             foreignKey: "created_by",
+            targetKey: "user_code",
             as: "creator",
             constraints: false,
         });
 
         Appointment.belongsTo(models.User, {
             foreignKey: "approved_by",
+            targetKey: "user_code",
             as: "approver",
             constraints: false,
         });
 
         Appointment.belongsTo(models.User, {
             foreignKey: "cancelled_by",
+            targetKey: "user_code",
             as: "canceller",
             constraints: false,
         });
 
         Appointment.belongsTo(models.Appointment, {
             foreignKey: "rescheduled_from",
+            targetKey: "appointment_code",
             as: "rescheduledFromAppointment",
             constraints: false,
         });

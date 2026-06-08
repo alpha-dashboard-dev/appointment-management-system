@@ -1,8 +1,10 @@
 import { Router } from "express";
 import controller from "../controllers/appointment.controller";
+import AppointmentServiceController from "../controllers/appointmentServiceItem.controller";
+
 import appointmentHistoryRoutes from "./appointmentHistory.routes";
 import appointmentParticipantRoutes from "./appointmentParticipant.routes";
-import appointmentServiceItemRoutes from "./appointmentServiceItem.routes";
+// import appointmentServiceItemRoutes from "./appointmentServiceItem.routes";
 import appointmentChargeRoutes from "./appointmentCharge.routes";
 import appointmentDiscountRoutes from "./appointmentDiscount.routes";
 import appointmentRecurrenceRoutes from "./appointmentRecurrence.routes";
@@ -96,10 +98,10 @@ router.use(
     appointmentParticipantRoutes
 );
 
-router.use(
-    "/:appointmentCode/services",
-    appointmentServiceItemRoutes
-);
+// router.use(
+//     "/:appointmentCode/services",
+//     appointmentServiceItemRoutes
+// );
 
 router.use(
     "/:appointmentCode/charges",
@@ -114,6 +116,29 @@ router.use(
 router.use(
     "/recurrences",
     appointmentRecurrenceRoutes
+);
+
+
+//  Appointment Service Routes
+router.post(
+    "/create-appointment-service",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentServiceController.create
+);
+
+router.get(
+    "/get-appointment-service/:appointmentCode",
+    authenticate,
+    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
+    AppointmentServiceController.getAll
+);
+
+router.delete(
+    "/:serviceId",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentServiceController.delete
 );
 
 export default router;

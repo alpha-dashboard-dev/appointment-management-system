@@ -32,10 +32,13 @@
         <table v-else class="table table-hover ams-table mb-0 align-middle">
           <thead class="table-light">
             <tr>
-              <th class="ps-3">Appointment Code</th>
-              <th>Business Code</th>
+<!--              <th class="ps-3">Appointment Code</th>-->
+              <th>Business Name</th>
+              <th>Service Name</th>
               <th>Notes</th>
-              <th>Date</th>
+              <th>Created By</th>
+              <th>Approved By</th>
+              <th>Start Date</th>
               <th>Start Time</th>
               <th>Status</th>
               <th class="pe-3 text-center" style="min-width:220px">Actions</th>
@@ -43,9 +46,12 @@
           </thead>
           <tbody>
             <tr v-for="appt in filteredAppointments" :key="appt.appointment_code">
-              <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
+<!--              <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>-->
               <td>{{ appt.business_name || '—' }}</td>
+              <td>{{appt.service_name || '-'}}</td>
               <td>{{ appt.notes || '—' }}</td>
+              <td>{{appt.creator_name || "-"}}</td>
+              <td>{{appt.approver_name || "-"}}</td>
               <td>{{ formatDate(appt.appointment_start_date) }}</td>
               <td>{{ formatTime(appt.start_time) }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
@@ -64,8 +70,6 @@
                     <ul class="dropdown-menu dropdown-menu-end" :class="{ show: openDropdownCode === appt.appointment_code }">
                       <li><button class="dropdown-item" type="button" @click="openDetails(appt); closeActionDropdown()">View</button></li>
                       <li v-if="appt.status === 'pending'"><button class="dropdown-item" type="button" @click="openApprovalDialog(appt); closeActionDropdown()">Approve</button></li>
-                      <!--   when click on approve button, if staff is not available ,
-     then show the list of available staff, & choose from the available staff list          -->
                       <li v-if="appt.status === 'approved'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'in_progress'); closeActionDropdown()">Start</button></li>
                       <li v-if="appt.status === 'in_progress'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'completed'); closeActionDropdown()">Complete</button></li>
                       <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item" type="button" @click="openReschedule(appt); closeActionDropdown()">Reschedule</button></li>
@@ -77,7 +81,7 @@
               </td>
             </tr>
             <tr v-if="filteredAppointments.length === 0">
-              <td colspan="7" class="text-center text-muted py-4">No appointments found</td>
+              <td colspan="9" class="text-center text-muted py-4">No appointments found</td>
             </tr>
           </tbody>
         </table>
@@ -427,20 +431,23 @@ const rescheduleForm = reactive({
   reason: '',
 })
 
-// fetch appointments without BusinessDetails
+// fetch appointments
 async function fetchAppointments() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/appointments')
+    const res = await api.get('/appointments/get-all-appointments', {
+      params: {
+        include: "business,creator,approver,services"
+      }
+    })
 
     appointments.value = (res.data.data || []).map((appt) => ({
       ...appt,
-      business_name:
-          appt.business?.name ||
-          appt.Business?.name ||
-          appt.business_code ||
-          '',
+      business_name: appt.business?.name || '',
+      service_name: (appt.services || []).map((s) => s.service?.name).filter(Boolean).join(', '),
+      creator_name: appt.creator?.name || '',
+      approver_name: appt.approver?.name || '',
     }))
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load appointments'

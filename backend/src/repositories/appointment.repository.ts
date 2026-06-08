@@ -33,11 +33,33 @@ class AppointmentRepository {
         if (filters.status) where.status = filters.status;
         if (filters.user_code) where.created_by = filters.user_code;
         if (filters.rescheduled_from) where.rescheduled_from = filters.rescheduled_from;
+        let include =
+            this.buildIncludes(options.include || []);
+
+        // nested include for services -> service
+        include = include.map((item: any) => {
+
+            if (item.association === "services") {
+
+                return {
+                    association: "services",
+
+                    include: [
+                        {
+                            association: "service"
+                        }
+                    ]
+                };
+            }
+
+            return item;
+        });
         return dbHelper.findAll(this.tables, {
             where,
-            include: this.buildIncludes(
-                options.include || []
-            ),
+            include,
+            // include: this.buildIncludes(
+            //     options.include || []
+            // ),
             limit: options.limit,
             offset: options.offset,
             order: options.order || [["created_at", "DESC"]],

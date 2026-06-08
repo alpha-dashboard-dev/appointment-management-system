@@ -65,14 +65,9 @@ class AppointmentServiceItemService {
         });
     }
 
-    async getByAppointmentCode(
-        appointmentCode: string,
-        query: any = {}
-    ) {
-        const appointment =
-            await appointmentRepo.findByCode(
-                appointmentCode
-            );
+    async getByAppointmentCode(appointmentCode: string, query: any = {})
+    {
+        const appointment = await appointmentRepo.findByCode(appointmentCode);
 
         if (!appointment) {
             throw new Error(

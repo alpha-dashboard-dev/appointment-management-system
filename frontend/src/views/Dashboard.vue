@@ -138,11 +138,11 @@ onMounted(async () => {
       api.get('/organizations/get-all-organization'),
       api.get('/businesses/get-business'),
       api.get('/clients/get-client'),
-      api.get('/appointments'),
+      api.get('/appointments/get-all-appointments'),
       api.get('/users/get-all-users'),
-      api.get('/services/get-service'),
+      api.get('/services/get-all-services'),
       api.get('/invoices/get-invoice'),
-      api.get('/locations/get-location'),
+      api.get('/locations/get-all-locations'),
     ])
 
     stats.value.organizations = orgs.status === 'fulfilled' ? (orgs.value.data.data?.length ?? 0) : 0
