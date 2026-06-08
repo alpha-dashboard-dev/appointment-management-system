@@ -386,8 +386,6 @@ class AppointmentService {
     //         ...pricing,
     //     };
     // }
-
-
     async create(data: any, actor: any) {
         const transaction = await db.sequelize.transaction();
 
