@@ -150,8 +150,8 @@ onMounted(async () => {
     form.business_code = authStore.user?.business_code || ''
     if (form.business_code) {
       const [svcRes, locRes] = await Promise.allSettled([
-        api.get('/services/get-service', { params: { business_code: form.business_code } }),
-        api.get('/locations/get-location', { params: { business_code: form.business_code } }),
+        api.get('/services/get-all-services', { params: { business_code: form.business_code } }),
+        api.get('/locations/get-all-locations', { params: { business_code: form.business_code } }),
       ])
       if (svcRes.status === 'fulfilled') services.value = svcRes.value.data.data || []
       if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []
@@ -185,7 +185,7 @@ async function submit() {
     if (!payload.location_code) delete payload.location_code
     if (!payload.notes) delete payload.notes
     if (!payload.client_code) delete payload.client_code
-    await api.post('/appointments', payload)
+    await api.post('/appointments/create-appointment', payload)
     router.push('/appointments')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create appointment'

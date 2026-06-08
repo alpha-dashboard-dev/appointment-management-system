@@ -156,6 +156,13 @@ class Appointment extends Model {
             constraints: false,
         });
 
+        Appointment.belongsTo(models.Location, {
+            foreignKey: "location_code",
+            targetKey: "location_code",
+            as: "location",
+            constraints: false,
+        });
+
         Appointment.belongsTo(models.Appointment, {
             foreignKey: "rescheduled_from",
             targetKey: "appointment_code",

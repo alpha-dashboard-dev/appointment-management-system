@@ -24,6 +24,7 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Appointment Code</th>
+              <th>Business Name</th>
               <th>Start Date</th>
               <th>Start Time</th>
               <th>End Time</th>
@@ -33,6 +34,7 @@
           <tbody>
             <tr v-for="appt in appointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
+              <td>{{appt.business_name}}</td>
               <td>{{ formatDate(appt.appointment_start_date) }}</td>
               <td>{{ formatTime(appt.start_time) }}</td>
               <td>{{ formatTime(appt.end_time) }}</td>
@@ -87,12 +89,13 @@
           </div>
           <div class="modal-body">
             <dl class="row">
-              <dt class="col-5 text-muted">Appointment Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
+<!--              <dt class="col-5 text-muted">Appointment Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>-->
+              <dt class="col-5 text-muted">Buisness Name</dt><dd class="col-7">{{ selected.business_name }}</dd>
               <dt class="col-5 text-muted">Status</dt><dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
               <dt class="col-5 text-muted">Start Date</dt><dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>
               <dt class="col-5 text-muted">Start Time</dt><dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
               <dt class="col-5 text-muted">End Time</dt><dd class="col-7">{{ formatTime(selected.end_time) }}</dd>
-              <dt class="col-5 text-muted">Location</dt><dd class="col-7">{{ selected.location_code ?? '—' }}</dd>
+              <dt class="col-5 text-muted">Location</dt><dd class="col-7">{{ selected.location_address ?? '—' }}</dd>
               <dt class="col-5 text-muted">Notes</dt><dd class="col-7">{{ selected.notes ?? '—' }}</dd>
             </dl>
 
@@ -148,12 +151,21 @@ async function fetchList() {
   loading.value = true
   error.value = ''
   try {
-    const params = {}
+    const params = {
+      include: "business,services.service,location"
+    }
     if (statusFilter.value) params.status = statusFilter.value
-    const res = await api.get('/appointments', { params })
-    appointments.value = res.data.data || []
+    const res = await api.get('/appointments/get-all-appointments', { params })
+    appointments.value = (res.data.data || []).map(
+        (appointments) => ({
+          ...appointments,
+          business_name: appointments.business?.name || '',
+          location_address: appointments.location?.address + " " + appointments.location?.street + " " + appointments.location?.city|| '',
+          // service_name: appointments.service?.name || '',
+        })
+    )
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load'
+    error.value = err.response?.data?.message || 'Failed to load Appointments'
   } finally {
     loading.value = false
   }

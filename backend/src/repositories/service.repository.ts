@@ -11,12 +11,11 @@ class ServiceRepository {
     }
 
     buildIncludes(include: string[] = []) {
-        const associations =
-            db.Service.associations || {};
+        // console.log(db.Service.associations);
+        const associations = db.Service.associations || {};
+        // console.log(associations);
 
-        return [...new Set(include)]
-            .filter((alias) => associations[alias])
-            .map((alias) => ({
+        return [...new Set(include)].filter((alias) => associations[alias]).map((alias) => ({
                 association: alias,
             }));
     }
@@ -50,9 +49,9 @@ class ServiceRepository {
         });
     }
 
-    async findByBusiness(businessCode: string) {
-        return dbHelper.findAllByField(this.tables, "business_code", businessCode);
-    }
+    // async findByBusiness(businessCode: string) {
+    //     return dbHelper.findAllByField(this.tables, "business_code", businessCode);
+    // }
 
     async update(serviceCode: string, data: any) {
     

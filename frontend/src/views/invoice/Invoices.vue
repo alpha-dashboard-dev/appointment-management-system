@@ -31,6 +31,7 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Invoice ID</th>
+              <th>Business Name</th>
               <th>Appointment</th>
               <th>Total Amount</th>
               <th>Status</th>
@@ -41,6 +42,7 @@
           <tbody>
             <tr v-for="inv in invoices" :key="inv.id">
               <td class="ps-3"><code>{{ inv.id }}</code></td>
+              <td>{{inv.business_name || '-'}}</td>
               <td><code>{{ inv.appointment_code || '—' }}</code></td>
               <td>{{ inv.total != null ? inv.total : '—' }}</td>
               <td><span :class="['ams-badge', inv.invoice_status]">{{ inv.invoice_status }}</span></td>
@@ -68,7 +70,7 @@
               </td>
             </tr>
             <tr v-if="invoices.length === 0">
-              <td colspan="6" class="text-center text-muted py-4">No invoices found</td>
+              <td colspan="7" class="text-center text-muted py-4">No invoices found</td>
             </tr>
           </tbody>
         </table>
@@ -126,11 +128,20 @@ async function fetchInvoices() {
   loading.value = true
   error.value = ''
   try {
-    const params = {}
+    const params = {
+      include: "business,appointment,updatedByUser"
+    }
     if (bizFilter.value) params.business_code = bizFilter.value
     if (statusFilter.value) params.status = statusFilter.value
     const res = await api.get('/invoices/get-invoice', { params })
-    invoices.value = res.data.data || []
+    // invoices.value = res.data.data || []
+    invoices.value = (res.data.data || []).map(
+        (invoices) => ({
+          ...invoices,
+          business_name:
+              invoices.business?.name || '',
+        })
+    )
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load invoices'
   } finally {

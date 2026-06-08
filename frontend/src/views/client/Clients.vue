@@ -191,7 +191,7 @@ async function fetchClients() {
   error.value = ''
 
   try {
-    const response = await api.get('/users/get-all-users', {
+    const response = await api.get('/clients/get-client', {
       params: {
         include: "business"
       }

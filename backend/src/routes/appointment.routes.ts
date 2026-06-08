@@ -1,13 +1,11 @@
 import { Router } from "express";
 import controller from "../controllers/appointment.controller";
 import AppointmentServiceController from "../controllers/appointmentServiceItem.controller";
-
-import appointmentHistoryRoutes from "./appointmentHistory.routes";
-import appointmentParticipantRoutes from "./appointmentParticipant.routes";
-// import appointmentServiceItemRoutes from "./appointmentServiceItem.routes";
-import appointmentChargeRoutes from "./appointmentCharge.routes";
-import appointmentDiscountRoutes from "./appointmentDiscount.routes";
-import appointmentRecurrenceRoutes from "./appointmentRecurrence.routes";
+import AppointmentChargeController from "../controllers/appointmentCharge.controller";
+import AppointmentHistoryController from "../controllers/appointmentHistory.controller";
+import AppointmentParticipantController from "../controllers/appointmentParticipant.controller";
+import AppointmentDiscountController from "../controllers/appointmentDiscount.controller";
+import AppointmentRecurrenceController from "../controllers/appointmentRecurrence.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 import { authorizeRoles } from "../middlewares/role.middleware";
 import { ROLES } from "../utils/roles";
@@ -88,37 +86,6 @@ router.post(
     controller.approveWithStaff
 );
 
-router.use(
-    "/:appointmentCode/history",
-    appointmentHistoryRoutes
-);
-
-router.use(
-    "/:appointmentCode/participants",
-    appointmentParticipantRoutes
-);
-
-// router.use(
-//     "/:appointmentCode/services",
-//     appointmentServiceItemRoutes
-// );
-
-router.use(
-    "/:appointmentCode/charges",
-    appointmentChargeRoutes
-);
-
-router.use(
-    "/:appointmentCode/discounts",
-    appointmentDiscountRoutes
-);
-
-router.use(
-    "/recurrences",
-    appointmentRecurrenceRoutes
-);
-
-
 //  Appointment Service Routes
 router.post(
     "/create-appointment-service",
@@ -135,10 +102,124 @@ router.get(
 );
 
 router.delete(
-    "/:serviceId",
+    "/delete-appointment-service/:serviceId",
     authenticate,
     authorizeRoles(...MANAGERS),
     AppointmentServiceController.delete
+);
+
+// Appointment Charges Routes
+
+router.post(
+    "/create-appointment-charge",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentChargeController.create
+);
+
+router.get(
+    "/get-appointment-charge/:appointmentCode",
+    authenticate,
+    authorizeRoles(...MANAGERS, ROLES.CLIENT),
+    AppointmentChargeController.getAll
+);
+
+router.delete(
+    "/delete-appointment-charge/:chargeId",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentChargeController.delete
+);
+
+// Appointment History Routes
+
+router.get(
+    "/get-appointment-History",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentHistoryController.getByAppointmentCode
+);
+
+//  Appointment Participants Routes
+
+router.post(
+    "/create-appointment-participants",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentParticipantController.create
+);
+
+router.get(
+    "/get-appointment-participants",
+    authenticate,
+    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
+    AppointmentParticipantController.getAll
+);
+
+router.delete(
+    "/delete-appointment-participants/:participantId",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentParticipantController.delete
+);
+
+// Appointment Discount Routes
+router.post(
+    "/create-appointment-discount",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentDiscountController.create
+);
+
+router.get(
+    "/get-appointment-discounts",
+    authenticate,
+    authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
+    AppointmentDiscountController.getAll
+);
+
+router.delete(
+    "/delete-appointment-discount/:discountId",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentDiscountController.delete
+);
+
+
+//  Appointment Recurrence Routes
+router.post(
+    "/create-appointment-recurrence",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    AppointmentRecurrenceController.create
+);
+
+router.get(
+    "/get-appointment-recurrence",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentRecurrenceController.getAll
+);
+
+router.get(
+    "/get-appointment-recurrence/:id",
+    authenticate,
+    authorizeRoles(...MANAGERS),
+    AppointmentRecurrenceController.getById
+);
+
+router.put(
+    "/update-appointment-recurrence/:id",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    AppointmentRecurrenceController.update
+);
+
+router.delete(
+    "/delete-appointment-recurrence/:id",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    AppointmentRecurrenceController.delete
 );
 
 export default router;

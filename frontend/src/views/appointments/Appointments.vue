@@ -32,7 +32,6 @@
         <table v-else class="table table-hover ams-table mb-0 align-middle">
           <thead class="table-light">
             <tr>
-<!--              <th class="ps-3">Appointment Code</th>-->
               <th>Business Name</th>
               <th>Service Name</th>
               <th>Notes</th>
@@ -46,7 +45,6 @@
           </thead>
           <tbody>
             <tr v-for="appt in filteredAppointments" :key="appt.appointment_code">
-<!--              <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>-->
               <td>{{ appt.business_name || '—' }}</td>
               <td>{{appt.service_name || '-'}}</td>
               <td>{{ appt.notes || '—' }}</td>
@@ -98,10 +96,10 @@
           </div>
           <div class="modal-body" v-if="selected">
             <dl class="row mb-3">
-              <dt class="col-5 text-muted">Appointment Code</dt>
-              <dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
-              <dt class="col-5 text-muted">Business Code</dt>
-              <dd class="col-7"><code>{{ selected.business_code }}</code></dd>
+              <dt class="col-5 text-muted">Service Name</dt>
+              <dd class="col-7">{{ selected.service_name }}</dd>
+              <dt class="col-5 text-muted">Business Name</dt>
+              <dd class="col-7">{{ selected.business_name }}</dd>
               <dt class="col-5 text-muted">Start Date</dt>
               <dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>
               <dt class="col-5 text-muted">End Date</dt>
@@ -438,7 +436,7 @@ async function fetchAppointments() {
   try {
     const res = await api.get('/appointments/get-all-appointments', {
       params: {
-        include: "business,creator,approver,services"
+        include: "business,creator,approver,services,services.service"
       }
     })
 
@@ -746,5 +744,3 @@ onMounted(fetchAppointments)
   min-width: 180px;
 }
 </style>
-
-

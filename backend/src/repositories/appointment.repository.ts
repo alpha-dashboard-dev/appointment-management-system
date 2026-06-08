@@ -87,10 +87,7 @@ class AppointmentRepository {
         });
     }
 
-    async findByCode(
-        appointmentCode: string,
-        options: any = {}
-    ) {
+    async findByCode(appointmentCode: string, options: any = {}) {
         return dbHelper.findOne(this.tables, {
             where: {
                 appointment_code:
@@ -101,10 +98,6 @@ class AppointmentRepository {
             ),
         });
     }
-
-    // async findByBusiness(businessCode: string) {
-    //     return dbHelper.findAllByField(this.tables, "business_code", businessCode);
-    // }
 
     async update(appointmentCode: string, data: any) {
         return dbHelper.update(this.tables, {"appointment_code": appointmentCode}, data);

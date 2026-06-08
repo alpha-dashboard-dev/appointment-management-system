@@ -12,547 +12,502 @@ import locationRepo from "../repositories/location.repository";
 import serviceRepo from "../repositories/service.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { ROLES } from "../utils/roles";
-import {
-    validateAppointment,
-    validateReschedule,
-    validateAppointmentStatus,
-} from "../utils/validator";
-
-const DAYS_OF_WEEK = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-
-function normalizeDateOnly(input: any): string {
-    if (!input) throw new Error("Appointment has invalid date");
-
-    if (input instanceof Date) {
-        if (isNaN(input.getTime())) throw new Error("Appointment has invalid date");
-        return input.toISOString().split("T")[0];
-    }
-
-    const text = String(input).trim();
-    const datePart = text.includes("T") ? text.split("T")[0] : text;
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
-    if (!m) {
-        const parsed = new Date(text);
-        if (isNaN(parsed.getTime())) throw new Error("Appointment has invalid date");
-        return parsed.toISOString().split("T")[0];
-    }
-
-    return datePart;
-}
-
-function getWorkingDayFromDate(input: any): string {
-    const dateOnly = normalizeDateOnly(input);
-    const [year, month, day] = dateOnly.split("-").map(Number);
-    const utcDate = new Date(Date.UTC(year, month - 1, day));
-    return DAYS_OF_WEEK[utcDate.getUTCDay()];
-}
-
-function normalizeTimeToHHMM(input: any, label: "startTime" | "endTime"): string {
-    const raw = input == null ? "" : String(input).trim();
-    const match = /^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/.exec(raw);
-    if (!match) {
-        throw new Error(`Invalid ${label} format. Use HH:MM`);
-    }
-    return `${match[1]}:${match[2]}`;
-}
-
-function normalizeTimeToHHMMSS(input: any): string {
-    const raw = input == null ? "" : String(input).trim();
-    const match = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/.exec(raw);
-    if (!match) return raw;
-    return `${match[1]}:${match[2]}:${match[3] || "00"}`;
-}
+import {validateAppointment, validateReschedule, validateAppointmentStatus} from "../utils/validator";
+import {getWorkingDayFromDate, normalizeDateOnly, normalizeTimeToHHMM} from "../utils/date_time_format";
 
 class AppointmentService {
 
     private toRow<T = any>(value: any): T {
         return (value?.dataValues || value) as T;
     }
-
-    private scheduleCoversSlot(scheduleStart: any, scheduleEnd: any, slotStart: any, slotEnd: any): boolean {
-        const sStart = normalizeTimeToHHMMSS(scheduleStart);
-        const sEnd = normalizeTimeToHHMMSS(scheduleEnd);
-        const aStart = normalizeTimeToHHMMSS(slotStart);
-        const aEnd = normalizeTimeToHHMMSS(slotEnd);
-        return sStart <= aStart && sEnd >= aEnd;
-    }
-
-    private simplifyStaffRows(rows: any[] = []) {
-        return rows.map((row: any) => ({
-            user_code: row.user_code,
-            staff_name: row.staff_name || null,
-            location_code: row.location_code,
-            working_day: row.working_days,
-            start_time: normalizeTimeToHHMMSS(row.start_time),
-            end_time: normalizeTimeToHHMMSS(row.end_time),
-        }));
-    }
-
-    private uniqStaffSlots(rows: any[] = []) {
-        const seen = new Set<string>();
-        const result: any[] = [];
-
-        for (const row of rows) {
-            const key = [row.user_code, row.location_code, row.start_time, row.end_time].join("|");
-            if (seen.has(key)) continue;
-            seen.add(key);
-            result.push(row);
-        }
-
-        return result;
-    }
-
-    private groupByLocation(rows: any[] = []) {
-        const groups = new Map<string, any[]>();
-
-        for (const row of rows) {
-            const loc = row.location_code;
-            if (!loc) continue;
-            if (!groups.has(loc)) groups.set(loc, []);
-            groups.get(loc)!.push(row);
-        }
-
-        return [...groups.entries()].map(([location_code, staff]) => ({
-            location_code,
-            staff: this.uniqStaffSlots(this.simplifyStaffRows(staff)),
-        }));
-    }
-
-    private async attachLocationMeta(groups: any[] = []) {
-        const out: any[] = [];
-        for (const group of groups) {
-            const location = await locationRepo.findByCode(group.location_code);
-            const row = location ? this.toRow(location) : null;
-            out.push({
-                ...group,
-                location: row
-                    ? {
-                        city: row.city || null,
-                        address: row.address || null,
-                        status: row.status || null,
-                    }
-                    : null,
-            });
-        }
-        return out;
-    }
-
-    private async buildAvailabilityInsights(appointment: any, appointmentCode: string) {
-        const row = this.toRow(appointment);
-        const date = normalizeDateOnly(row.appointment_start_date);
-        const workingDay = getWorkingDayFromDate(row.appointment_start_date);
-        const startTime = normalizeTimeToHHMM(row.start_time, "startTime");
-        const endTime = normalizeTimeToHHMM(row.end_time, "endTime");
-
-        const locationConflicts = await repo.findLocationSlotConflicts(
-            row.business_code,
-            row.location_code,
-            date,
-            startTime,
-            endTime,
-            appointmentCode
-        );
-
-        const busyStaffCodes = new Set(
-            await participantRepo.findBusyStaffCodes(date, startTime, endTime, appointmentCode)
-        );
-
-        const sameSlotAtLocationRaw = await scheduleRepo.findAvailableStaff(
-            row.business_code,
-            row.location_code,
-            workingDay,
-            startTime,
-            endTime
-        );
-
-        const availableSameSlot = (sameSlotAtLocationRaw || []).filter(
-            (staff: any) => !busyStaffCodes.has(staff.user_code)
-        );
-
-        const sameLocationSchedules = await scheduleRepo.findStaffSchedulesByDay(
-            row.business_code,
-            workingDay,
-            row.location_code
-        );
-        const sameLocationOtherSlots = (sameLocationSchedules || []).filter(
-            (slot: any) => !this.scheduleCoversSlot(slot.start_time, slot.end_time, startTime, endTime)
-        );
-
-        const allSchedulesForDay = await scheduleRepo.findStaffSchedulesByDay(row.business_code, workingDay);
-        const otherLocationSameSlot = (allSchedulesForDay || []).filter(
-            (slot: any) =>
-                slot.location_code !== row.location_code &&
-                this.scheduleCoversSlot(slot.start_time, slot.end_time, startTime, endTime) &&
-                !busyStaffCodes.has(slot.user_code)
-        );
-
-        const appointmentServices = await appointmentServiceRepo.findByAppointment(appointmentCode);
-        const selectedServiceCodes = (appointmentServices || [])
-            .map((s: any) => this.toRow(s).service_code)
-            .filter(Boolean);
-
-        const selectedServiceLocations: any[] = [];
-        if (selectedServiceCodes.length > 0) {
-            const locServices = await locationServiceRepo.findAll({
-                business_code: row.business_code,
-                availability: "available",
-            });
-
-            const grouped = new Map<string, Set<string>>();
-            for (const lsItem of locServices || []) {
-                const ls = this.toRow(lsItem);
-                if (!selectedServiceCodes.includes(ls.service_code)) continue;
-                if (!grouped.has(ls.location_code)) grouped.set(ls.location_code, new Set<string>());
-                grouped.get(ls.location_code)!.add(ls.service_code);
-            }
-
-            for (const [locationCode, serviceSet] of grouped.entries()) {
-                if (locationCode === row.location_code) continue;
-
-                const sameSlotRaw = await scheduleRepo.findAvailableStaff(
-                    row.business_code,
-                    locationCode,
-                    workingDay,
-                    startTime,
-                    endTime
-                );
-                const sameSlot = (sameSlotRaw || []).filter(
-                    (staff: any) => !busyStaffCodes.has(staff.user_code)
-                );
-
-                const daySchedules = await scheduleRepo.findStaffSchedulesByDay(
-                    row.business_code,
-                    workingDay,
-                    locationCode
-                );
-                const otherSlots = (daySchedules || []).filter(
-                    (slot: any) => !this.scheduleCoversSlot(slot.start_time, slot.end_time, startTime, endTime)
-                );
-
-                const location = await locationRepo.findByCode(locationCode);
-                const locationRow = location ? this.toRow(location) : null;
-
-                selectedServiceLocations.push({
-                    location_code: locationCode,
-                    location: locationRow
-                        ? {
-                            city: locationRow.city || null,
-                            address: locationRow.address || null,
-                            status: locationRow.status || null,
-                        }
-                        : null,
-                    matched_service_codes: [...serviceSet],
-                    available_staff_same_slot: this.uniqStaffSlots(this.simplifyStaffRows(sameSlot)),
-                    alternative_staff_time_slots: this.uniqStaffSlots(this.simplifyStaffRows(otherSlots)),
-                });
-            }
-        }
-
-        const groupedOtherLocations = this.groupByLocation(otherLocationSameSlot);
-        const groupedOtherLocationsWithMeta = await this.attachLocationMeta(groupedOtherLocations);
-
-        return {
-            appointment_code: appointmentCode,
-            date,
-            start_time: normalizeTimeToHHMMSS(startTime),
-            end_time: normalizeTimeToHHMMSS(endTime),
-            location_code: row.location_code,
-            working_day: workingDay,
-            location_slot_already_booked: (locationConflicts || []).length > 0,
-            conflicting_appointments: (locationConflicts || []).map((c: any) => c.appointment_code),
-            available_staff: this.uniqStaffSlots(this.simplifyStaffRows(availableSameSlot)),
-            alternatives: {
-                different_time_same_location: this.uniqStaffSlots(this.simplifyStaffRows(sameLocationOtherSlots)),
-                different_location_same_time: groupedOtherLocationsWithMeta,
-                selected_service_other_locations: selectedServiceLocations,
-            },
-        };
-    }
-
-    private toAmount(value: any): number {
-        const n = Number(value ?? 0);
-        return Number.isFinite(n) ? n : 0;
-    }
-
-    private roundMoney(value: number): number {
-        return Number(value.toFixed(2));
-    }
-
-    private computeChargeAmount(baseAmount: number, chargeUom: string, chargeValue: any): number {
-        const normalizedUom = String(chargeUom || "").toLowerCase();
-        const value = this.toAmount(chargeValue);
-        if (normalizedUom === "percentage") {
-            return this.roundMoney((baseAmount * value) / 100);
-        }
-        return this.roundMoney(value);
-    }
-
-    private async calculatePricingFromServiceCodes(
-        businessCode: string,
-        serviceCodes: string[],
-        chargeRows: any[]
-    ) {
-        let serviceSubtotal = 0;
-        let currency: string | null = null;
-        const servicesBreakdown: any[] = [];
-
-        for (const code of serviceCodes) {
-            const service = await serviceRepo.findByCode(code);
-            if (!service) continue;
-            const s = service.dataValues || service;
-            if (s.business_code !== businessCode) continue;
-
-            const price = this.roundMoney(this.toAmount(s.price));
-            serviceSubtotal += price;
-            if (!currency && s.currency) currency = s.currency;
-
-            servicesBreakdown.push({
-                service_code: s.service_code,
-                name: s.name,
-                price,
-                currency: s.currency || null,
-            });
-        }
-
-        serviceSubtotal = this.roundMoney(serviceSubtotal);
-
-        let chargeTotal = 0;
-        const chargesBreakdown = (chargeRows || []).map((charge: any) => {
-            const c = charge.dataValues || charge;
-            const computedAmount = this.computeChargeAmount(serviceSubtotal, c.charge_uom, c.charge_value);
-            chargeTotal += computedAmount;
-            return {
-                charge_code: c.charge_code,
-                name: c.name || null,
-                charge_uom: c.charge_uom,
-                charge_value: this.toAmount(c.charge_value),
-                computed_amount: computedAmount,
-            };
-        });
-
-        chargeTotal = this.roundMoney(chargeTotal);
-        const subtotal = serviceSubtotal;
-        const total = this.roundMoney(subtotal + chargeTotal);
-
-        return {
-            currency: currency || "PKR",
-            service_subtotal: serviceSubtotal,
-            discount_total: 0,
-            subtotal,
-            charge_total: chargeTotal,
-            total,
-            services: servicesBreakdown,
-            charges: chargesBreakdown,
-        };
-    }
-
-    private async applyActiveChargesToAppointment(businessCode: string, appointmentCode: string) {
-        const existing = await appointmentChargeRepo.findByAppointment(appointmentCode);
-        const existingCodes = new Set(
-            (existing || []).map((row: any) => {
-                const r = row.dataValues || row;
-                return r.charge_code;
-            })
-        );
-
-        const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
-        for (const charge of activeCharges) {
-            const chargeData = charge.dataValues || charge;
-            if (existingCodes.has(chargeData.charge_code)) continue;
-
-            await appointmentChargeRepo.create({
-                business_code: businessCode,
-                appointment_code: appointmentCode,
-                charge_code: chargeData.charge_code,
-                charge_uom: chargeData.charge_uom,
-                charge_value: chargeData.charge_value,
-            });
-        }
-    }
-
-    private async upsertDraftInvoice(
-        businessCode: string,
-        appointmentCode: string,
-        subtotal: number,
-        total: number,
-        updatedBy: string | null
-    ) {
-        const existingInvoices = await invoiceRepo.findByAppointment(appointmentCode);
-        const existing = existingInvoices?.[0];
-
-        if (existing) {
-            const id = (existing as any).id;
-            await invoiceRepo.update(id, {
-                subtotal,
-                total,
-                invoice_status: "draft",
-                date: new Date().toISOString().split("T")[0],
-                updated_by: updatedBy,
-            });
-            return;
-        }
-
-        await invoiceRepo.create({
-            business_code: businessCode,
-            appointment_code: appointmentCode,
-            subtotal,
-            total,
-            invoice_status: "draft",
-            date: new Date().toISOString().split("T")[0],
-            updated_by: updatedBy,
-        });
-    }
-
-    private async computeAppointmentPricing(businessCode: string, appointmentCode: string) {
-        const appointmentServices = await appointmentServiceRepo.findByAppointment(appointmentCode);
-        const serviceCodes = (appointmentServices || []).map((item: any) => {
-            const row = item.dataValues || item;
-            return row.service_code;
-        });
-
-        const appointmentCharges = await appointmentChargeRepo.findByAppointment(appointmentCode);
-        return this.calculatePricingFromServiceCodes(businessCode, serviceCodes, appointmentCharges || []);
-    }
-
-    async getPricingPreview(data: any, actor?: any) {
-        const inputBusinessCode = data?.business_code;
-        const businessCode = actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT
-            ? actor.businessCode
-            : inputBusinessCode;
-
-        const serviceCodes = Array.isArray(data?.service_codes) ? data.service_codes.filter(Boolean) : [];
-
-        if (!businessCode) throw new Error("business_code is required");
-        if (serviceCodes.length === 0) throw new Error("service_codes is required");
-
-        const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
-        const pricing = await this.calculatePricingFromServiceCodes(businessCode, serviceCodes, activeCharges || []);
-
-        return {
-            business_code: businessCode,
-            service_codes: serviceCodes,
-            ...pricing,
-        };
-    }
+    //
+    // private scheduleCoversSlot(scheduleStart: any, scheduleEnd: any, slotStart: any, slotEnd: any): boolean {
+    //     const sStart = normalizeTimeToHHMMSS(scheduleStart);
+    //     const sEnd = normalizeTimeToHHMMSS(scheduleEnd);
+    //     const aStart = normalizeTimeToHHMMSS(slotStart);
+    //     const aEnd = normalizeTimeToHHMMSS(slotEnd);
+    //     return sStart <= aStart && sEnd >= aEnd;
+    // }
+    //
+    // private simplifyStaffRows(rows: any[] = []) {
+    //     return rows.map((row: any) => ({
+    //         user_code: row.user_code,
+    //         staff_name: row.staff_name || null,
+    //         location_code: row.location_code,
+    //         working_day: row.working_days,
+    //         start_time: normalizeTimeToHHMMSS(row.start_time),
+    //         end_time: normalizeTimeToHHMMSS(row.end_time),
+    //     }));
+    // }
+    //
+    // private uniqStaffSlots(rows: any[] = []) {
+    //     const seen = new Set<string>();
+    //     const result: any[] = [];
+    //
+    //     for (const row of rows) {
+    //         const key = [row.user_code, row.location_code, row.start_time, row.end_time].join("|");
+    //         if (seen.has(key)) continue;
+    //         seen.add(key);
+    //         result.push(row);
+    //     }
+    //
+    //     return result;
+    // }
+    //
+    // private groupByLocation(rows: any[] = []) {
+    //     const groups = new Map<string, any[]>();
+    //
+    //     for (const row of rows) {
+    //         const loc = row.location_code;
+    //         if (!loc) continue;
+    //         if (!groups.has(loc)) groups.set(loc, []);
+    //         groups.get(loc)!.push(row);
+    //     }
+    //
+    //     return [...groups.entries()].map(([location_code, staff]) => ({
+    //         location_code,
+    //         staff: this.uniqStaffSlots(this.simplifyStaffRows(staff)),
+    //     }));
+    // }
+    //
+    // private async attachLocationMeta(groups: any[] = []) {
+    //     const out: any[] = [];
+    //     for (const group of groups) {
+    //         const location = await locationRepo.findByCode(group.location_code);
+    //         const row = location ? this.toRow(location) : null;
+    //         out.push({
+    //             ...group,
+    //             location: row
+    //                 ? {
+    //                     city: row.city || null,
+    //                     address: row.address || null,
+    //                     status: row.status || null,
+    //                 }
+    //                 : null,
+    //         });
+    //     }
+    //     return out;
+    // }
+    //
+    // private async buildAvailabilityInsights(appointment: any, appointmentCode: string) {
+    //     const row = this.toRow(appointment);
+    //     const date = normalizeDateOnly(row.appointment_start_date);
+    //     const workingDay = getWorkingDayFromDate(row.appointment_start_date);
+    //     const startTime = normalizeTimeToHHMM(row.start_time, "startTime");
+    //     const endTime = normalizeTimeToHHMM(row.end_time, "endTime");
+    //
+    //     const locationConflicts = await repo.findLocationSlotConflicts(
+    //         row.business_code,
+    //         row.location_code,
+    //         date,
+    //         startTime,
+    //         endTime,
+    //         appointmentCode
+    //     );
+    //
+    //     const busyStaffCodes = new Set(
+    //         await participantRepo.findBusyStaffCodes(date, startTime, endTime, appointmentCode)
+    //     );
+    //
+    //     const sameSlotAtLocationRaw = await scheduleRepo.findAvailableStaff(
+    //         row.business_code,
+    //         row.location_code,
+    //         workingDay,
+    //         startTime,
+    //         endTime
+    //     );
+    //
+    //     const availableSameSlot = (sameSlotAtLocationRaw || []).filter(
+    //         (staff: any) => !busyStaffCodes.has(staff.user_code)
+    //     );
+    //
+    //     const sameLocationSchedules = await scheduleRepo.findStaffSchedulesByDay(
+    //         row.business_code,
+    //         workingDay,
+    //         row.location_code
+    //     );
+    //     const sameLocationOtherSlots = (sameLocationSchedules || []).filter(
+    //         (slot: any) => !this.scheduleCoversSlot(slot.start_time, slot.end_time, startTime, endTime)
+    //     );
+    //
+    //     const allSchedulesForDay = await scheduleRepo.findStaffSchedulesByDay(row.business_code, workingDay);
+    //     const otherLocationSameSlot = (allSchedulesForDay || []).filter(
+    //         (slot: any) =>
+    //             slot.location_code !== row.location_code &&
+    //             this.scheduleCoversSlot(slot.start_time, slot.end_time, startTime, endTime) &&
+    //             !busyStaffCodes.has(slot.user_code)
+    //     );
+    //
+    //     const appointmentServices = await appointmentServiceRepo.findByAppointment(appointmentCode);
+    //     const selectedServiceCodes = (appointmentServices || [])
+    //         .map((s: any) => this.toRow(s).service_code)
+    //         .filter(Boolean);
+    //
+    //     const selectedServiceLocations: any[] = [];
+    //     if (selectedServiceCodes.length > 0) {
+    //         const locServices = await locationServiceRepo.findAll({
+    //             business_code: row.business_code,
+    //             availability: "available",
+    //         });
+    //
+    //         const grouped = new Map<string, Set<string>>();
+    //         for (const lsItem of locServices || []) {
+    //             const ls = this.toRow(lsItem);
+    //             if (!selectedServiceCodes.includes(ls.service_code)) continue;
+    //             if (!grouped.has(ls.location_code)) grouped.set(ls.location_code, new Set<string>());
+    //             grouped.get(ls.location_code)!.add(ls.service_code);
+    //         }
+    //
+    //         for (const [locationCode, serviceSet] of grouped.entries()) {
+    //             if (locationCode === row.location_code) continue;
+    //
+    //             const sameSlotRaw = await scheduleRepo.findAvailableStaff(
+    //                 row.business_code,
+    //                 locationCode,
+    //                 workingDay,
+    //                 startTime,
+    //                 endTime
+    //             );
+    //             const sameSlot = (sameSlotRaw || []).filter(
+    //                 (staff: any) => !busyStaffCodes.has(staff.user_code)
+    //             );
+    //
+    //             const daySchedules = await scheduleRepo.findStaffSchedulesByDay(
+    //                 row.business_code,
+    //                 workingDay,
+    //                 locationCode
+    //             );
+    //             const otherSlots = (daySchedules || []).filter(
+    //                 (slot: any) => !this.scheduleCoversSlot(slot.start_time, slot.end_time, startTime, endTime)
+    //             );
+    //
+    //             const location = await locationRepo.findByCode(locationCode);
+    //             const locationRow = location ? this.toRow(location) : null;
+    //
+    //             selectedServiceLocations.push({
+    //                 location_code: locationCode,
+    //                 location: locationRow
+    //                     ? {
+    //                         city: locationRow.city || null,
+    //                         address: locationRow.address || null,
+    //                         status: locationRow.status || null,
+    //                     }
+    //                     : null,
+    //                 matched_service_codes: [...serviceSet],
+    //                 available_staff_same_slot: this.uniqStaffSlots(this.simplifyStaffRows(sameSlot)),
+    //                 alternative_staff_time_slots: this.uniqStaffSlots(this.simplifyStaffRows(otherSlots)),
+    //             });
+    //         }
+    //     }
+    //
+    //     const groupedOtherLocations = this.groupByLocation(otherLocationSameSlot);
+    //     const groupedOtherLocationsWithMeta = await this.attachLocationMeta(groupedOtherLocations);
+    //
+    //     return {
+    //         appointment_code: appointmentCode,
+    //         date,
+    //         start_time: normalizeTimeToHHMMSS(startTime),
+    //         end_time: normalizeTimeToHHMMSS(endTime),
+    //         location_code: row.location_code,
+    //         working_day: workingDay,
+    //         location_slot_already_booked: (locationConflicts || []).length > 0,
+    //         conflicting_appointments: (locationConflicts || []).map((c: any) => c.appointment_code),
+    //         available_staff: this.uniqStaffSlots(this.simplifyStaffRows(availableSameSlot)),
+    //         alternatives: {
+    //             different_time_same_location: this.uniqStaffSlots(this.simplifyStaffRows(sameLocationOtherSlots)),
+    //             different_location_same_time: groupedOtherLocationsWithMeta,
+    //             selected_service_other_locations: selectedServiceLocations,
+    //         },
+    //     };
+    // }
+    //
+    // private toAmount(value: any): number {
+    //     const n = Number(value ?? 0);
+    //     return Number.isFinite(n) ? n : 0;
+    // }
+    //
+    // private roundMoney(value: number): number {
+    //     return Number(value.toFixed(2));
+    // }
+    //
+    // private computeChargeAmount(baseAmount: number, chargeUom: string, chargeValue: any): number {
+    //     const normalizedUom = String(chargeUom || "").toLowerCase();
+    //     const value = this.toAmount(chargeValue);
+    //     if (normalizedUom === "percentage") {
+    //         return this.roundMoney((baseAmount * value) / 100);
+    //     }
+    //     return this.roundMoney(value);
+    // }
+    //
+    // private async calculatePricingFromServiceCodes(
+    //     businessCode: string,
+    //     serviceCodes: string[],
+    //     chargeRows: any[]
+    // ) {
+    //     let serviceSubtotal = 0;
+    //     let currency: string | null = null;
+    //     const servicesBreakdown: any[] = [];
+    //
+    //     for (const code of serviceCodes) {
+    //         const service = await serviceRepo.findByCode(code);
+    //         if (!service) continue;
+    //         const s = service.dataValues || service;
+    //         if (s.business_code !== businessCode) continue;
+    //
+    //         const price = this.roundMoney(this.toAmount(s.price));
+    //         serviceSubtotal += price;
+    //         if (!currency && s.currency) currency = s.currency;
+    //
+    //         servicesBreakdown.push({
+    //             service_code: s.service_code,
+    //             name: s.name,
+    //             price,
+    //             currency: s.currency || null,
+    //         });
+    //     }
+    //
+    //     serviceSubtotal = this.roundMoney(serviceSubtotal);
+    //
+    //     let chargeTotal = 0;
+    //     const chargesBreakdown = (chargeRows || []).map((charge: any) => {
+    //         const c = charge.dataValues || charge;
+    //         const computedAmount = this.computeChargeAmount(serviceSubtotal, c.charge_uom, c.charge_value);
+    //         chargeTotal += computedAmount;
+    //         return {
+    //             charge_code: c.charge_code,
+    //             name: c.name || null,
+    //             charge_uom: c.charge_uom,
+    //             charge_value: this.toAmount(c.charge_value),
+    //             computed_amount: computedAmount,
+    //         };
+    //     });
+    //
+    //     chargeTotal = this.roundMoney(chargeTotal);
+    //     const subtotal = serviceSubtotal;
+    //     const total = this.roundMoney(subtotal + chargeTotal);
+    //
+    //     return {
+    //         currency: currency || "PKR",
+    //         service_subtotal: serviceSubtotal,
+    //         discount_total: 0,
+    //         subtotal,
+    //         charge_total: chargeTotal,
+    //         total,
+    //         services: servicesBreakdown,
+    //         charges: chargesBreakdown,
+    //     };
+    // }
+    //
+    // private async applyActiveChargesToAppointment(businessCode: string, appointmentCode: string) {
+    //     const existing = await appointmentChargeRepo.findByAppointment(appointmentCode);
+    //     const existingCodes = new Set(
+    //         (existing || []).map((row: any) => {
+    //             const r = row.dataValues || row;
+    //             return r.charge_code;
+    //         })
+    //     );
+    //
+    //     const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
+    //     for (const charge of activeCharges) {
+    //         const chargeData = charge.dataValues || charge;
+    //         if (existingCodes.has(chargeData.charge_code)) continue;
+    //
+    //         await appointmentChargeRepo.create({
+    //             business_code: businessCode,
+    //             appointment_code: appointmentCode,
+    //             charge_code: chargeData.charge_code,
+    //             charge_uom: chargeData.charge_uom,
+    //             charge_value: chargeData.charge_value,
+    //         });
+    //     }
+    // }
+    //
+    // private async upsertDraftInvoice(
+    //     businessCode: string,
+    //     appointmentCode: string,
+    //     subtotal: number,
+    //     total: number,
+    //     updatedBy: string | null
+    // ) {
+    //     const existingInvoices = await invoiceRepo.findByAppointment(appointmentCode);
+    //     const existing = existingInvoices?.[0];
+    //
+    //     if (existing) {
+    //         const id = (existing as any).id;
+    //         await invoiceRepo.update(id, {
+    //             subtotal,
+    //             total,
+    //             invoice_status: "draft",
+    //             date: new Date().toISOString().split("T")[0],
+    //             updated_by: updatedBy,
+    //         });
+    //         return;
+    //     }
+    //
+    //     await invoiceRepo.create({
+    //         business_code: businessCode,
+    //         appointment_code: appointmentCode,
+    //         subtotal,
+    //         total,
+    //         invoice_status: "draft",
+    //         date: new Date().toISOString().split("T")[0],
+    //         updated_by: updatedBy,
+    //     });
+    // }
+    //
+    // private async computeAppointmentPricing(businessCode: string, appointmentCode: string) {
+    //     const appointmentServices = await appointmentServiceRepo.findByAppointment(appointmentCode);
+    //     const serviceCodes = (appointmentServices || []).map((item: any) => {
+    //         const row = item.dataValues || item;
+    //         return row.service_code;
+    //     });
+    //
+    //     const appointmentCharges = await appointmentChargeRepo.findByAppointment(appointmentCode);
+    //     return this.calculatePricingFromServiceCodes(businessCode, serviceCodes, appointmentCharges || []);
+    // }
+    //
+    // async getPricingPreview(data: any, actor?: any) {
+    //     const inputBusinessCode = data?.business_code;
+    //     const businessCode = actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT
+    //         ? actor.businessCode
+    //         : inputBusinessCode;
+    //
+    //     const serviceCodes = Array.isArray(data?.service_codes) ? data.service_codes.filter(Boolean) : [];
+    //
+    //     if (!businessCode) throw new Error("business_code is required");
+    //     if (serviceCodes.length === 0) throw new Error("service_codes is required");
+    //
+    //     const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
+    //     const pricing = await this.calculatePricingFromServiceCodes(businessCode, serviceCodes, activeCharges || []);
+    //
+    //     return {
+    //         business_code: businessCode,
+    //         service_codes: serviceCodes,
+    //         ...pricing,
+    //     };
+    // }
 
 
     async create(data: any, actor: any) {
-        // Clients always book under the given business_code (not their own)
-        // Non-client, non-admin actors can only book for their own business
-        if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
-            data.business_code = actor.businessCode;
-        }
+        const transaction = await db.sequelize.transaction();
 
-        const {
-            business_code,
-            appointment_start_date,
-            appointment_end_date,
-            start_time,
-            end_time,
-            location_code,
-            notes,
-            status,
-            user_role,
-            service_codes,   // optional array: ["SVC12345", ...]  for clients to attach services at booking
-            client_code,     // optional: explicit client to book for (ops staff on behalf of client)
-        } = data;
+        try {
+            // 1. Actor-based business assignment
+            if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
+                data.business_code = actor.businessCode;
+            }
 
-        validateAppointment(data);
+            const {business_code, appointment_start_date, appointment_end_date, start_time, end_time, location_code, notes,
+                user_role, service_codes, client_code} = data;
 
-        const appointment_code = generateCode();
+            validateAppointment(data);
 
-        const appointment = await repo.create({
-            business_code,
-            appointment_code,
-            appointment_start_date,
-            appointment_end_date,
-            start_time,
-            end_time,
-            location_code: location_code || null,
-            status: "pending",   // always pending regardless of creator role
-            created_by: actor?.userCode,
-            notes: notes || null,
-        });
+            const appointment_code = generateCode();
 
-        await historyRepo.create({
-            business_code,
-            appointment_code,
-            action: "created",
-            changed_by: actor?.userCode,
-            old_value: null,
-            new_value: { appointment_code, status: "pending" },
-        });
+            // 2. Create Appointment
+            const appointment = await repo.create(
+                {
+                    business_code,
+                    appointment_code,
+                    appointment_start_date,
+                    appointment_end_date,
+                    start_time,
+                    end_time,
+                    location_code: location_code || null,
+                    status: "pending",
+                    created_by: actor?.userCode || null,
+                    notes: notes || null,
+                },
+                { transaction }
+            );
 
-        // Add the booking actor as a participant (admins are system-wide and not added as participants)
-        if (actor?.userCode && actor.userType !== ROLES.ADMIN) {
-            await participantRepo.create({
-                business_code,
-                appointment_code,
-                user_code: actor.userCode,
-                user_type: actor.userType,
-                user_role: user_role || null,
-                status: "active",
-            });
-        }
+            // 3. History (audit log)
+            await historyRepo.create(
+                {
+                    business_code,
+                    appointment_code,
+                    action: "created",
+                    changed_by: actor?.userCode || null,
+                    old_value: null,
+                    new_value: {
+                        appointment_code,
+                        status: "pending",
+                    },
+                },
+                { transaction }
+            );
 
-        // When ops staff books on behalf of a client, also add the client as participant
-        if (client_code && client_code !== actor?.userCode) {
-            await participantRepo.create({
-                business_code,
-                appointment_code,
-                user_code: client_code,
-                user_type: ROLES.CLIENT,
-                user_role: null,
-                status: "active",
-            });
-        }
+            // 4. Participants (actor)
+            if (actor?.userCode && actor.userType !== ROLES.ADMIN) {
+                await participantRepo.create(
+                    {
+                        business_code,
+                        appointment_code,
+                        user_code: actor.userCode,
+                        user_type: actor.userType,
+                        user_role: user_role || null,
+                        status: "active",
+                    },
+                    { transaction }
+                );
+            }
 
-        // Attach services immediately if provided (client booking flow)
-        if (Array.isArray(service_codes) && service_codes.length > 0) {
-            for (const service_code of service_codes) {
-                await appointmentServiceRepo.create({
+            // 5. Participants (client on behalf booking)
+            if (client_code && client_code !== actor?.userCode) {
+                await participantRepo.create(
+                    {
+                        business_code,
+                        appointment_code,
+                        user_code: client_code,
+                        user_type: ROLES.CLIENT,
+                        user_role: null,
+                        status: "active",
+                    },
+                    { transaction }
+                );
+            }
+
+            // 6. Appointment Services
+            if (Array.isArray(service_codes) && service_codes.length > 0) {
+                const serviceRows = service_codes.map((service_code: string) => ({
                     business_code,
                     service_code,
                     appointment_code,
+                }));
+
+                await appointmentServiceRepo.bulkCreate(serviceRows, {
+                    transaction,
                 });
             }
-        }
 
-        return appointment;
+            // 7. Commit
+            await transaction.commit();
+
+            return appointment;
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
     }
 
     async getAll(query: any = {}, actor?: any) {
         const filters: any = {
-            business_code:
-                query.business_code,
-
+            business_code: query.business_code,
             status: query.status,
-
             user_code: query.user_code,
         };
 
         const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
+            include: query.include ? String(query.include).split(",") : [],
 
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
+            limit: query.limit ? Number(query.limit) : undefined,
 
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
+            offset: query.offset ? Number(query.offset) : undefined,
 
             order: [
                 [
                     query.sort_by || "created_at",
-
-                    query.sort_order || "DESC",
+                    query.sort_order || "ASC",
                 ],
             ],
         };
@@ -587,17 +542,9 @@ class AppointmentService {
     }
 
 
-    async getByCode(
-        appointmentCode: string,
-        actor?: any,
-        query: any = {}
-    ) {
+    async getByCode(appointmentCode: string, actor?: any, query: any = {}) {
         const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
+            include: query.include ? String(query.include).split(",") : [],
         };
 
         const appointment = await repo.findByCode(
@@ -756,17 +703,17 @@ class AppointmentService {
 
         await repo.update(appointmentCode, updateData);
 
-        if (status === "approved") {
-            await this.applyActiveChargesToAppointment(appointmentRow.business_code, appointmentCode);
-            const pricing = await this.computeAppointmentPricing(appointmentRow.business_code, appointmentCode);
-            await this.upsertDraftInvoice(
-                appointmentRow.business_code,
-                appointmentCode,
-                pricing.subtotal,
-                pricing.total,
-                actor?.userCode || null
-            );
-        }
+        // if (status === "approved") {
+        //     await this.applyActiveChargesToAppointment(appointmentRow.business_code, appointmentCode);
+        //     const pricing = await this.computeAppointmentPricing(appointmentRow.business_code, appointmentCode);
+        //     await this.upsertDraftInvoice(
+        //         appointmentRow.business_code,
+        //         appointmentCode,
+        //         pricing.subtotal,
+        //         pricing.total,
+        //         actor?.userCode || null
+        //     );
+        // }
 
         await historyRepo.create({
             business_code: appointmentRow.business_code,
