@@ -39,28 +39,28 @@ router.get(
 );
 
 router.get(
-    "/:appointmentCode",
+    "/get-one-appointment/:appointmentCode",
     authenticate,
     authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
     controller.getByCode
 );
 
 router.put(
-    "/:appointmentCode",
+    "/update-appointment/:appointmentCode",
     authenticate,
     authorizeRoles(...MANAGERS),
     controller.update
 );
 
 router.patch(
-    "/:appointmentCode/status",
+    "/update-appointment-status/:appointmentCode",
     authenticate,
     authorizeRoles(...MANAGERS),
     controller.changeStatus
 );
 
 router.post(
-    "/:appointmentCode/reschedule",
+    "/reschedule-appointment/:appointmentCode",
     authenticate,
     authorizeRoles(...MANAGERS),
     controller.reschedule
@@ -75,14 +75,14 @@ router.patch(
 
 // Approval flow
 router.get(
-    "/:appointmentCode/availability",
+    "/check-availability/:appointmentCode",
     authenticate,
     authorizeRoles(...MANAGERS),
     controller.checkAvailability
 );
 
 router.post(
-    "/:appointmentCode/approve",
+    "/approve-appointment/:appointmentCode",
     authenticate,
     authorizeRoles(...MANAGERS),
     controller.approveWithStaff

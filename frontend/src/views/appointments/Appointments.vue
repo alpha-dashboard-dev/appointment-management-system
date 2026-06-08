@@ -505,7 +505,7 @@ async function submitReschedule() {
   saving.value = true
   rescheduleError.value = ''
   try {
-    await api.post(`/appointments/${selected.value.appointment_code}/reschedule`, rescheduleForm)
+    await api.post(`/appointments/reschedule-appointment/${selected.value.appointment_code}`, rescheduleForm)
     showReschedule.value = false
     await fetchAppointments()
   } catch (err) {
@@ -662,7 +662,7 @@ async function loadApprovalAvailability(appt) {
 
   availabilityLoading.value = true
   try {
-    const res = await api.get(`/appointments/${appt.appointment_code}/availability`)
+    const res = await api.get(`/appointments/check-availability/${appt.appointment_code}`)
     const payload = res.data.data || {}
     availableStaff.value = payload.available_staff || []
     slotAlreadyBooked.value = Boolean(payload.location_slot_already_booked)
