@@ -1,34 +1,9 @@
 import appointmentRepo from "../repositories/appointment.repository";
 import appointmentChargeRepo from "../repositories/appointmentCharge.repository";
 import { validateAppointmentCharge } from "../utils/validator";
+import { buildQueryOptions, extractRow } from "../utils/serviceHelpers";
 
 class AppointmentChargeService {
-
-    private buildQueryOptions(query: any = {}) {
-        return {
-            include:
-                query.include
-                    ? String(query.include).split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
-            order: [
-                [
-                    query.sort_by || "created_at",
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
-    }
 
     async add(
         appointmentCode: string,
@@ -45,16 +20,12 @@ class AppointmentChargeService {
             );
         }
 
-        const appointmentRow: any =
-            appointment.dataValues || appointment;
-
+        const appointmentRow = extractRow(appointment);
         const { charge_code, charge_uom, charge_value } = data;
 
         validateAppointmentCharge({
-            business_code:
-                appointmentRow.business_code,
-            appointment_code:
-                appointmentCode,
+            business_code: appointmentRow.business_code,
+            appointment_code: appointmentCode,
         });
 
         return await appointmentChargeRepo.create({
@@ -92,35 +63,14 @@ class AppointmentChargeService {
         );
     }
 
-    async remove(
-        appointmentCode: string,
-        chargeId: number
-    ) {
-        const appointment =
-            await appointmentRepo.findByCode(
-                appointmentCode
-            );
+    async remove(appointmentCode: string, chargeId: number) {
+        const appointment = await appointmentRepo.findByCode(appointmentCode);
+        if (!appointment) throw new Error("Appointment not found");
 
-        if (!appointment) {
-            throw new Error(
-                "Appointment not found"
-            );
-        }
+        const item = await appointmentChargeRepo.findById(chargeId);
+        if (!item) throw new Error("Appointment charge not found");
 
-        const item =
-            await appointmentChargeRepo.findById(
-                chargeId
-            );
-
-        if (!item) {
-            throw new Error(
-                "Appointment charge not found"
-            );
-        }
-
-        return await appointmentChargeRepo.delete(
-            chargeId
-        );
+        return await appointmentChargeRepo.delete(chargeId);
     }
 }
 

@@ -1,34 +1,9 @@
 import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.repository";
 import { ROLES } from "../utils/roles";
 import { validateAppointmentRecurrence } from "../utils/validator";
+import { buildQueryOptions } from "../utils/serviceHelpers";
 
 class AppointmentRecurrenceService {
-
-    private buildQueryOptions(query: any = {}) {
-        return {
-            include:
-                query.include
-                    ? String(query.include).split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
-            order: [
-                [
-                    query.sort_by || "created_at",
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
-    }
 
     async create(data: any, actor: any) {
         if (actor && actor.userType !== ROLES.ADMIN) {

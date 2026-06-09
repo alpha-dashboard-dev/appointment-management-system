@@ -3,34 +3,9 @@ import participantRepo from "../repositories/appointmentParticipant.repository";
 import historyRepo from "../repositories/appointmentHistory.repository";
 import { ROLES } from "../utils/roles";
 import { validateAppointmentParticipant } from "../utils/validator";
+import { buildQueryOptions, extractRow } from "../utils/serviceHelpers";
 
 class AppointmentParticipantService {
-
-    private buildQueryOptions(query: any = {}) {
-        return {
-            include:
-                query.include
-                    ? String(query.include).split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
-            order: [
-                [
-                    query.sort_by || "created_at",
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
-    }
 
     async add(
         appointmentCode: string,
@@ -48,14 +23,11 @@ class AppointmentParticipantService {
             );
         }
 
-        const appointmentRow: any =
-            appointment.dataValues || appointment;
-
+        const appointmentRow = extractRow(appointment);
         const { user_code, user_type, user_role } = data;
 
         validateAppointmentParticipant({
-            business_code:
-                appointmentRow.business_code,
+            business_code: appointmentRow.business_code,
             user_code,
             user_type,
         });
@@ -148,35 +120,14 @@ class AppointmentParticipantService {
         );
     }
 
-    async remove(
-        appointmentCode: string,
-        participantId: number
-    ) {
-        const appointment =
-            await appointmentRepo.findByCode(
-                appointmentCode
-            );
+    async remove(appointmentCode: string, participantId: number) {
+        const appointment = await appointmentRepo.findByCode(appointmentCode);
+        if (!appointment) throw new Error("Appointment not found");
 
-        if (!appointment) {
-            throw new Error(
-                "Appointment not found"
-            );
-        }
+        const participant = await participantRepo.findById(participantId);
+        if (!participant) throw new Error("Participant not found");
 
-        const participant =
-            await participantRepo.findById(
-                participantId
-            );
-
-        if (!participant) {
-            throw new Error(
-                "Participant not found"
-            );
-        }
-
-        return await participantRepo.delete(
-            participantId
-        );
+        return await participantRepo.delete(participantId);
     }
 }
 

@@ -1,34 +1,9 @@
 import appointmentRepo from "../repositories/appointment.repository";
 import appointmentDiscountRepo from "../repositories/appointmentDiscount.repository";
 import { validateAppointmentDiscount } from "../utils/validator";
+import { buildQueryOptions, extractRow } from "../utils/serviceHelpers";
 
 class AppointmentDiscountService {
-
-    private buildQueryOptions(query: any = {}) {
-        return {
-            include:
-                query.include
-                    ? String(query.include).split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
-            order: [
-                [
-                    query.sort_by || "created_at",
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
-    }
 
     async add(
         appointmentCode: string,
@@ -45,21 +20,13 @@ class AppointmentDiscountService {
             );
         }
 
-        const appointmentRow: any =
-            appointment.dataValues || appointment;
-
-        const {
-            service_code,
-            discount_uom,
-            discount_value,
-        } = data;
+        const appointmentRow = extractRow(appointment);
+        const { service_code, discount_uom, discount_value } = data;
 
         validateAppointmentDiscount({
-            business_code:
-                appointmentRow.business_code,
+            business_code: appointmentRow.business_code,
             service_code,
-            appointment_code:
-                appointmentCode,
+            appointment_code: appointmentCode,
             discount_uom,
             discount_value,
         });
@@ -96,35 +63,14 @@ class AppointmentDiscountService {
         );
     }
 
-    async remove(
-        appointmentCode: string,
-        discountId: number
-    ) {
-        const appointment =
-            await appointmentRepo.findByCode(
-                appointmentCode
-            );
+    async remove(appointmentCode: string, discountId: number) {
+        const appointment = await appointmentRepo.findByCode(appointmentCode);
+        if (!appointment) throw new Error("Appointment not found");
 
-        if (!appointment) {
-            throw new Error(
-                "Appointment not found"
-            );
-        }
+        const item = await appointmentDiscountRepo.findById(discountId);
+        if (!item) throw new Error("Appointment discount not found");
 
-        const item =
-            await appointmentDiscountRepo.findById(
-                discountId
-            );
-
-        if (!item) {
-            throw new Error(
-                "Appointment discount not found"
-            );
-        }
-
-        return await appointmentDiscountRepo.delete(
-            discountId
-        );
+        return await appointmentDiscountRepo.delete(discountId);
     }
 }
 
