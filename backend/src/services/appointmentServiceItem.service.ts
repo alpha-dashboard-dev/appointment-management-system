@@ -5,10 +5,7 @@ import { buildQueryOptions, extractRow } from "../utils/serviceHelpers";
 
 class AppointmentServiceItemService {
 
-    async add(
-        appointmentCode: string,
-        data: any
-    ) {
+    async add(appointmentCode: string, data: any) {
         const appointment =
             await appointmentRepo.findByCode(
                 appointmentCode

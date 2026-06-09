@@ -163,6 +163,64 @@ class AppointmentParticipantRepository {
         return [...new Set(conflicts.map((c: any) => c.user_code).filter(Boolean))];
     }
 
+    async findEngagedStaffDetails(date: string, startTime: string, endTime: string, appointmentCode: string) {
+
+        const Appointment = db.Appointment;
+        const Participant = db.AppointmentParticipant;
+        const User = db.User;
+
+        const engaged = await Participant.findAll({
+            attributes: ["user_code"],
+            include: [
+                {
+                    model: Appointment,
+                    as: "appointment",
+                    attributes: ["appointment_code", "start_time", "end_time", "appointment_start_date"],
+                    where: {
+                        appointment_start_date: date,
+                        appointment_code: { [Op.ne]: appointmentCode },
+                        [Op.and]: [
+                            {
+                                start_time: { [Op.lt]: endTime }
+                            },
+                            {
+                                end_time: { [Op.gt]: startTime }
+                            }
+                        ]
+                    }
+                },
+                {
+                    model: User,
+                    as: "user",
+                    attributes: ["name"]
+                }
+            ]
+        });
+
+        // group by staff
+        const map = new Map();
+
+        for (const row of engaged) {
+            const userCode = row.user_code;
+
+            if (!map.has(userCode)) {
+                map.set(userCode, {
+                    user_code: userCode,
+                    staff_name: row.user?.name || null,
+                    appointments: []
+                });
+            }
+
+            map.get(userCode).appointments.push({
+                appointment_code: row.appointment.appointment_code,
+                start_time: row.appointment.start_time,
+                end_time: row.appointment.end_time
+            });
+        }
+
+        return [...map.values()];
+    }
+
     async update(id: number, data: any) {
         return dbHelper.update(this.tables, id, data);
     }

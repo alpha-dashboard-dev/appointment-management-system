@@ -21,7 +21,7 @@ class AppointmentHistoryService {
 
         return await historyRepo.findByAppointment(
             appointmentCode,
-            this.buildQueryOptions(query)
+            buildQueryOptions(query)
         );
     }
 }

@@ -116,7 +116,7 @@ class AppointmentParticipantService {
 
         return await participantRepo.findByAppointment(
             appointmentCode,
-            this.buildQueryOptions(query)
+            buildQueryOptions(query)
         );
     }
 

@@ -20,10 +20,12 @@ import availabilityChecker from "./appointmentAvailability.checker";
 import pricingService from "./appointmentPricing.service";
 
 import initModels from "../config/database/sequelize/models/index";
+import appointmentServiceItemService from "./appointmentServiceItem.service";
 
 const db = initModels();
 
 class AppointmentService {
+
     async getPricingPreview(data: any, actor?: any) {
         const businessCode = resolveBusinessCode(actor, data?.business_code);
         const serviceCodes = Array.isArray(data?.service_codes) ? data.service_codes.filter(Boolean) : [];
@@ -33,6 +35,8 @@ class AppointmentService {
 
         return await pricingService.getPricingPreview(businessCode, serviceCodes);
     }
+
+
     async create(data: any, actor: any) {
         // Note: db import needs to be added if not already present
         const transaction = await (db?.sequelize?.transaction?.() || Promise.resolve(undefined));
@@ -120,12 +124,14 @@ class AppointmentService {
 
             // 6. Add services
             if (Array.isArray(service_codes) && service_codes.length > 0) {
-                const serviceRows = service_codes.map((service_code: string) => ({
-                    business_code,
-                    service_code,
-                    appointment_code,
-                }));
-                await appointmentServiceRepo.bulkCreate(serviceRows, { transaction });
+
+                for (const service_code of service_codes) {
+
+                    await appointmentServiceItemService.add(
+                        appointment_code,
+                        { service_code }
+                    );
+                }
             }
 
             // 7. Commit if transaction exists

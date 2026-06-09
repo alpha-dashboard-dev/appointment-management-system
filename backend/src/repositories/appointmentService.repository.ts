@@ -23,6 +23,7 @@ class AppointmentServiceRepository {
     }
 
     async create(data: any) {
+        // console.log(data);
         return dbHelper.create(this.tables, data);
     }
 

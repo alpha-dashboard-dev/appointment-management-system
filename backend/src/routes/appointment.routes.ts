@@ -65,7 +65,7 @@ router.post(
 );
 
 router.patch(
-    "/:appointmentCode/reschedule/respond",
+    "/respond-to-reschedule/:appointmentCode",
     authenticate,
     authorizeRoles(ROLES.CLIENT),
     controller.respondToReschedule
@@ -134,7 +134,7 @@ router.delete(
 // Appointment History Routes
 
 router.get(
-    "/get-appointment-History",
+    "/get-appointment-history/:appointmentCode",
     authenticate,
     authorizeRoles(...MANAGERS),
     AppointmentHistoryController.getByAppointmentCode

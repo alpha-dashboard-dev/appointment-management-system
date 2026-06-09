@@ -57,16 +57,16 @@ class ScheduleRepository {
         });
     }
 
-    async findByUser(userCode: string) {
-        return dbHelper.findAllByField(this.tables, "user_code", userCode);
-    }
-
-    async findByBusiness(businessCode: string) {
-        return dbHelper.findAllByField(this.tables, "business_code", businessCode);
-    }
+    // async findByUser(userCode: string) {
+    //     return dbHelper.findAllByField(this.tables, "user_code", userCode);
+    // }
+    //
+    // async findByBusiness(businessCode: string) {
+    //     return dbHelper.findAllByField(this.tables, "business_code", businessCode);
+    // }
 
     async update(id: number, data: any) {
-        return dbHelper.update(this.tables, id, data);
+        return dbHelper.update(this.tables, {"id": id}, data);
     }
 
     async findAvailableStaff(businessCode: string, locationCode: string, workingDay: string, startTime: string, endTime: string) {

@@ -36,21 +36,21 @@ router.get(
 );
 
 router.get(
-    "/get-schedule:id",
+    "/get-schedule/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF),
     controller.getById
 );
 
 router.put(
-    "/update-schedule:id",
+    "/update-schedule/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update
 );
 
 router.delete(
-    "/delete-schedule:id",
+    "/delete-schedule/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.delete

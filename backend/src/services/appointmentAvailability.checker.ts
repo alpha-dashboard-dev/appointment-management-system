@@ -204,6 +204,38 @@ export class AppointmentAvailabilityChecker {
     }
 
     /**
+     * Get staff engaged with other overlapping appointments
+     */
+    private async getEngagedStaff(
+        businessCode: string,
+        locationCode: string,
+        date: string,
+        startTime: string,
+        endTime: string,
+        appointmentCode: string
+    ): Promise<any[]> {
+
+        // get all staff who are assigned in overlapping appointments
+        const engaged = await participantRepo.findEngagedStaffDetails(
+            date,
+            startTime,
+            endTime,
+            appointmentCode
+        );
+
+        return (engaged || []).map((s: any) => ({
+            user_code: s.user_code,
+            staff_name: s.staff_name || null,
+            location_code: locationCode,
+            appointments: (s.appointments || []).map((a: any) => ({
+                appointment_code: a.appointment_code,
+                start_time: normalizeTimeToHHMMSS(a.start_time),
+                end_time: normalizeTimeToHHMMSS(a.end_time),
+            })),
+        }));
+    }
+
+    /**
      * Build complete availability insights for an appointment
      */
     async buildInsights(appointment: any, appointmentCode: string): Promise<any> {
@@ -226,6 +258,15 @@ export class AppointmentAvailabilityChecker {
         // Find busy staff
         const busyStaffCodes = new Set(
             await participantRepo.findBusyStaffCodes(date, startTime, endTime, appointmentCode)
+        );
+
+        const engagedStaff = await this.getEngagedStaff(
+            row.business_code,
+            row.location_code,
+            date,
+            startTime,
+            endTime,
+            appointmentCode
         );
 
         // Get available staff at same slot/location
@@ -287,6 +328,7 @@ export class AppointmentAvailabilityChecker {
             location_slot_already_booked: (locationConflicts || []).length > 0,
             conflicting_appointments: (locationConflicts || []).map((c: any) => c.appointment_code),
             available_staff: deduplicateStaffSlots(availableStaff),
+            engaged_staff: engagedStaff,
             alternatives: {
                 different_time_same_location: deduplicateStaffSlots(this.simplifyStaffRows(differentTimeSameLocation)),
                 different_location_same_time: groupedOtherLocationsWithMeta,

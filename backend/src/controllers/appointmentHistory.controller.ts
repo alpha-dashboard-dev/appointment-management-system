@@ -3,10 +3,7 @@ import service from "../services/appointmentHistory.service";
 
 class AppointmentHistoryController {
 
-    async getByAppointmentCode(
-        req: Request,
-        res: Response
-    ) {
+    async getByAppointmentCode(req: Request, res: Response) {
         try {
             const data =
                 await service.getByAppointmentCode(
