@@ -19,6 +19,10 @@ import {
 import availabilityChecker from "./appointmentAvailability.checker";
 import pricingService from "./appointmentPricing.service";
 
+import initModels from "../config/database/sequelize/models/index";
+
+const db = initModels();
+
 class AppointmentService {
     async getPricingPreview(data: any, actor?: any) {
         const businessCode = resolveBusinessCode(actor, data?.business_code);
