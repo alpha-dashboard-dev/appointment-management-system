@@ -30,10 +30,12 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Appointment Code</th>
+              <th>Service Name</th>
+              <th>Notes</th>
+              <th>Created By</th>
+              <th>Approved By</th>
               <th>Start Date</th>
               <th>Start Time</th>
-              <th>End Time</th>
-              <th>Location Code</th>
               <th>Status</th>
               <th class="pe-3 text-center" style="min-width:220px">Actions</th>
             </tr>
@@ -41,20 +43,22 @@
           <tbody>
             <tr v-for="appt in filteredAppointments" :key="appt.appointment_code">
               <td class="ps-3"><code>{{ appt.appointment_code }}</code></td>
+              <td>{{appt.service_name || '-'}}</td>
+              <td>{{ appt.notes || '—' }}</td>
+              <td>{{appt.creator_name || "-"}}</td>
+              <td>{{appt.approver_name || "-"}}</td>
               <td>{{ formatDate(appt.appointment_start_date) }}</td>
               <td>{{ formatTime(appt.start_time) }}</td>
-              <td>{{ formatTime(appt.end_time) }}</td>
-              <td>{{ appt.location_code || '—' }}</td>
               <td><span :class="['ams-badge', appt.status]">{{ appt.status }}</span></td>
               <td class="pe-3 text-center">
                 <div class="d-flex justify-content-center">
                   <div class="dropdown">
                     <button
-                      class="btn btn-sm btn-outline-secondary"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      :aria-expanded="openDropdownCode === appt.appointment_code"
-                      @click.stop="toggleActionDropdown(appt.appointment_code)"
+                        class="btn btn-sm btn-outline-secondary"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        :aria-expanded="openDropdownCode === appt.appointment_code"
+                        @click.stop="toggleActionDropdown(appt.appointment_code)"
                     >
                       <i class="bi bi-three-dots-vertical"></i>
                     </button>
@@ -63,7 +67,6 @@
                       <li v-if="appt.status === 'pending'"><button class="dropdown-item" type="button" @click="openApprovalDialog(appt); closeActionDropdown()">Approve</button></li>
                       <li v-if="appt.status === 'approved'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'in_progress'); closeActionDropdown()">Start</button></li>
                       <li v-if="appt.status === 'in_progress'"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'completed'); closeActionDropdown()">Complete</button></li>
-                      <li v-if="['pending','approved','in_progress'].includes(appt.status)"><button class="dropdown-item" type="button" @click="openAssign(appt); closeActionDropdown()">Assign</button></li>
                       <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item" type="button" @click="openReschedule(appt); closeActionDropdown()">Reschedule</button></li>
                       <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item text-danger" type="button" @click="changeStatus(appt, 'rejected'); closeActionDropdown()">Reject</button></li>
                       <li v-if="['pending','approved'].includes(appt.status)"><button class="dropdown-item" type="button" @click="changeStatus(appt, 'canceled'); closeActionDropdown()">Cancel</button></li>
@@ -90,14 +93,24 @@
           </div>
           <div class="modal-body" v-if="selected">
             <dl class="row mb-3">
-              <dt class="col-5 text-muted">Appointment Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>
-              <dt class="col-5 text-muted">Business Code</dt><dd class="col-7">{{ selected.business_code }}</dd>
-              <dt class="col-5 text-muted">Start Date</dt><dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>
-              <dt class="col-5 text-muted">Start Time</dt><dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
-              <dt class="col-5 text-muted">End Time</dt><dd class="col-7">{{ formatTime(selected.end_time) }}</dd>
-              <dt class="col-5 text-muted">Location</dt><dd class="col-7">{{ selected.location_code || '—' }}</dd>
-              <dt class="col-5 text-muted">Status</dt><dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
-              <template v-if="selected.notes"><dt class="col-5 text-muted">Notes</dt><dd class="col-7">{{ selected.notes }}</dd></template>
+              <dt class="col-5 text-muted">Service Name</dt>
+              <dd class="col-7">{{ selected.service_name }}</dd>
+              <dt class="col-5 text-muted">Business Name</dt>
+              <dd class="col-7">{{ selected.business_name }}</dd>
+              <dt class="col-5 text-muted">Start Date</dt>
+              <dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>
+              <dt class="col-5 text-muted">End Date</dt>
+              <dd class="col-7">{{ formatDate(selected.appointment_end_date) }}</dd>
+              <dt class="col-5 text-muted">Start Time</dt>
+              <dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
+              <dt class="col-5 text-muted">End Time</dt>
+              <dd class="col-7">{{ formatTime(selected.end_time) }}</dd>
+              <dt class="col-5 text-muted">Status</dt>
+              <dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
+              <template v-if="selected.notes">
+                <dt class="col-5 text-muted">Notes</dt>
+                <dd class="col-7">{{ selected.notes }}</dd>
+              </template>
             </dl>
             <hr class="my-2" />
             <div class="fw-semibold mb-2" style="font-size:13px">History</div>
@@ -113,8 +126,6 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showDetails = false">Close</button>
-            <button v-if="selected?.status === 'pending'" class="btn btn-success" @click="openApprovalDialog(selected); showDetails = false">Approve</button>
-            <button v-if="selected?.status === 'pending'" class="btn btn-danger" @click="changeStatus(selected, 'rejected'); showDetails = false">Reject</button>
           </div>
         </div>
       </div>
@@ -564,9 +575,19 @@ async function fetchAppointments() {
   loading.value = true
   error.value = ''
   try {
-    const biz = authStore.user?.business_code
-    const res = await api.get('/appointments', { params: biz ? { business_code: biz } : {} })
-    appointments.value = res.data.data || []
+    const res = await api.get('/appointments/get-all-appointments', {
+      params: {
+        include: "business,creator,approver,services,services.service"
+      }
+    })
+
+    appointments.value = (res.data.data || []).map((appt) => ({
+      ...appt,
+      business_name: appt.business?.name || '',
+      service_name: (appt.services || []).map((s) => s.service?.name).filter(Boolean).join(', '),
+      creator_name: appt.creator?.name || '',
+      approver_name: appt.approver?.name || '',
+    }))
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load appointments'
   } finally {
@@ -580,7 +601,7 @@ async function openDetails(appt) {
   showDetails.value = true
   historyLoading.value = true
   try {
-    const res = await api.get(`/appointments/${appt.appointment_code}/history`)
+    const res = await api.get(`/appointments/get-appointment-history/${appt.appointment_code}`)
     appointmentHistory.value = res.data.data || []
   } catch (_) {
   } finally {
@@ -601,7 +622,7 @@ function openReschedule(appt) {
 
 async function changeStatus(appt, status) {
   try {
-    await api.patch(`/appointments/${appt.appointment_code}/status`, { status })
+    await api.patch(`/appointments/update-appointment-status/${appt.appointment_code}`, { status })
     appt.status = status
   } catch (err) {
     error.value = err.response?.data?.message || 'Status update failed'
@@ -612,7 +633,7 @@ async function submitReschedule() {
   saving.value = true
   rescheduleError.value = ''
   try {
-    await api.post(`/appointments/${selected.value.appointment_code}/reschedule`, rescheduleForm)
+    await api.post(`/appointments/reschedule-appointment/${selected.value.appointment_code}`, rescheduleForm)
     showReschedule.value = false
     await fetchAppointments()
   } catch (err) {
@@ -648,7 +669,7 @@ async function loadApprovalAvailability(appt) {
   approvalRescheduleForm.notes = ''
   availabilityLoading.value = true
   try {
-    const res = await api.get(`/appointments/${appt.appointment_code}/availability`)
+    const res = await api.get(`/appointments/check-availability/${appt.appointment_code}`)
     const payload = res.data.data || {}
     availableStaff.value = payload.available_staff || []
     slotAlreadyBooked.value = Boolean(payload.location_slot_already_booked)
@@ -675,7 +696,7 @@ async function submitApproveWithStaff() {
   approvalSaving.value = true
   approvalError.value = ''
   try {
-    await api.post(`/appointments/${selected.value.appointment_code}/approve`, { staff_code: approvalSelectedStaff.value })
+    await api.post(`/appointments/approve-appointment/${selected.value.appointment_code}`, { staff_code: approvalSelectedStaff.value })
     showApproval.value = false
     await fetchAppointments()
   } catch (err) {
@@ -696,7 +717,7 @@ async function submitApprovalReschedule() {
   approvalSaving.value = true
   approvalError.value = ''
   try {
-    await api.post(`/appointments/${selected.value.appointment_code}/reschedule`, approvalRescheduleForm)
+    await api.post(`/appointments/reschedule-appointment/${selected.value.appointment_code}`, approvalRescheduleForm)
     showApproval.value = false
     await fetchAppointments()
   } catch (err) {
@@ -747,7 +768,7 @@ async function assignStaff() {
   assigning.value = true
   assignError.value = ''
   try {
-    await api.post(`/appointments/${assignAppt.value.appointment_code}/participants`, {
+    await api.post(`/appointments/create-appointment-participants/${assignAppt.value.appointment_code}`, {
       user_code: selectedStaff.value,
       user_type: 'service_staff',
       user_role: 'service_staff',

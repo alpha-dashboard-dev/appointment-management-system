@@ -181,7 +181,19 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    const payload = { ...form, status: 'pending' }
+    const payload = {
+      // ...form,
+      business_code: form.business_code,
+      client_code: form.client_code,
+      service_codes: form.service_code ? [form.service_code] : [],
+      location_code: form.location_code,
+      appointment_start_date: form.appointment_start_date,
+      appointment_end_date: form.appointment_end_date,
+      start_time: form.start_time,
+      end_time: form.end_time,
+      notes: form.notes,
+      status: 'pending',
+    }
     if (!payload.location_code) delete payload.location_code
     if (!payload.notes) delete payload.notes
     if (!payload.client_code) delete payload.client_code

@@ -618,7 +618,7 @@ async function openDetails(appt) {
   showDetails.value = true
   historyLoading.value = true
   try {
-    const res = await api.get(`/appointments/${appt.appointment_code}/history`)
+    const res = await api.get(`/appointments/get-appointment-history/${appt.appointment_code}`)
     appointmentHistory.value = res.data.data || []
   } catch (_) {
   } finally {
@@ -634,7 +634,7 @@ async function fetchList() {
     const params = {}
     if (biz) params.business_code = biz
     if (statusFilter.value) params.status = statusFilter.value
-    const res = await api.get('/appointments', { params })
+    const res = await api.get('/appointments/get-all-appointments', { params })
     appointments.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load'
@@ -645,7 +645,7 @@ async function fetchList() {
 
 async function changeStatus(appt, status) {
   try {
-    await api.patch(`/appointments/${appt.appointment_code}/status`, { status })
+    await api.patch(`/appointments/update-appointment-status/${appt.appointment_code}`, { status })
     await fetchList()
   } catch (err) {
     alert(err.response?.data?.message || 'Action failed')
@@ -669,7 +669,7 @@ async function submitReschedule() {
     if (rsForm.start_time) payload.start_time = rsForm.start_time
     if (rsForm.end_time) payload.end_time = rsForm.end_time
     if (rsForm.reason) payload.reason = rsForm.reason
-    await api.post(`/appointments/${rescheduleAppt.value.appointment_code}/reschedule`, payload)
+    await api.post(`/appointments/reschedule-appointment/${rescheduleAppt.value.appointment_code}`, payload)
     showReschedule.value = false
     await fetchList()
   } catch (err) {
@@ -710,7 +710,7 @@ async function assignStaff() {
   assigning.value = true
   assignError.value = ''
   try {
-    await api.post(`/appointments/${assignAppt.value.appointment_code}/participants`, {
+    await api.post(`/appointments/create-appointment-participants/${assignAppt.value.appointment_code}`, {
       user_code: selectedStaff.value,
       user_type: 'service_staff',
       user_role: 'service_staff',

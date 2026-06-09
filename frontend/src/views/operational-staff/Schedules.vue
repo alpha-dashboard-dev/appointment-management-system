@@ -15,7 +15,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="s in schedules" :key="s.id">
+          <tr v-for="s in activeSchedules" :key="s.id">
             <td><code>{{ s.user_code }}</code></td>
             <td>{{ s.working_days }}</td>
             <td>{{ formatTime(s.start_time) }}</td>
@@ -30,13 +30,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import {ref, onMounted, computed} from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
 
 const authStore = useAuthStore()
 const schedules = ref([])
+const activeSchedules = computed(() => {
+  return schedules.value.filter(s => s.status === 'active')
+})
 const loading = ref(true)
 const error = ref('')
 

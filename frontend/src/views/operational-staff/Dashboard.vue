@@ -99,7 +99,7 @@ async function fetchAppointments() {
   loading.value = true
   try {
     const biz = authStore.user?.business_code
-    const res = await api.get('/appointments', { params: biz ? { business_code: biz } : {} })
+    const res = await api.get('/appointments/get-all-appointments', { params: biz ? { business_code: biz } : {} })
     appointments.value = res.data.data || []
     stats.total = appointments.value.length
     stats.pending = appointments.value.filter(a => a.status === 'pending').length
@@ -111,7 +111,7 @@ async function fetchAppointments() {
 
 async function changeStatus(appt, status) {
   try {
-    await api.patch(`/appointments/${appt.appointment_code}/status`, { status })
+    await api.patch(`/appointments/update-appointment-status/${appt.appointment_code}`, { status })
     await fetchAppointments()
   } catch (_) {}
 }

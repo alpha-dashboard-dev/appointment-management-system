@@ -77,7 +77,7 @@ async function fetchLocations() {
     const biz = authStore.user?.business_code
     if (!biz) return
 
-    const res = await api.get('/locations/get-location', {
+    const res = await api.get('/locations/get-all-locations', {
       params: { business_code: biz },
     })
 

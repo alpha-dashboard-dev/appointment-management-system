@@ -128,12 +128,12 @@ async function changeStatus(appt, status) {
 onMounted(async () => {
   const biz = authStore.user?.business_code
   const [appts, clients, svcs, staff, invs, locs] = await Promise.allSettled([
-    api.get('/appointments', { params: biz ? { business_code: biz } : {} }),
+    api.get('/appointments/get-all-appointments', { params: biz ? { business_code: biz } : {} }),
     api.get('/clients/get-client', { params: biz ? { business_code: biz } : {} }),
-    api.get('/services/get-service', { params: biz ? { business_code: biz } : {} }),
-    api.get('/users/get-users', { params: biz ? { business_code: biz } : {} }),
+    api.get('/services/get-all-services', { params: biz ? { business_code: biz } : {} }),
+    api.get('/users/get-all-users', { params: biz ? { business_code: biz } : {} }),
     api.get('/invoices/get-invoice', { params: biz ? { business_code: biz } : {} }),
-    api.get('/locations/get-location', { params: biz ? { business_code: biz } : {} }),
+    api.get('/locations/get-all-locations', { params: biz ? { business_code: biz } : {} }),
   ])
 
   if (appts.status === 'fulfilled') {

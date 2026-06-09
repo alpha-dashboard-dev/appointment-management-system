@@ -242,7 +242,7 @@ async function fetchList() {
   error.value = ''
   try {
     const biz = authStore.user?.business_code
-    const res = await api.get('/appointments', { params: { ...(biz ? { business_code: biz } : {}), status: 'pending' } })
+    const res = await api.get('/appointments/get-all-appointments', { params: { ...(biz ? { business_code: biz } : {}), status: 'pending' } })
     appointments.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load'

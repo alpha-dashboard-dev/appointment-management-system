@@ -257,10 +257,10 @@
               <div v-if="alternativeLocationSameTime.length" class="mb-3">
                 <div class="fw-semibold mb-2">Other locations at the same time slot</div>
                 <div class="border rounded p-2 mb-2" v-for="loc in alternativeLocationSameTime" :key="`loc-${loc.location_code}`">
-                  <div class="small fw-semibold mb-2">Location: {{ loc.location_code }}</div>
-                  <div class="small text-muted mb-2" v-if="loc.location?.city || loc.location?.address">
-                    {{ loc.location?.city || '—' }} &bull; {{ loc.location?.address || '—' }}
-                  </div>
+                  <div class="small mb-2">Location: {{ loc.location?.address || '—' }} &bull; {{ loc.location?.city || '—' }}</div>
+<!--                  <div class="small text-muted mb-2" v-if="loc.location?.city || loc.location?.address">-->
+<!--                    {{ loc.location?.city || '—' }} &bull; {{ loc.location?.address || '—' }}-->
+<!--                  </div>-->
                   <button type="button" class="btn btn-sm btn-outline-primary mb-2" @click="prefillApprovalReschedule({ locationCode: loc.location_code, startTime: selected?.start_time, endTime: selected?.end_time })">
                     Reschedule To This Location
                   </button>
@@ -268,9 +268,9 @@
                     <div v-for="s in loc.staff" :key="`loc-staff-${loc.location_code}-${s.user_code}-${s.start_time}-${s.end_time}`" class="list-group-item">
                       <div class="fw-semibold d-flex align-items-center gap-2">
                         <span>{{ s.staff_name || s.user_code }}</span>
-                        <span v-if="isRecommendedAlternative(loc.location_code, s.start_time, s.end_time, s.user_code)" class="badge text-bg-success">Recommended</span>
+<!--                        <span v-if="isRecommendedAlternative(loc.location_code, s.start_time, s.end_time, s.user_code)" class="badge text-bg-success">Recommended</span>-->
                       </div>
-                      <div class="small text-muted">{{ s.user_code }} &bull; {{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</div>
+                      <div class="small text-muted">{{ formatTime(s.start_time) }}–{{ formatTime(s.end_time) }}</div>
                     </div>
                   </div>
                 </div>
@@ -471,7 +471,7 @@ async function openDetails(appt) {
   showDetails.value = true
   historyLoading.value = true
   try {
-    const res = await api.get(`/appointments/${appt.appointment_code}/history`)
+    const res = await api.get(`/appointments/get-appointment-history/${appt.appointment_code}`)
     appointmentHistory.value = res.data.data || []
   } catch (_) {
   } finally {
@@ -492,7 +492,7 @@ function openReschedule(appt) {
 
 async function changeStatus(appt, status) {
   try {
-    await api.patch(`/appointments/${appt.appointment_code}/status`, { status })
+    await api.patch(`/appointments/update-appointment-status/${appt.appointment_code}`, { status })
     appt.status = status
   } catch (err) {
     error.value = err.response?.data?.message || 'Status update failed'
@@ -687,7 +687,7 @@ async function submitApproveWithStaff() {
   approvalSaving.value = true
   approvalError.value = ''
   try {
-    await api.post(`/appointments/${selected.value.appointment_code}/approve`, { staff_code: selectedStaff.value })
+    await api.post(`/appointments/approve-appointment/${selected.value.appointment_code}`, { staff_code: selectedStaff.value })
     showApproval.value = false
     await fetchAppointments()
   } catch (err) {
@@ -708,7 +708,7 @@ async function submitApprovalReschedule() {
   approvalSaving.value = true
   approvalError.value = ''
   try {
-    await api.post(`/appointments/${selected.value.appointment_code}/reschedule`, approvalRescheduleForm)
+    await api.post(`/appointments/reschedule-appointment/${selected.value.appointment_code}`, approvalRescheduleForm)
     showApproval.value = false
     await fetchAppointments()
   } catch (err) {
