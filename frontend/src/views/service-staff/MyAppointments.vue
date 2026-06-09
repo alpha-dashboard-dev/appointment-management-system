@@ -54,7 +54,7 @@ async function fetch() {
   try {
     const params = {}
     if (statusFilter.value) params.status = statusFilter.value
-    const res = await api.get('/appointments', { params })
+    const res = await api.get('/appointments/get-all-appointments', { params })
     appointments.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load'
