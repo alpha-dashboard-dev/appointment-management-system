@@ -73,7 +73,7 @@ class SessionRepository {
             process.env.JWT_REFRESH_TOKEN_EXPIRES ?? "7d"
         );
 
-        return dbHelper.update(this.tables, id, {
+        return dbHelper.update(this.tables, {"id": id}, {
             refresh_token: newToken,
             expires_at: expiresAt,
         });

@@ -199,6 +199,20 @@ class DbHelper {
                 .where(whereClause);
         }
     }
+
+    async deleteByField(table: any, field: string, value: any) {
+        if (this.orm === "sequelize") {
+            return await table.sequelize.destroy({
+                where: { [field]: value },
+            });
+        }
+
+        if (this.orm === "drizzle") {
+            return await drizzleDb
+                .delete(table.drizzle)
+                .where(eq((table.drizzle as any)[field], value));
+        }
+    }
 }
 
 export default new DbHelper();
