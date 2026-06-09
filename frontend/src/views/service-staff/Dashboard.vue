@@ -78,7 +78,7 @@ async function fetchAppointments() {
   loading.value = true
   try {
     const biz = authStore.user?.business_code
-    const res = await api.get('/appointments', { params: biz ? { business_code: biz } : {} })
+    const res = await api.get('/appointments/get-all-appointments', { params: biz ? { business_code: biz } : {} })
     appointments.value = res.data.data || []
     const now = new Date()
     stats.today = appointments.value.filter(a => a.appointment_start_date?.startsWith(todayStr)).length
