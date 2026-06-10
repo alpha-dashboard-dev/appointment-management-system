@@ -175,7 +175,11 @@ export function validateAppointmentForm(data) {
   if (!data.business_code) {
     errors.business_code = 'Business is required'
   }
-  if (!data.service_code) {
+  const serviceCodes = Array.isArray(data.service_codes)
+    ? data.service_codes.filter(Boolean)
+    : (data.service_code ? [data.service_code] : [])
+  if (serviceCodes.length === 0) {
+    errors.service_codes = 'At least one service is required'
     errors.service_code = 'Service is required'
   }
   if (!data.appointment_start_date || !isValidDate(data.appointment_start_date)) {
