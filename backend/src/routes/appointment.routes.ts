@@ -111,7 +111,7 @@ router.delete(
 // Appointment Charges Routes
 
 router.post(
-    "/create-appointment-charge",
+    "/create-appointment-charge/:appointmentCode",
     authenticate,
     authorizeRoles(...MANAGERS),
     AppointmentChargeController.create

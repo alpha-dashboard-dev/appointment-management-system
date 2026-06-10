@@ -5,10 +5,7 @@ import { buildQueryOptions, extractRow } from "../utils/serviceHelpers";
 
 class AppointmentChargeService {
 
-    async add(
-        appointmentCode: string,
-        data: any
-    ) {
+    async add(appointmentCode: string, data: any) {
         const appointment =
             await appointmentRepo.findByCode(
                 appointmentCode
@@ -59,7 +56,7 @@ class AppointmentChargeService {
 
         return await appointmentChargeRepo.findByAppointment(
             appointmentCode,
-            this.buildQueryOptions(query)
+            buildQueryOptions(query)
         );
     }
 

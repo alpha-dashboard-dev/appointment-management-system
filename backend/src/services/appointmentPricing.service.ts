@@ -124,7 +124,7 @@ export class AppointmentPricingService {
         total: number,
         updatedBy: string | null
     ): Promise<void> {
-        const existingInvoices = await invoiceRepo.findByAppointment(appointmentCode);
+        const existingInvoices = await invoiceRepo.findByCode(appointmentCode);
         const existing = existingInvoices?.[0];
 
         const invoiceData = {

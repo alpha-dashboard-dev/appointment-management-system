@@ -51,16 +51,28 @@ class InvoiceRepository {
         });
     }
 
-    async findByAppointment(appointmentCode: string) {
-        return dbHelper.findAllByField(this.tables, "appointment_code", appointmentCode);
+    async findByCode(appointmentCode: string, options: any = {}) {
+        return dbHelper.findOne(this.tables, {
+            where: {
+                appointment_code:
+                appointmentCode,
+            },
+            include: this.buildIncludes(
+                options.include || []
+            ),
+        });
     }
+
+    // async findByAppointment(appointmentCode: string) {
+    //     return dbHelper.findAllByField(this.tables, "appointment_code", appointmentCode);
+    // }
 
     async findByBusiness(businessCode: string) {
         return dbHelper.findAllByField(this.tables, "business_code", businessCode);
     }
 
     async update(id: number, data: any) {
-        return dbHelper.update(this.tables, id, data);
+        return dbHelper.update(this.tables, {"id": id}, data);
     }
 }
 
