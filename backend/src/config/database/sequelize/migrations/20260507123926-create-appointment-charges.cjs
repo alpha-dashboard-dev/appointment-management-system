@@ -54,7 +54,7 @@ module.exports = {
     await queryInterface.dropTable('appointment_charges');
 
     await queryInterface.sequelize.query(
-        'DROP TYPE IF EXISTS "enum_appointment_charges_charge_value";'
+        'DROP TYPE IF EXISTS "enum_appointment_charges_charge_uom";'
     );
   },
 };

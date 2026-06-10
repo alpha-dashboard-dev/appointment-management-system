@@ -327,28 +327,17 @@ export class AppointmentAvailabilityChecker {
             end_time: normalizeTimeToHHMMSS(endTime),
             location_code: row.location_code,
             working_day: workingDay,
-
-            location_slot_already_booked:
-                (locationConflicts || []).length > 0,
-
-            conflicting_appointments:
-                (locationConflicts || []).map(
-                    (c: any) => c.appointment_code
-                ),
-
+            location_slot_already_booked: (locationConflicts || []).length > 0,
+            conflicting_appointments: (locationConflicts || []).map((c: any) => c.appointment_code),
             // ALWAYS SHOW
-            available_staff:
-                deduplicateStaffSlots(availableStaff),
-
-            engaged_staff:
-            engagedStaff,
+            available_staff: deduplicateStaffSlots(availableStaff),
+            engaged_staff: engagedStaff,
 
             // ONLY WHEN NO STAFF AVAILABLE
             ...(hasAvailableStaff
                 ? {}
                 : {
                     alternatives: {
-
                         different_time_same_location:
                             deduplicateStaffSlots(
                                 this.simplifyStaffRows(
@@ -356,11 +345,8 @@ export class AppointmentAvailabilityChecker {
                                 )
                             ),
 
-                        different_location_same_time:
-                        groupedOtherLocationsWithMeta,
-
-                        selected_service_other_locations:
-                        selectedServiceLocations,
+                        different_location_same_time: groupedOtherLocationsWithMeta,
+                        selected_service_other_locations: selectedServiceLocations,
                     },
                 }),
         };

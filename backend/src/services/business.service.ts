@@ -23,22 +23,17 @@ class BusinessService {
 
         try {
 
-            const businessCode =
-                generateCode();
+            const businessCode = generateCode();
 
-            const ownerCode =
-                generateCode();
+            const ownerCode = generateCode();
 
-            const defaultPassword =
-                await hashPassword(businessCode);
+            const defaultPassword = await hashPassword(businessCode);
 
             const business = await repo.create(
                 {
-                    business_code:
-                    businessCode,
+                    business_code: businessCode,
 
-                    organization_code:
-                    data.organization_code,
+                    organization_code: data.organization_code,
 
                     name: data.name.trim(),
 
@@ -74,6 +69,7 @@ class BusinessService {
                     password: defaultPassword,
 
                     is_active: "active",
+                    employee_type: null
                 },
                 { transaction }
             );
@@ -247,24 +243,12 @@ class BusinessService {
         );
     }
 
-    async changeStatus(
-        businessCode: string,
-        status: string
-    ) {
+    async changeStatus(businessCode: string, status: string) {
 
-        if (
-            !["active", "inactive"]
-                .includes(status)
-        ) {
-
-            throw new Error(
-                "Invalid status"
-            );
+        if (!["active", "inactive"].includes(status)) {
+            throw new Error("Invalid status");
         }
-
-        await this.findBusinessOrFail(
-            businessCode
-        );
+        await this.findBusinessOrFail(businessCode);
 
         return await repo.update(
             businessCode,
@@ -272,10 +256,7 @@ class BusinessService {
         );
     }
 
-    async delete(
-        businessCode: string,
-        actor?: any
-    ) {
+    async delete(businessCode: string, actor?: any) {
 
         await this.findBusinessOrFail(
             businessCode

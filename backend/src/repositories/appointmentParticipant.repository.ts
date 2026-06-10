@@ -195,7 +195,7 @@ class AppointmentParticipantRepository {
             raw: true
         });
 
-        console.log("BUSY STAFF ROWS:", conflicts);
+        // console.log("BUSY STAFF ROWS:", conflicts);
 
         return [
             ...new Set(
@@ -287,7 +287,7 @@ class AppointmentParticipantRepository {
             }
         });
 
-        console.log("ENGAGED STAFF ROWS:", engaged.length);
+        // console.log("ENGAGED STAFF ROWS:", engaged.length);
 
         const map = new Map();
 

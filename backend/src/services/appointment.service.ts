@@ -359,134 +359,567 @@ class AppointmentService {
     }
 
     async reschedule(appointmentCode: string, data: any, actor: any) {
-        const original = await repo.findByCode(appointmentCode);
-        if (!original) throw new Error("Appointment not found");
 
-        const originalRow = extractRow(original);
-        validateActorBusiness(actor, originalRow.business_code);
+        const transaction = await db.sequelize.transaction();
 
-        const {
-            appointment_start_date,
-            appointment_end_date,
-            start_time,
-            end_time,
-            location_code,
-            notes,
-        } = data;
+        try {
 
-        // Build payload, using original values as defaults
-        const resolvedPayload = {
-            appointment_start_date: normalizeDateOnly(appointment_start_date || originalRow.appointment_start_date),
-            appointment_end_date: normalizeDateOnly(appointment_end_date || originalRow.appointment_end_date),
-            start_time: normalizeTimeToHHMM(start_time || originalRow.start_time, "startTime"),
-            end_time: normalizeTimeToHHMM(end_time || originalRow.end_time, "endTime"),
-        };
+            // FIND ORIGINAL APPOINTMENT
+            const original = await repo.findByCode(appointmentCode);
 
-        validateReschedule(resolvedPayload);
+            if (!original) {
+                throw new Error("Appointment not found");
+            }
 
-        const new_appointment_code = generateCode();
+            const originalRow = extractRow(original);
 
-        // Create new rescheduled appointment
-        const newAppointment = await repo.create({
-            business_code: originalRow.business_code,
-            appointment_code: new_appointment_code,
-            appointment_start_date: resolvedPayload.appointment_start_date,
-            appointment_end_date: resolvedPayload.appointment_end_date,
-            start_time: resolvedPayload.start_time,
-            end_time: resolvedPayload.end_time,
-            location_code: location_code || originalRow.location_code || null,
-            status: "pending",
-            created_by: actor?.userCode,
-            rescheduled_from: appointmentCode,
-            notes: notes || null,
-        });
+            validateActorBusiness(actor, originalRow.business_code);
 
-        // Mark original as rescheduled
-        await repo.update(appointmentCode, { status: "rescheduled" });
+            // new inputs for new appointment
+            const {
+                appointment_start_date,
+                appointment_end_date,
+                start_time,
+                end_time,
+                location_code,
+                notes,
+            } = data;
 
-        // Record history
-        await historyRepo.create({
-            business_code: originalRow.business_code,
-            appointment_code: new_appointment_code,
-            action: "rescheduled",
-            changed_by: actor?.userCode,
-            old_value: { appointment_code: appointmentCode },
-            new_value: { appointment_code: new_appointment_code },
-        });
+            // RESOLVE PAYLOAD
+            const resolvedPayload = {
 
-        return newAppointment;
+                appointment_start_date:
+                    normalizeDateOnly(
+                        appointment_start_date ||
+                        originalRow.appointment_start_date
+                    ),
+
+                appointment_end_date:
+                    normalizeDateOnly(
+                        appointment_end_date ||
+                        originalRow.appointment_end_date
+                    ),
+
+                start_time:
+                    normalizeTimeToHHMM(
+                        start_time ||
+                        originalRow.start_time,
+                        "startTime"
+                    ),
+
+                end_time:
+                    normalizeTimeToHHMM(
+                        end_time ||
+                        originalRow.end_time,
+                        "endTime"
+                    ),
+            };
+
+            validateReschedule(resolvedPayload);
+
+            // GENERATE NEW APPOINTMENT CODE
+            const new_appointment_code = generateCode();
+
+            // CREATE NEW APPOINTMENT
+
+            const newAppointment =
+                await repo.create(
+                    {
+                        business_code:
+                        originalRow.business_code,
+
+                        appointment_code:
+                        new_appointment_code,
+
+                        appointment_start_date:
+                        resolvedPayload.appointment_start_date,
+
+                        appointment_end_date:
+                        resolvedPayload.appointment_end_date,
+
+                        start_time:
+                        resolvedPayload.start_time,
+
+                        end_time:
+                        resolvedPayload.end_time,
+
+                        location_code:
+                            location_code ||
+                            originalRow.location_code ||
+                            null,
+
+                        status: "pending",
+
+                        created_by:
+                            actor?.userCode || null,
+
+                        rescheduled_from:
+                        appointmentCode,
+
+                        notes:
+                            notes ||
+                            originalRow.notes ||
+                            null,
+                    },
+                    { transaction }
+                );
+            // COPY PARTICIPANTS
+
+            const oldParticipants =
+                await participantRepo.findByAppointment(
+                    appointmentCode
+                );
+
+            for (const item of oldParticipants || []) {
+
+                const row = extractRow(item);
+
+                await participantRepo.create(
+                    {
+                        business_code:
+                        originalRow.business_code,
+
+                        appointment_code:
+                        new_appointment_code,
+
+                        user_code:
+                        row.user_code,
+
+                        user_type:
+                        row.user_type,
+
+                        user_role:
+                            row.user_role || null,
+
+                        status: "active",
+                    },
+                    { transaction }
+                );
+            }
+            // COPY SERVICES
+
+            const oldServices = await appointmentServiceRepo.findByAppointment(appointmentCode);
+            for (const item of oldServices || []) {
+
+                const row = extractRow(item);
+
+                await appointmentServiceRepo.create(
+                    {
+                        business_code:
+                        originalRow.business_code,
+
+                        appointment_code:
+                        new_appointment_code,
+
+                        service_code:
+                        row.service_code,
+                    },
+                    { transaction }
+                );
+            }
+
+            await repo.update(
+                appointmentCode,
+                {
+                    status: "rescheduled",
+                },
+                { transaction }
+            );
+
+            await historyRepo.create(
+                {
+                    business_code:
+                    originalRow.business_code,
+
+                    appointment_code:
+                    new_appointment_code,
+
+                    action: "rescheduled",
+
+                    changed_by:
+                        actor?.userCode || null,
+
+                    old_value: {
+                        appointment_code:
+                        appointmentCode,
+
+                        old_start_date:
+                        originalRow.appointment_start_date,
+
+                        old_start_time:
+                        originalRow.start_time,
+
+                        old_end_time:
+                        originalRow.end_time,
+                    },
+
+                    new_value: {
+                        appointment_code:
+                        new_appointment_code,
+
+                        new_start_date:
+                        resolvedPayload.appointment_start_date,
+
+                        new_start_time:
+                        resolvedPayload.start_time,
+
+                        new_end_time:
+                        resolvedPayload.end_time,
+                    },
+                },
+                { transaction }
+            );
+
+            await transaction.commit();
+
+            return newAppointment;
+
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
     }
 
-    async respondToReschedule(originalAppointmentCode: string, action: string, actor: any) {
-        if (!["accepted", "rejected"].includes(action)) {
-            throw new Error("Action must be 'accepted' or 'rejected'");
-        }
+    async respondToReschedule(originalAppointmentCode: string, action: "accepted" | "rejected", actor: any) {
 
-        const original = await repo.findByCode(originalAppointmentCode);
-        if (!original) throw new Error("Original appointment not found");
+        const transaction =
+            await db.sequelize.transaction();
 
-        if (actor?.userType !== ROLES.CLIENT) {
-            throw new Error("Only clients can respond to reschedule offers");
-        }
+        try {
 
-        const originalRow = extractRow(original);
-        validateActorIsCreator(actor, originalRow.created_by);
+            // =====================================================
+            // VALIDATE ACTION
+            // =====================================================
 
-        if (originalRow.status !== "rescheduled") {
-            throw new Error("No reschedule offer on this appointment");
-        }
+            if (!["accepted", "rejected"].includes(action)) {
+                throw new Error("Invalid action");
+            }
 
-        // Find the rescheduled appointment
-        const candidates = await repo.findAll({ rescheduled_from: originalAppointmentCode } as any);
-        if (!candidates.length) throw new Error("Reschedule offer not found");
+            // =====================================================
+            // LOAD ORIGINAL
+            // =====================================================
 
-        const rescheduledAppointment = extractRow(candidates[0]);
-        const rescheduledCode = rescheduledAppointment.appointment_code;
+            const original =
+                await repo.findByCode(originalAppointmentCode);
 
-        if (action === "accepted") {
-            // Apply charges and finalize the rescheduled appointment
-            await pricingService.applyActiveCharges(originalRow.business_code, rescheduledCode);
-            await repo.update(rescheduledCode, { status: "approved" });
+            if (!original) {
+                throw new Error("Original appointment not found");
+            }
 
-            const pricing = await pricingService.computeAppointmentPricing(
-                originalRow.business_code,
-                rescheduledCode
+            const originalRow = extractRow(original);
+
+            if (actor?.userType !== ROLES.CLIENT) {
+                throw new Error("Only clients can respond");
+            }
+
+            validateActorIsCreator(
+                actor,
+                originalRow.created_by
             );
-            await pricingService.upsertDraftInvoice(
-                originalRow.business_code,
+
+            if (originalRow.status !== "rescheduled") {
+                throw new Error("No active reschedule request");
+            }
+
+            // =====================================================
+            // FIND RESCHEDULED APPOINTMENT
+            // =====================================================
+
+            const candidates =
+                await repo.findAll({
+                    rescheduled_from:
+                    originalAppointmentCode,
+                } as any);
+
+            if (!candidates?.length) {
+                throw new Error("Rescheduled appointment not found");
+            }
+
+            const rescheduled =
+                extractRow(candidates[0]);
+
+            const rescheduledCode =
+                rescheduled.appointment_code;
+
+            // =====================================================
+            // ACCEPT FLOW
+            // =====================================================
+
+            if (action === "accepted") {
+
+                // prevent double approval
+                if (rescheduled.status === "approved") {
+                    return {
+                        message: "Already approved",
+                        rescheduledCode,
+                    };
+                }
+
+                await repo.update(
+                    rescheduledCode,
+                    { status: "approved" },
+                    { transaction }
+                );
+
+                // Apply pricing
+                await pricingService.applyActiveCharges(
+                    originalRow.business_code,
+                    rescheduledCode
+                );
+
+                const pricing =
+                    await pricingService.computeAppointmentPricing(
+                        originalRow.business_code,
+                        rescheduledCode
+                    );
+
+                await pricingService.upsertDraftInvoice(
+                    originalRow.business_code,
+                    rescheduledCode,
+                    pricing.subtotal,
+                    pricing.total,
+                    actor.userCode
+                );
+
+                // Mark original as finalized (optional but recommended)
+                await repo.update(
+                    originalAppointmentCode,
+                    { status: "superseded" },
+                    { transaction }
+                );
+
+                await historyRepo.create(
+                    {
+                        business_code:
+                        originalRow.business_code,
+
+                        appointment_code:
+                        rescheduledCode,
+
+                        action: "approved",
+
+                        changed_by:
+                        actor.userCode,
+
+                        old_value: {
+                            status: "pending",
+                        },
+
+                        new_value: {
+                            status: "approved",
+                        },
+                    },
+                    { transaction }
+                );
+
+                await transaction.commit();
+
+                return {
+                    originalAppointmentCode,
+                    rescheduledCode,
+                    action: "accepted",
+                };
+            }
+
+            // =====================================================
+            // REJECT FLOW
+            // =====================================================
+
+            // prevent double rejection
+            if (rescheduled.status === "canceled") {
+                return {
+                    message: "Already rejected",
+                    rescheduledCode,
+                };
+            }
+
+            await repo.update(
                 rescheduledCode,
-                pricing.subtotal,
-                pricing.total,
-                actor.userCode
+                {
+                    status: "canceled",
+                    cancelled_by: actor.userCode,
+                },
+                { transaction }
             );
 
-            await historyRepo.create({
-                business_code: originalRow.business_code,
-                appointment_code: rescheduledCode,
-                action: "approved",
-                changed_by: actor.userCode,
-                old_value: { status: "pending" },
-                new_value: { status: "approved" },
-            });
+            // restore original
+            await repo.update(
+                originalAppointmentCode,
+                {
+                    status: "pending",
+                },
+                { transaction }
+            );
 
-            return { originalAppointmentCode, rescheduledCode, action: "accepted" };
-        } else {
-            // Reject: cancel the rescheduled appointment, restore original to pending
-            await repo.update(rescheduledCode, { status: "canceled", cancelled_by: actor.userCode });
-            await repo.update(originalAppointmentCode, { status: "pending" });
+            await historyRepo.create(
+                {
+                    business_code:
+                    originalRow.business_code,
 
-            await historyRepo.create({
-                business_code: originalRow.business_code,
-                appointment_code: rescheduledCode,
-                action: "canceled",
-                changed_by: actor.userCode,
-                old_value: { status: "pending" },
-                new_value: { status: "canceled" },
-            });
+                    appointment_code:
+                    rescheduledCode,
 
-            return { originalAppointmentCode, rescheduledCode, action: "rejected" };
+                    action: "canceled",
+
+                    changed_by:
+                    actor.userCode,
+
+                    old_value: {
+                        status: "pending",
+                    },
+
+                    new_value: {
+                        status: "canceled",
+                    },
+                },
+                { transaction }
+            );
+
+            await transaction.commit();
+
+            return {
+                originalAppointmentCode,
+                rescheduledCode,
+                action: "rejected",
+            };
+
+        } catch (err) {
+
+            await transaction.rollback();
+
+            throw err;
         }
     }
+
+    // async reschedule(appointmentCode: string, data: any, actor: any) {
+    //     const original = await repo.findByCode(appointmentCode);
+    //     if (!original) throw new Error("Appointment not found");
+    //
+    //     const originalRow = extractRow(original);
+    //     validateActorBusiness(actor, originalRow.business_code);
+    //
+    //     const {
+    //         appointment_start_date,
+    //         appointment_end_date,
+    //         start_time,
+    //         end_time,
+    //         location_code,
+    //         notes,
+    //     } = data;
+    //
+    //     // Build payload, using original values as defaults
+    //     const resolvedPayload = {
+    //         appointment_start_date: normalizeDateOnly(appointment_start_date || originalRow.appointment_start_date),
+    //         appointment_end_date: normalizeDateOnly(appointment_end_date || originalRow.appointment_end_date),
+    //         start_time: normalizeTimeToHHMM(start_time || originalRow.start_time, "startTime"),
+    //         end_time: normalizeTimeToHHMM(end_time || originalRow.end_time, "endTime"),
+    //     };
+    //
+    //     validateReschedule(resolvedPayload);
+    //
+    //     const new_appointment_code = generateCode();
+    //
+    //     // Create new rescheduled appointment
+    //     const newAppointment = await repo.create({
+    //         business_code: originalRow.business_code,
+    //         appointment_code: new_appointment_code,
+    //         appointment_start_date: resolvedPayload.appointment_start_date,
+    //         appointment_end_date: resolvedPayload.appointment_end_date,
+    //         start_time: resolvedPayload.start_time,
+    //         end_time: resolvedPayload.end_time,
+    //         location_code: location_code || originalRow.location_code || null,
+    //         status: "pending",
+    //         created_by: actor?.userCode,
+    //         rescheduled_from: appointmentCode,
+    //         notes: notes || null,
+    //     });
+    //
+    //     // Mark original as rescheduled
+    //     await repo.update(appointmentCode, { status: "rescheduled" });
+    //
+    //     // Record history
+    //     await historyRepo.create({
+    //         business_code: originalRow.business_code,
+    //         appointment_code: new_appointment_code,
+    //         action: "rescheduled",
+    //         changed_by: actor?.userCode,
+    //         old_value: { appointment_code: appointmentCode },
+    //         new_value: { appointment_code: new_appointment_code },
+    //     });
+    //
+    //     return newAppointment;
+    // }
+
+    // async respondToReschedule(originalAppointmentCode: string, action: string, actor: any) {
+    //     if (!["accepted", "rejected"].includes(action)) {
+    //         throw new Error("Action must be 'accepted' or 'rejected'");
+    //     }
+    //
+    //     const original = await repo.findByCode(originalAppointmentCode);
+    //     if (!original) throw new Error("Original appointment not found");
+    //
+    //     if (actor?.userType !== ROLES.CLIENT) {
+    //         throw new Error("Only clients can respond to reschedule offers");
+    //     }
+    //
+    //     const originalRow = extractRow(original);
+    //     validateActorIsCreator(actor, originalRow.created_by);
+    //
+    //     if (originalRow.status !== "rescheduled") {
+    //         throw new Error("No reschedule offer on this appointment");
+    //     }
+    //
+    //     // Find the rescheduled appointment
+    //     const candidates = await repo.findAll({ rescheduled_from: originalAppointmentCode } as any);
+    //     if (!candidates.length) throw new Error("Reschedule offer not found");
+    //
+    //     const rescheduledAppointment = extractRow(candidates[0]);
+    //     const rescheduledCode = rescheduledAppointment.appointment_code;
+    //
+    //     if (action === "accepted") {
+    //         // Apply charges and finalize the rescheduled appointment
+    //         await pricingService.applyActiveCharges(originalRow.business_code, rescheduledCode);
+    //         await repo.update(rescheduledCode, { status: "approved" });
+    //
+    //         const pricing = await pricingService.computeAppointmentPricing(
+    //             originalRow.business_code,
+    //             rescheduledCode
+    //         );
+    //         await pricingService.upsertDraftInvoice(
+    //             originalRow.business_code,
+    //             rescheduledCode,
+    //             pricing.subtotal,
+    //             pricing.total,
+    //             actor.userCode
+    //         );
+    //
+    //         await historyRepo.create({
+    //             business_code: originalRow.business_code,
+    //             appointment_code: rescheduledCode,
+    //             action: "approved",
+    //             changed_by: actor.userCode,
+    //             old_value: { status: "pending" },
+    //             new_value: { status: "approved" },
+    //         });
+    //
+    //         return { originalAppointmentCode, rescheduledCode, action: "accepted" };
+    //     } else {
+    //         // Reject: cancel the rescheduled appointment, restore original to pending
+    //         await repo.update(rescheduledCode, { status: "canceled", cancelled_by: actor.userCode });
+    //         await repo.update(originalAppointmentCode, { status: "pending" });
+    //
+    //         await historyRepo.create({
+    //             business_code: originalRow.business_code,
+    //             appointment_code: rescheduledCode,
+    //             action: "canceled",
+    //             changed_by: actor.userCode,
+    //             old_value: { status: "pending" },
+    //             new_value: { status: "canceled" },
+    //         });
+    //
+    //         return { originalAppointmentCode, rescheduledCode, action: "rejected" };
+    //     }
+    // }
 
 
     /**

@@ -77,6 +77,7 @@ const routes = [
         children: [
             { path: "dashboard", component: () => import("@/views/operational-staff/Dashboard.vue") },
             { path: "appointments", component: () => import("@/views/operational-staff/Appointments.vue") },
+            { path: "appointments/create", component: () => import("@/views/appointments/CreateAppointments.vue") },
             { path: "pending", component: () => import("@/views/operational-staff/PendingAppointments.vue") },
             { path: "schedules", component: () => import("@/views/operational-staff/Schedules.vue") },
             { path: "availability", component: () => import("@/views/operational-staff/Availability.vue") },

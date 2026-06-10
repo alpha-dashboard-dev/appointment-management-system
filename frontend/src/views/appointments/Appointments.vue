@@ -104,8 +104,8 @@
               <dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>
               <dt class="col-5 text-muted">End Date</dt>
               <dd class="col-7">{{ formatDate(selected.appointment_end_date) }}</dd>
-              <dt class="col-5 text-muted">Start Time</dt>
-              <dd class="col-7">{{ formatTime(selected.start_time) }}</dd>
+              <dt class="col-5 text-muted">Appointment Time</dt>
+              <dd class="col-7">{{ formatTime(selected.start_time) }} - {{ formatTime(selected.end_time) }}</dd>
               <dt class="col-5 text-muted">End Time</dt>
               <dd class="col-7">{{ formatTime(selected.end_time) }}</dd>
               <dt class="col-5 text-muted">Status</dt>
@@ -493,6 +493,7 @@ async function fetchAppointments() {
         include: "business,creator,approver,services,services.service"
       }
     })
+    console.log(res)
 
     appointments.value = (res.data.data || []).map((appt) => ({
       ...appt,
@@ -525,8 +526,15 @@ async function openDetails(appt) {
   showDetails.value = true
   historyLoading.value = true
   try {
-    const res = await api.get(`/appointments/get-appointment-history/${appt.appointment_code}`)
-    appointmentHistory.value = res.data.data || []
+    const res = await api.get(`/appointments/get-appointment-history/${appt.appointment_code}`, {
+          params: {
+            include : "changedByUser"
+          }
+        })
+    appointmentHistory.value = (res.data.data || []).map((appt) => ({
+      ...appt,
+      changed_by: appt.changedByUser?.name || '',
+    }))
   } catch (_) {
   } finally {
     historyLoading.value = false
