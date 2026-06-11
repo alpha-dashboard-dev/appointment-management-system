@@ -32,6 +32,17 @@
         </div>
 
         <div class="field">
+          <label>Location</label>
+          <select v-model="form.location_code" @change="onLocationChange">
+            <option value="">Select location</option>
+            <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">
+              {{ loc.address + " " + loc.street + " " + loc.city }}
+            </option>
+          </select>
+        </div>
+
+
+        <div class="field">
           <label>Service *</label>
           <select v-model="form.service_code" :class="{ 'field-input-error': errors.service_code }" @change="validateField('service_code')">
             <option value="">Select service</option>
@@ -40,17 +51,6 @@
             </option>
           </select>
           <p v-if="errors.service_code" class="field-error">{{ errors.service_code }}</p>
-        </div>
-
-
-        <div class="field">
-          <label>Location</label>
-          <select v-model="form.location_code">
-            <option value="">Select location</option>
-            <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">
-              {{ loc.address + " " + loc.street + " " + loc.city }}
-            </option>
-          </select>
         </div>
 
         <div class="row two-columns">
@@ -170,6 +170,18 @@ async function onBusinessChange() {
   ])
   if (svcRes.status === 'fulfilled') services.value = svcRes.value.data.data || []
   if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []
+}
+
+async function onLocationChange() {
+  form.service_code = ''
+  if (!form.business_code) return
+  try {
+    const params = { business_code: form.business_code }
+    if (form.location_code) params.location_code = form.location_code
+    const svcRes = await api.get('/services/client-view', { params })
+    services.value = svcRes.data.data.services || []
+    // charges.value = svcRes.data.data.charges || []
+  } catch (_) {}
 }
 
 async function submit() {
