@@ -11,7 +11,7 @@ class ChargeService {
             data.business_code = actor.businessCode;
         }
 
-        const { business_code, charge_uom, charge_value, name, description } = data;
+        const { business_code, charge_uom, charge_value, name, description} = data;
 
         validateCharge(data);
 
@@ -24,6 +24,7 @@ class ChargeService {
             charge_value,
             name: name.trim(),
             description: description || null,
+            auto_apply: false,
         });
     }
 
@@ -102,6 +103,7 @@ class ChargeService {
     }
 
     async update(chargeCode: string, data: any, actor: any) {
+        // console.log(data)
         const charge = await repo.findByCode(chargeCode);
         if (!charge) throw new Error("Charge not found");
 
@@ -124,6 +126,8 @@ class ChargeService {
             allowed.description = data.description;
         if (data.status !== undefined)
             allowed.status = data.status;
+        if (data.auto_apply !== undefined)
+            allowed.auto_apply = data.auto_apply;
 
         return await repo.update(chargeCode, allowed);
     }

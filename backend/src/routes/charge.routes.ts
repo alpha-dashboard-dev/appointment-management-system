@@ -21,7 +21,7 @@ router.get(
 );
 
 router.get(
-    "/get-charge/:chargeCode",
+    "/get-one-charge/:chargeCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.getByCode

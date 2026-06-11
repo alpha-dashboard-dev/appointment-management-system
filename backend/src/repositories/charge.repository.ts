@@ -60,11 +60,32 @@ class ChargeRepository {
     // }
 
     async update(chargeCode: string, data: any) {
+        // console.log(data);
         return dbHelper.update(this.tables, {"charge_code": chargeCode}, data);
     }
 
     async delete(chargeCode: string) {
         return dbHelper.deleteByField(this.tables, "charge_code", chargeCode);
+    }
+
+    async findAutoApplyByBusiness(businessCode: string) {
+        return dbHelper.findAll(this.tables, {
+            where: {
+                business_code: businessCode,
+                status: "active",
+                auto_apply: true,
+            },
+        });
+    }
+
+    async findOptionalByBusiness(businessCode: string) {
+        return dbHelper.findAll(this.tables, {
+            where: {
+                business_code: businessCode,
+                status: "active",
+                auto_apply: false,
+            },
+        });
     }
 }
 

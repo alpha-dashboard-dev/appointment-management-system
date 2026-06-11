@@ -51,6 +51,11 @@ class Charge extends Model {
                 defaultValue: "active",
 
             },
+            auto_apply: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+            },
             created_at: {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,

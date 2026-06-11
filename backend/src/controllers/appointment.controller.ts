@@ -85,14 +85,12 @@ class AppointmentController {
 
     async approveWithStaff(req: Request, res: Response) {
         try {
-            const { staff_code } = req.body;
+            const { staff_code, selected_charge_codes  } = req.body;
             if (!staff_code) {
                 return res.status(400).json({ success: false, message: "staff_code is required" });
             }
-            const data = await service.approveWithStaff(
-                String(req.params.appointmentCode),
-                String(staff_code),
-                req.user
+            // console.log(req.user)
+            const data = await service.approveWithStaff(String(req.params.appointmentCode), String(staff_code), req.user, selected_charge_codes || []
             );
             return res.status(200).json({ success: true, message: "Appointment approved and staff assigned", data });
         } catch (err: any) {

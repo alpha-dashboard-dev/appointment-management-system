@@ -28,6 +28,7 @@
               <th>Value</th>
               <th>Type</th>
               <th>Status</th>
+              <th>Auto Applied Status</th>
               <th class="pe-3" style="width:100px">Actions</th>
             </tr>
           </thead>
@@ -38,6 +39,7 @@
               <td>{{ charge.charge_value }}</td>
               <td>{{ charge.charge_uom }}</td>
               <td><span :class="['ams-badge', charge.status]">{{ charge.status }}</span></td>
+              <td><span :class="['ams-badge', charge.auto_apply]">{{ charge.auto_apply }}</span></td>
               <td class="pe-3">
                 <div class="dropdown">
                   <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
@@ -67,7 +69,7 @@
               </td>
             </tr>
             <tr v-if="charges.length === 0">
-              <td colspan="6" class="text-center text-muted py-4">No charges found</td>
+              <td colspan="7" class="text-center text-muted py-4">No charges found</td>
             </tr>
           </tbody>
         </table>
@@ -194,6 +196,13 @@
                 <option value="inactive">Inactive</option>
               </select>
             </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Auto Apply</label>
+              <select v-model="editForm.auto_apply" class="form-select">
+                <option value=true>Auto Apply</option>
+                <option value=false>Manual / Off</option>
+              </select>
+            </div>
             <p v-if="formError" class="text-danger small mb-0">{{ formError }}</p>
           </div>
           <div class="modal-footer">
@@ -230,7 +239,7 @@ const selected = ref(null)
 const createError = ref('')
 const createErrors = ref({})
 const createForm = ref({ business_code: '', name: '', charge_uom: '', charge_value: '', description: '' })
-const editForm = reactive({ name: '', status: 'active', charge_value: '', description: '' })
+const editForm = reactive({ name: '', status: 'active', charge_value: '', description: '', auto_apply: true })
 
 async function fetchCharges() {
   loading.value = true

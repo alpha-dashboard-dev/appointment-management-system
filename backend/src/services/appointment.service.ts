@@ -293,12 +293,34 @@ class AppointmentService {
     /**
      * Finalize approval by applying charges and creating invoice
      */
-    private async finalizeApproval(appointmentRow: any, appointmentCode: string, actor: any): Promise<void> {
-        await pricingService.applyActiveCharges(appointmentRow.business_code, appointmentCode);
-        const pricing = await pricingService.computeAppointmentPricing(
+    // private async finalizeApproval(appointmentRow: any, appointmentCode: string, actor: any): Promise<void> {
+    //     await pricingService.applyActiveCharges(appointmentRow.business_code, appointmentCode);
+    //     const pricing = await pricingService.computeAppointmentPricing(
+    //         appointmentRow.business_code,
+    //         appointmentCode
+    //     );
+    //     await pricingService.upsertDraftInvoice(
+    //         appointmentRow.business_code,
+    //         appointmentCode,
+    //         pricing.subtotal,
+    //         pricing.total,
+    //         actor?.userCode || null
+    //     );
+    // }
+    private async finalizeApproval(appointmentRow: any, appointmentCode: string, actor: any, selectedChargeCodes: string[] = []): Promise<void> {
+
+        await pricingService.applyBusinessCharges(
             appointmentRow.business_code,
-            appointmentCode
+            appointmentCode,
+            selectedChargeCodes
         );
+
+        const pricing =
+            await pricingService.computeAppointmentPricing(
+                appointmentRow.business_code,
+                appointmentCode
+            );
+
         await pricingService.upsertDraftInvoice(
             appointmentRow.business_code,
             appointmentCode,
@@ -945,7 +967,8 @@ class AppointmentService {
     /**
      * Approves appointment with specific staff member assigned
      */
-    async approveWithStaff(appointmentCode: string, staffCode: string, actor: any) {
+    async approveWithStaff(appointmentCode: string, staffCode: string, actor: any, selectedChargeCodes: string[] = []) {
+        // console.log(actor)
         const appointment = await repo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
 
@@ -982,36 +1005,53 @@ class AppointmentService {
             throw new Error("Cannot approve: location time slot is already booked");
         }
 
-        // Check staff availability
-        const busyStaffCodes = new Set(
-            await participantRepo.findBusyStaffCodes(dateStr, startTime, endTime, appointmentCode)
-        );
-
-        const availableStaff = await scheduleRepo.findAvailableStaff(
+        const scheduledStaff = await scheduleRepo.findAvailableStaff(
             appointmentRow.business_code,
             appointmentRow.location_code,
             workingDay,
             startTime,
             endTime
         );
-        const staffRecord = (availableStaff || []).find(
-            (s: any) => s.user_code === staffCode && !busyStaffCodes.has(s.user_code)
+
+        const exists = scheduledStaff.some(
+            s => s.user_code === staffCode
         );
-        if (!staffRecord) {
-            throw new Error("Selected service staff is not available for this appointment slot");
+
+        if (!exists) {
+            throw new Error(
+                "Staff is not scheduled at this location and time"
+            );
         }
 
+        // Check staff availability
+        // const busyStaffCodes = new Set(
+        //     await participantRepo.findBusyStaffCodes(dateStr, startTime, endTime, appointmentCode)
+        // );
+        // const availableStaff = await scheduleRepo.findAvailableStaff(
+        //     appointmentRow.business_code,
+        //     appointmentRow.location_code,
+        //     workingDay,
+        //     startTime,
+        //     endTime
+        // );
+        // const staffRecord = (availableStaff || []).find(
+        //     (s: any) => s.user_code === staffCode && !busyStaffCodes.has(s.user_code)
+        // );
+        // if (!staffRecord) {
+        //     throw new Error("Selected service staff is not available for this appointment slot");
+        // }
+
         // Check for staff double-booking
-        const conflicts = await participantRepo.findConflictsForStaff(
-            staffCode,
-            dateStr,
-            startTime,
-            endTime,
-            appointmentCode
-        );
-        if (conflicts && conflicts.length > 0) {
-            throw new Error("Selected staff member has a conflicting appointment at this time");
-        }
+        // const conflicts = await participantRepo.findConflictsForStaff(
+        //     staffCode,
+        //     dateStr,
+        //     startTime,
+        //     endTime,
+        //     appointmentCode
+        // );
+        // if (conflicts && conflicts.length > 0) {
+        //     throw new Error("Selected staff member has a conflicting appointment at this time");
+        // }
 
         // Assign staff as participant
         await participantRepo.create({
@@ -1027,7 +1067,8 @@ class AppointmentService {
         await repo.update(appointmentCode, { status: "approved", approved_by: actor?.userCode || null });
 
         // Finalize with charges and invoice
-        await this.finalizeApproval(appointmentRow, appointmentCode, actor);
+        // await this.finalizeApproval(appointmentRow, appointmentCode, actor);
+        await this.finalizeApproval( appointmentRow, appointmentCode, actor, selectedChargeCodes);
 
         // Record history
         await historyRepo.create({

@@ -138,11 +138,8 @@ class DbHelper {
         }
     }
 
-    async update(
-        table: any,
-        where: any,
-        data: any
-    ) {
+    async update(table: any, where: any, data: any) {
+        // console.log(table, where, data);
 
         if (this.orm === "sequelize") {
 

@@ -29,8 +29,7 @@ export class AppointmentPricingService {
     async calculatePricing(
         businessCode: string,
         serviceCodes: string[],
-        chargeRows: any[]
-    ): Promise<any> {
+        chargeRows: any[]): Promise<any> {
         let serviceSubtotal = 0;
         let currency: string | null = null;
         const servicesBreakdown: any[] = [];
@@ -90,19 +89,87 @@ export class AppointmentPricingService {
     /**
      * Apply active business charges to an appointment
      */
-    async applyActiveCharges(businessCode: string, appointmentCode: string): Promise<void> {
-        const existing = await appointmentChargeRepo.findByAppointment(appointmentCode);
+    // async applyActiveCharges(businessCode: string, appointmentCode: string): Promise<void> {
+    //     const existing = await appointmentChargeRepo.findByAppointment(appointmentCode);
+    //     const existingCodes = new Set(
+    //         (existing || []).map((row: any) => {
+    //             const r = extractRow(row);
+    //             return r.charge_code;
+    //         })
+    //     );
+    //
+    //     const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
+    //     for (const charge of activeCharges) {
+    //         const chargeData = extractRow(charge);
+    //         if (existingCodes.has(chargeData.charge_code)) continue;
+    //
+    //         await appointmentChargeRepo.create({
+    //             business_code: businessCode,
+    //             appointment_code: appointmentCode,
+    //             charge_code: chargeData.charge_code,
+    //             charge_uom: chargeData.charge_uom,
+    //             charge_value: chargeData.charge_value,
+    //         });
+    //     }
+    // }
+
+    async applyBusinessCharges(businessCode: string, appointmentCode: string, selectedChargeCodes: string[] = []): Promise<void> {
+
+        const existing =
+            await appointmentChargeRepo.findByAppointment(
+                appointmentCode
+            );
+
         const existingCodes = new Set(
-            (existing || []).map((row: any) => {
-                const r = extractRow(row);
-                return r.charge_code;
-            })
+            (existing || [])
+                .map((row: any) => extractRow(row).charge_code)
         );
 
-        const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
-        for (const charge of activeCharges) {
-            const chargeData = extractRow(charge);
-            if (existingCodes.has(chargeData.charge_code)) continue;
+        // Auto-applied charges
+        const autoCharges =
+            await chargeRepo.findAutoApplyByBusiness(
+                businessCode
+            );
+
+        // Optional charges selected by user
+        const selectedCharges = [];
+
+        for (const chargeCode of selectedChargeCodes) {
+
+            const charge =
+                await chargeRepo.findByCode(chargeCode);
+
+            if (!charge) continue;
+
+            const row = extractRow(charge);
+
+            if (
+                row.business_code !== businessCode ||
+                row.status !== "active"
+            ) {
+                continue;
+            }
+
+            selectedCharges.push(charge);
+        }
+
+        const chargesToApply = [
+            ...autoCharges,
+            ...selectedCharges,
+        ];
+
+        for (const charge of chargesToApply) {
+
+            const chargeData =
+                extractRow(charge);
+
+            if (
+                existingCodes.has(
+                    chargeData.charge_code
+                )
+            ) {
+                continue;
+            }
 
             await appointmentChargeRepo.create({
                 business_code: businessCode,
@@ -164,14 +231,75 @@ export class AppointmentPricingService {
     /**
      * Get pricing preview for services and active charges
      */
-    async getPricingPreview(businessCode: string, serviceCodes: string[]): Promise<any> {
-        const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
-        const pricing = await this.calculatePricing(businessCode, serviceCodes, activeCharges || []);
+    // async getPricingPreview(businessCode: string, serviceCodes: string[]): Promise<any> {
+    //     const activeCharges = await chargeRepo.findActiveByBusiness(businessCode);
+    //     const pricing = await this.calculatePricing(businessCode, serviceCodes, activeCharges || []);
+    //
+    //     return {
+    //         business_code: businessCode,
+    //         service_codes: serviceCodes,
+    //         ...pricing,
+    //     };
+    // }
+    async getPricingPreview(
+        businessCode: string,
+        serviceCodes: string[],
+        selectedChargeCodes: string[] = []
+    ): Promise<any> {
+
+        const autoCharges =
+            await chargeRepo.findAutoApplyByBusiness(
+                businessCode
+            );
+
+        const selectedCharges = [];
+
+        for (const code of selectedChargeCodes) {
+
+            const charge =
+                await chargeRepo.findByCode(code);
+
+            if (!charge) continue;
+
+            selectedCharges.push(charge);
+        }
+
+        const pricing =
+            await this.calculatePricing(
+                businessCode,
+                serviceCodes,
+                [
+                    ...autoCharges,
+                    ...selectedCharges,
+                ]
+            );
 
         return {
             business_code: businessCode,
             service_codes: serviceCodes,
+            selected_charge_codes:
+            selectedChargeCodes,
             ...pricing,
+        };
+    }
+
+    async getApprovalCharges(
+        businessCode: string
+    ) {
+
+        const autoCharges =
+            await chargeRepo.findAutoApplyByBusiness(
+                businessCode
+            );
+
+        const optionalCharges =
+            await chargeRepo.findOptionalByBusiness(
+                businessCode
+            );
+
+        return {
+            auto_charges: autoCharges.map(extractRow),
+            optional_charges: optionalCharges.map(extractRow),
         };
     }
 }

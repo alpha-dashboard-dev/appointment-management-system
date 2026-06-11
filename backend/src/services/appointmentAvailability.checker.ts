@@ -8,6 +8,7 @@ import participantRepo from "../repositories/appointmentParticipant.repository";
 import appointmentServiceRepo from "../repositories/appointmentService.repository";
 import locationServiceRepo from "../repositories/locationService.repository";
 import locationRepo from "../repositories/location.repository";
+import chargeRepo from "../repositories/charge.repository";
 
 import { extractRow, deduplicateStaffSlots, timeSlotCoversRange, filterAvailableStaff } from "../utils/serviceHelpers";
 import { normalizeDateOnly, normalizeTimeToHHMM, normalizeTimeToHHMMSS, getWorkingDayFromDate } from "../utils/date_time_format";
@@ -314,6 +315,23 @@ export class AppointmentAvailabilityChecker {
             busyStaffCodes
         );
 
+        // get business charges
+        const businessCharges =
+            await chargeRepo.findActiveByBusiness(row.business_code);
+
+        const autoApplyCharges = [];
+        const optionalCharges = [];
+
+        for (const charge of businessCharges || []) {
+            const c = extractRow(charge);
+
+            if (c.auto_apply) {
+                autoApplyCharges.push(c);
+            } else {
+                optionalCharges.push(c);
+            }
+        }
+
         // Group and attach metadata
         const groupedOtherLocations = this.groupByLocation(otherLocationSameSlot);
         const groupedOtherLocationsWithMeta = await this.attachLocationMeta(groupedOtherLocations);
@@ -332,6 +350,11 @@ export class AppointmentAvailabilityChecker {
             // ALWAYS SHOW
             available_staff: deduplicateStaffSlots(availableStaff),
             engaged_staff: engagedStaff,
+            charges: {
+                auto_apply: autoApplyCharges,
+                optional: optionalCharges,
+            },
+
 
             // ONLY WHEN NO STAFF AVAILABLE
             ...(hasAvailableStaff

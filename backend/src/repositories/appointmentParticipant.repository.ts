@@ -204,11 +204,7 @@ class AppointmentParticipantRepository {
         ];
     }
 
-    async findEngagedStaffDetails(
-        date: string,
-        startTime: string,
-        endTime: string,
-        appointmentCode: string
+    async findEngagedStaffDetails(date: string, startTime: string, endTime: string, appointmentCode: string
     ) {
 
         const Appointment = db.Appointment;
