@@ -180,7 +180,7 @@ async function cancelAppt(appt) {
 
 async function respondReschedule(appt, action) {
   try {
-    await api.patch(`/appointments/${appt.appointment_code}/reschedule/respond`, { action })
+    await api.patch(`/appointments/respond-to-reschedule/${appt.appointment_code}`, { action })
     await fetchList()
   } catch (err) {
     alert(err.response?.data?.message || 'Action failed')
@@ -192,7 +192,7 @@ async function openView(appt) {
   modalCharges.value = []
   showViewModal.value = true
   try {
-    const res = await api.get(`/appointments/${appt.appointment_code}/charges`)
+    const res = await api.get(`/appointments/get-appointment-charges/${appt.appointment_code}`)
     modalCharges.value = res.data.data || []
   } catch (_) {}
 }

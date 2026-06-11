@@ -56,12 +56,7 @@
             <td class="pe-3 text-center">
               <div class="d-flex justify-content-center">
                 <div class="dropdown">
-                  <button
-                      class="btn btn-sm btn-outline-secondary"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      :aria-expanded="openDropdownCode === appt.appointment_code"
-                      @click.stop="toggleActionDropdown(appt.appointment_code)"
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" :aria-expanded="openDropdownCode === appt.appointment_code" @click.stop="toggleActionDropdown(appt.appointment_code)"
                   >
                     <i class="bi bi-three-dots-vertical"></i>
                   </button>
