@@ -157,7 +157,7 @@ export class AppointmentAvailabilityChecker {
             if (!grouped.has(ls.location_code)) grouped.set(ls.location_code, new Set<string>());
             grouped.get(ls.location_code)!.add(ls.service_code);
         }
-
+        // console.log(grouped);
         const selectedServiceLocations: any[] = [];
 
         for (const [locationCode, serviceSet] of grouped.entries()) {
@@ -255,6 +255,7 @@ export class AppointmentAvailabilityChecker {
             endTime,
             appointmentCode
         );
+        // console.log(locationConflicts)
 
         // Find busy staff
         const busyStaffCodes = new Set(
@@ -355,7 +356,6 @@ export class AppointmentAvailabilityChecker {
                 optional: optionalCharges,
             },
 
-
             // ONLY WHEN NO STAFF AVAILABLE
             ...(hasAvailableStaff
                 ? {}
@@ -373,24 +373,6 @@ export class AppointmentAvailabilityChecker {
                     },
                 }),
         };
-
-        // return {
-        //     appointment_code: appointmentCode,
-        //     date,
-        //     start_time: normalizeTimeToHHMMSS(startTime),
-        //     end_time: normalizeTimeToHHMMSS(endTime),
-        //     location_code: row.location_code,
-        //     working_day: workingDay,
-        //     location_slot_already_booked: (locationConflicts || []).length > 0,
-        //     conflicting_appointments: (locationConflicts || []).map((c: any) => c.appointment_code),
-        //     available_staff: deduplicateStaffSlots(availableStaff),
-        //     engaged_staff: engagedStaff,
-        //     alternatives: {
-        //         different_time_same_location: deduplicateStaffSlots(this.simplifyStaffRows(differentTimeSameLocation)),
-        //         different_location_same_time: groupedOtherLocationsWithMeta,
-        //         selected_service_other_locations: selectedServiceLocations,
-        //     },
-        // };
     }
 }
 

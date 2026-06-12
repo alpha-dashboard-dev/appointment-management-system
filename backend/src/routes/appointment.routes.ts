@@ -156,6 +156,13 @@ router.get(
     AppointmentParticipantController.getAll
 );
 
+router.patch(
+    "/update-appointment-participants/:id/:userCode",
+    authenticate,
+    authorizeRoles(...ALL_STAFF),
+    AppointmentParticipantController.update
+)
+
 router.delete(
     "/delete-appointment-participants/:participantId",
     authenticate,

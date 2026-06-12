@@ -145,6 +145,36 @@ class ScheduleRepository {
     async delete(id: number) {
         return dbHelper.delete(this.tables, id);
     }
+
+    async isStaffScheduledAtLocation(
+        businessCode: string,
+        locationCode: string,
+        workingDay: string,
+        staffCode: string
+    ) {
+        const count = await db.UserShiftSchedule.count({
+            where: {
+                business_code: businessCode,
+                location_code: locationCode,
+                working_days: workingDay.toLowerCase(),
+                status: "active",
+            },
+            include: [
+                {
+                    model: db.User,
+                    as: "user",
+                    required: true,
+                    where: {
+                        user_code: staffCode,
+                        user_type: ROLES.SERVICE_STAFF,
+                        is_active: "active",
+                    },
+                },
+            ],
+        });
+
+        return count > 0;
+    }
 }
 
 export default new ScheduleRepository();

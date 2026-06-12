@@ -46,11 +46,35 @@ class AppointmentParticipantController {
         }
     }
 
+    async update(req: Request, res: Response) {
+
+        try {
+            const {id, userCode} = req.params;
+            console.log(id, userCode);
+            const data = await service.update(id, userCode, req.body);
+
+            return res.status(200).json(
+                {success: true,
+                message:
+                    "Appointment Participant updated",
+                data,
+            });
+
+        } catch (err: any) {
+            return res.status(400).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+
     async delete(req: Request, res: Response) {
         try {
             await service.remove(
                 String(req.params.appointmentCode),
-                Number(req.params.participantId)
+                Number(req.params.participantId),
+                String(req.params.userCode)
+
             );
 
             return res.status(200).json({

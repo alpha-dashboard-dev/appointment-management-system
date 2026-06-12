@@ -4,6 +4,7 @@ import historyRepo from "../repositories/appointmentHistory.repository";
 import { ROLES } from "../utils/roles";
 import { validateAppointmentParticipant } from "../utils/validator";
 import { buildQueryOptions, extractRow } from "../utils/serviceHelpers";
+import repo from "../repositories/invoice.repository";
 
 class AppointmentParticipantService {
 
@@ -120,14 +121,33 @@ class AppointmentParticipantService {
         );
     }
 
-    async remove(appointmentCode: string, participantId: number) {
+    async remove(appointmentCode: string, participantId: number, userCode: string) {
         const appointment = await appointmentRepo.findByCode(appointmentCode);
         if (!appointment) throw new Error("Appointment not found");
+
+        const user = await participantRepo.findByUserCode(userCode)
+        if(!user) throw new Error("User not found");
+
 
         const participant = await participantRepo.findById(participantId);
         if (!participant) throw new Error("Participant not found");
 
         return await participantRepo.delete(participantId);
+    }
+
+    async update(id: number, userCode: string, data: any, actor: any) {
+        const participant = await participantRepo.findById(id);
+        if (!participant) throw new Error("Invoice not found");
+        // console.log(userCode);
+
+        const user = await participantRepo.findByUserCode(userCode)
+        if(!user) throw new Error("User not found");
+
+        const allowed: any = {};
+        if (data.status !== undefined)
+            allowed.status = data.status;
+
+        return await repo.update(id, allowed);
     }
 }
 

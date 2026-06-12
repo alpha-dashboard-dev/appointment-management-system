@@ -118,12 +118,35 @@ class AppointmentRepository {
                 appointment_start_date: date,
                 status: { [Op.in]: ["approved", "in_progress"] },
                 ...(excludeAppointmentCode ? { appointment_code: { [Op.ne]: excludeAppointmentCode } } : {}),
-                [Op.or]: [
-                    { start_time: { [Op.lte]: startTime }, end_time: { [Op.gt]: startTime } },
-                    { start_time: { [Op.lt]: endTime }, end_time: { [Op.gte]: endTime } },
-                    { start_time: { [Op.gte]: startTime }, end_time: { [Op.lte]: endTime } },
-                ],
+                // [Op.or]: [
+                //     { start_time: { [Op.lte]: startTime }, end_time: { [Op.gt]: startTime } },
+                //     { start_time: { [Op.lt]: endTime }, end_time: { [Op.gte]: endTime } },
+                //     { start_time: { [Op.gte]: startTime }, end_time: { [Op.lte]: endTime } },
+                // ],
+                [Op.and]: [
+                    db.sequelize.where(
+                        db.sequelize.fn(
+                            "DATE",
+                            db.sequelize.col("appointment_start_date")
+                        ),
+                        date
+                    ),
+
+                    {
+                        start_time: {
+                            [Op.lt]: endTime
+                        }
+                    },
+
+                    {
+                        end_time: {
+                            [Op.gt]: startTime
+                        }
+                    }
+                ]
             },
+
+
             raw: true,
         });
     }

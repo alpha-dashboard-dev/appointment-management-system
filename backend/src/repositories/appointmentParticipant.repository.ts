@@ -74,6 +74,24 @@ class AppointmentParticipantRepository {
         });
     }
 
+    async findByAppointmentCode(
+        appointmentCode: string,
+        options: any = {}
+    ) {
+        return dbHelper.findAll(this.tables, {
+            where: {
+                appointment_code: appointmentCode,
+            },
+            include: this.buildIncludes(
+                options.include || []
+            ),
+            limit: options.limit,
+            offset: options.offset,
+            order: options.order || [["created_at", "DESC"]],
+        });
+    }
+
+
     // Returns appointment_codes where userCode is a participant (for service staff feed)
     async findAppointmentCodesByUser(userCode: string): Promise<string[]> {
         const rows = await db.AppointmentParticipant.findAll({
@@ -132,7 +150,7 @@ class AppointmentParticipantRepository {
         date: string,
         startTime: string,
         endTime: string,
-        excludeAppointmentCode?: string
+        excludeAppointmentCode?: string,
     ): Promise<string[]> {
 
         const conflicts = await db.AppointmentParticipant.findAll({
@@ -403,11 +421,12 @@ class AppointmentParticipantRepository {
     // }
 
     async update(id: number, data: any) {
-        return dbHelper.update(this.tables, id, data);
+        console.log(id)
+        return dbHelper.update(this.tables, {"id": id}, data);
     }
 
     async delete(id: number) {
-        return dbHelper.delete(this.tables, id);
+        return dbHelper.delete(this.tables, {"id": id});
     }
 }
 

@@ -315,8 +315,7 @@ class AppointmentService {
             selectedChargeCodes
         );
 
-        const pricing =
-            await pricingService.computeAppointmentPricing(
+        const pricing = await pricingService.computeAppointmentPricing(
                 appointmentRow.business_code,
                 appointmentCode
             );
@@ -1004,24 +1003,37 @@ class AppointmentService {
         if (locationConflicts.length > 0) {
             throw new Error("Cannot approve: location time slot is already booked");
         }
+        const isScheduledAtLocation =
+            await scheduleRepo.isStaffScheduledAtLocation(
+                appointmentRow.business_code,
+                appointmentRow.location_code,
+                workingDay,
+                staffCode
+            );
 
-        const scheduledStaff = await scheduleRepo.findAvailableStaff(
-            appointmentRow.business_code,
-            appointmentRow.location_code,
-            workingDay,
-            startTime,
-            endTime
-        );
-
-        const exists = scheduledStaff.some(
-            s => s.user_code === staffCode
-        );
-
-        if (!exists) {
+        if (!isScheduledAtLocation) {
             throw new Error(
-                "Staff is not scheduled at this location and time"
+                "Selected staff is not scheduled at this location"
             );
         }
+
+        // const scheduledStaff = await scheduleRepo.findAvailableStaff(
+        //     appointmentRow.business_code,
+        //     appointmentRow.location_code,
+        //     workingDay,
+        //     startTime,
+        //     endTime
+        // );
+        //
+        // const exists = scheduledStaff.some(
+        //     s => s.user_code === staffCode
+        // );
+        //
+        // if (!exists) {
+        //     throw new Error(
+        //         "Staff is not scheduled at this location and time"
+        //     );
+        // }
 
         // Check staff availability
         // const busyStaffCodes = new Set(
