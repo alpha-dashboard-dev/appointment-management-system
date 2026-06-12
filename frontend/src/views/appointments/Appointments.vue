@@ -262,7 +262,7 @@
               </div>
 
               <!--Charges view-->
-              <div v-if="autoCharges.length || optionalCharges.length" class="card border-0 bg-light mb-3">
+              <div v-if="(availableStaff.length > 0 || engagedStaff.length > 0)  && (autoCharges.length || optionalCharges.length)" class="card border-0 bg-light mb-3">
                 <div class="card-body">
 
                   <h6 class="fw-semibold mb-3">Appointment Charges</h6>
@@ -274,7 +274,7 @@
                     </div>
 
                     <div v-for="charge in autoCharges" :key="charge.charge_code" class="form-check mb-2">
-                      <input checked disabled type="checkbox" class="form-check-input">
+                      <input type="checkbox" class="form-check-input">
                       <label class="form-check-label">
                         {{ charge.name }}
                         <span class="text-muted">
