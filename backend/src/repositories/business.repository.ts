@@ -27,12 +27,9 @@ class BusinessRepository {
             }));
     }
 
-    async create(data: any) {
+    async create(data: any, options?: any) {
 
-        return dbHelper.create(
-            this.tables,
-            data
-        );
+        return dbHelper.create(this.tables, data, options);
     }
 
     async findAll(filters: any = {}, options: any = {}) {
@@ -89,17 +86,15 @@ class BusinessRepository {
         );
     }
 
-    async update(
-        businessCode: string,
-        data: any
-    ) {
+    async update(businessCode: string, data: any, options?: any) {
 
         return dbHelper.update(
             this.tables,
             {
                 business_code: businessCode,
             },
-            data
+            data,
+            options
         );
     }
 

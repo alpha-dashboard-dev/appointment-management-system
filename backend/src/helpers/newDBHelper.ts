@@ -34,11 +34,11 @@ class DbHelper {
         return and(...conditions);
     }
 
-    async create(table: any, data: any) {
+    async create(table: any, data: any, options?: any) {
 
         if (this.orm === "sequelize") {
 
-            return await table.sequelize.create(data);
+            return await table.sequelize.create(data, options);
         }
 
         if (this.orm === "drizzle") {
@@ -138,14 +138,17 @@ class DbHelper {
         }
     }
 
-    async update(table: any, where: any, data: any) {
+    async update(table: any, where: any, data: any, options?: any) {
         // console.log(table, where, data);
 
         if (this.orm === "sequelize") {
 
             await table.sequelize.update(
                 data,
-                { where }
+                { 
+                    where,
+                    ...options
+                }
             );
 
             return await table.sequelize.findOne({

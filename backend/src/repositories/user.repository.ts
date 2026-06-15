@@ -23,8 +23,8 @@ class UserRepository {
       }));
   }
 
-  async create(data: any) {
-    return dbHelper.create(this.tables, data);
+  async create(data: any, options?: any) {
+    return dbHelper.create(this.tables, data, options);
   }
 
   async findAll(filters: any = {}, options: any = {}) {
