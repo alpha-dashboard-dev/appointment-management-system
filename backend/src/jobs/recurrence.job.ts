@@ -3,7 +3,7 @@ import recurrenceExecutor from "../services/appointmentRecurrenceExecutor.servic
 
 export function startRecurrenceJob() {
 
-    cron.schedule("0 1 * * *", async () => {
+    cron.schedule("* * * * *", async () => {
         console.log("Running recurrence engine...");
 
         try {

@@ -5,6 +5,7 @@ import {normalizeTimeToHHMMSS} from "../utils/date_time_format";
 class AppointmentRecurrenceExecutorService {
 
     async processRecurrences() {
+        console.log("Cron started");
 
         const recurrences = await appointmentRecurrenceRepo.findAll({
             status: "active"
@@ -13,7 +14,7 @@ class AppointmentRecurrenceExecutorService {
         for (const rec of recurrences) {
 
             await this.applyAutoCancel(rec);
-            await this.applyAutoReschedule(rec);
+            // await this.applyAutoReschedule(rec);
         }
     }
 
@@ -24,6 +25,7 @@ class AppointmentRecurrenceExecutorService {
         // console.log(recurrence.auto_cancel_after_days);
 
         const cutoffDate = new Date();
+        cutoffDate.setHours(0, 0, 0, 0);
         // console.log(normalizeTimeToHHMMSS(cutoffDate));
 
         // console.log(cutoffDate);
@@ -41,6 +43,7 @@ class AppointmentRecurrenceExecutorService {
         for (const appt of appointments) {
 
             const apptDate = new Date(appt.appointment_start_date);
+            apptDate.setHours(0, 0, 0, 0);
             console.log(normalizeTimeToHHMMSS(cutoffDate));
             console.log(normalizeTimeToHHMMSS(apptDate));
 
