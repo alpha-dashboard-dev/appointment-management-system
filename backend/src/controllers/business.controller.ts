@@ -16,8 +16,7 @@ class BusinessController {
 
             return res.status(201).json({
                 success: true,
-                message:
-                    "Business created",
+                message: "Business created",
                 data,
             });
 
@@ -145,8 +144,7 @@ class BusinessController {
 
             await service.delete(
                 String(
-                    req.params
-                        .businessCode
+                    req.params.businessCode
                 ),
                 req.user
             );
