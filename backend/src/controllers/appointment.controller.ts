@@ -6,7 +6,7 @@ class AppointmentController {
     async create(req: Request, res: Response) {
         try {
             const data = await service.create(req.body, req.user);
-            return res.status(201).json({ success: true, message: "Appointment created", data });
+            return res.status(201).json({ success: true, message: "appointment created", data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message, errors: err.errors || err, });
         }
@@ -37,7 +37,7 @@ class AppointmentController {
     async update(req: Request, res: Response) {
         try {
             const data = await service.update(String(req.params.appointmentCode), req.body, req.user);
-            return res.status(200).json({ success: true, message: "Appointment updated", data });
+            return res.status(200).json({ success: true, message: "appointment updated", data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });
         }
@@ -66,7 +66,7 @@ class AppointmentController {
     async reschedule(req: Request, res: Response) {
         try {
             const data = await service.reschedule(String(req.params.appointmentCode), req.body, req.user);
-            return res.status(201).json({ success: true, message: "Appointment rescheduled", data });
+            return res.status(201).json({ success: true, message: "appointment rescheduled", data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });
         }
@@ -92,7 +92,7 @@ class AppointmentController {
             // console.log(req.user)
             const data = await service.approveWithStaff(String(req.params.appointmentCode), String(staff_code), req.user, selected_charge_codes || []
             );
-            return res.status(200).json({ success: true, message: "Appointment approved and staff assigned", data });
+            return res.status(200).json({ success: true, message: "appointment approved and staff assigned", data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });
         }

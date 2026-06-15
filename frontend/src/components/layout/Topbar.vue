@@ -322,7 +322,7 @@ onBeforeUnmount(() => {
 <!--    '/clients': 'Clients',-->
 <!--    '/clients/create': 'New Client',-->
 <!--    '/appointments': 'Appointments',-->
-<!--    '/appointments/create': 'New Appointment',-->
+<!--    '/appointments/create': 'New appointment',-->
 <!--    '/services': 'Services',-->
 <!--    '/services/create': 'New Service',-->
 <!--    '/locations': 'Locations',-->

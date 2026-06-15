@@ -56,7 +56,7 @@ class AppointmentParticipantController {
             return res.status(200).json(
                 {success: true,
                 message:
-                    "Appointment Participant updated",
+                    "appointment Participant updated",
                 data,
             });
 

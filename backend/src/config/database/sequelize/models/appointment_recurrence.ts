@@ -17,7 +17,7 @@ class AppointmentRecurrence extends Model {
                 },
             },
 
-            service_code: {
+            appointment_code: {
                 type: DataTypes.STRING(8),
                 allowNull: false,
                 validate: {
@@ -82,10 +82,10 @@ class AppointmentRecurrence extends Model {
 
     static associate(models) {
 
-        AppointmentRecurrence.belongsTo(models.Service, {
-            foreignKey: "service_code",
-            targetKey: "service_code",
-            as: "service",
+        AppointmentRecurrence.belongsTo(models.Appointment, {
+            foreignKey: "appointment_code",
+            targetKey: "appointment_code",
+            as: "appointment_recurrences",
             constraints: false,
         });
 

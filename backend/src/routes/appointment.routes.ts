@@ -86,7 +86,7 @@ router.post(
     controller.approveWithStaff
 );
 
-//  Appointment Service Routes
+//  appointment Service Routes
 router.post(
     "/create-appointment-service",
     authenticate,
@@ -108,7 +108,7 @@ router.delete(
     AppointmentServiceController.delete
 );
 
-// Appointment Charges Routes
+// appointment Charges Routes
 
 router.post(
     "/create-appointment-charge/:appointmentCode",
@@ -131,7 +131,7 @@ router.delete(
     AppointmentChargeController.delete
 );
 
-// Appointment History Routes
+// appointment History Routes
 
 router.get(
     "/get-appointment-history/:appointmentCode",
@@ -140,7 +140,7 @@ router.get(
     AppointmentHistoryController.getByAppointmentCode
 );
 
-//  Appointment Participants Routes
+//  appointment Participants Routes
 
 router.post(
     "/create-appointment-participants",
@@ -170,7 +170,7 @@ router.delete(
     AppointmentParticipantController.delete
 );
 
-// Appointment Discount Routes
+// appointment Discount Routes
 router.post(
     "/create-appointment-discount",
     authenticate,
@@ -193,7 +193,7 @@ router.delete(
 );
 
 
-//  Appointment Recurrence Routes
+//  appointment Recurrence Routes
 router.post(
     "/create-appointment-recurrence",
     authenticate,

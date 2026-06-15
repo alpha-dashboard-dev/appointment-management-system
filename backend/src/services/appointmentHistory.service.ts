@@ -15,7 +15,7 @@ class AppointmentHistoryService {
 
         if (!appointment) {
             throw new Error(
-                "Appointment not found"
+                "appointment not found"
             );
         }
 

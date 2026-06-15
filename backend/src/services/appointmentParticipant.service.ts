@@ -20,7 +20,7 @@ class AppointmentParticipantService {
 
         if (!appointment) {
             throw new Error(
-                "Appointment not found"
+                "appointment not found"
             );
         }
 
@@ -40,7 +40,7 @@ class AppointmentParticipantService {
                 !appointmentRow.end_time
             ) {
                 throw new Error(
-                    "Appointment is missing date or time"
+                    "appointment is missing date or time"
                 );
             }
 
@@ -111,7 +111,7 @@ class AppointmentParticipantService {
 
         if (!appointment) {
             throw new Error(
-                "Appointment not found"
+                "appointment not found"
             );
         }
 
@@ -123,7 +123,7 @@ class AppointmentParticipantService {
 
     async remove(appointmentCode: string, participantId: number, userCode: string) {
         const appointment = await appointmentRepo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
+        if (!appointment) throw new Error("appointment not found");
 
         const user = await participantRepo.findByUserCode(userCode)
         if(!user) throw new Error("User not found");

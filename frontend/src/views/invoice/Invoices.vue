@@ -17,6 +17,7 @@
         <option value="">All Status</option>
         <option value="draft">Draft</option>
         <option value="paid">Paid</option>
+        <option value="unpaid">Unpaid</option>
         <option value="issued">Issued</option>
         <option value="canceled">Canceled</option>
       </select>
@@ -61,7 +62,7 @@
                         View
                       </button>
                     </li>
-                    <li v-if="inv.invoice_status === 'draft' || inv.invoice_status === 'issued'">
+                    <li v-if="inv.invoice_status === 'unpaid' || inv.invoice_status === 'issued'">
                       <button class="dropdown-item" @click="updateStatus(inv, 'paid')">
                         <i class="bi bi-check2-circle me-2"></i>
                         Mark Paid
@@ -100,8 +101,8 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showDetails = false">Close</button>
-            <button v-if="selected?.invoice_status === 'draft' || selected?.invoice_status === 'issued'" class="btn btn-success btn-sm" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
-            <button v-if="selected?.invoice_status === 'draft' || selected?.invoice_status === 'issued'" class="btn btn-danger btn-sm" @click="updateStatus(selected, 'canceled')" :disabled="saving">Cancel</button>
+            <button v-if="selected?.invoice_status === 'unpaid' || selected?.invoice_status === 'issued'" class="btn btn-success btn-sm" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
+            <button v-if="selected?.invoice_status === 'unpaid' || selected?.invoice_status === 'issued'" class="btn btn-danger btn-sm" @click="updateStatus(selected, 'canceled')" :disabled="saving">Cancel</button>
           </div>
         </div>
       </div>

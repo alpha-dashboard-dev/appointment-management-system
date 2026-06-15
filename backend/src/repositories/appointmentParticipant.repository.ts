@@ -364,7 +364,7 @@ class AppointmentParticipantRepository {
     //
     // async findEngagedStaffDetails(date: string, startTime: string, endTime: string, appointmentCode: string) {
     //
-    //     const Appointment = db.Appointment;
+    //     const appointment = db.appointment;
     //     const Participant = db.AppointmentParticipant;
     //     const User = db.User;
     //
@@ -372,7 +372,7 @@ class AppointmentParticipantRepository {
     //         attributes: ["user_code"],
     //         include: [
     //             {
-    //                 model: Appointment,
+    //                 model: appointment,
     //                 as: "appointment",
     //                 attributes: ["appointment_code", "start_time", "end_time", "appointment_start_date"],
     //                 where: {

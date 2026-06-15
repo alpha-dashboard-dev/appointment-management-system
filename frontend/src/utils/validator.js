@@ -8,7 +8,7 @@ const VALID_APPOINTMENT_STATUSES = ['pending', 'approved', 'in_progress', 'rejec
 const VALID_RECURRENCE_UOMS = ['monthly', 'daily', 'weekly', 'fortnightly', 'quarterly', 'fixed']
 const VALID_DURATION_UOMS = ['week', 'day', 'hour', 'minutes']
 const VALID_CHARGE_UOMS = ['fixed', 'percentage']
-const VALID_INVOICE_STATUSES = ['draft', 'issued', 'paid', 'canceled']
+const VALID_INVOICE_STATUSES = ['draft', 'issued', 'paid', 'unpaid', 'canceled']
 const VALID_LOCATION_TYPES = ['business', 'client']
 const VALID_AVAILABILITY = ['available', 'not_available']
 const VALID_ABILITY_USER_TYPES = ['admin', 'business_owner', 'staff', 'client']
@@ -169,7 +169,7 @@ export function validateChargeForm(data) {
   return errors
 }
 
-// ---------- Appointment ----------
+// ---------- appointment ----------
 export function validateAppointmentForm(data) {
   const errors = {}
   if (!data.business_code) {

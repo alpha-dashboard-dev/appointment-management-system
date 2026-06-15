@@ -13,7 +13,7 @@ class AppointmentServiceItemService {
 
         if (!appointment) {
             throw new Error(
-                "Appointment not found"
+                "appointment not found"
             );
         }
 
@@ -39,7 +39,7 @@ class AppointmentServiceItemService {
 
         if (!appointment) {
             throw new Error(
-                "Appointment not found"
+                "appointment not found"
             );
         }
 
@@ -51,10 +51,10 @@ class AppointmentServiceItemService {
 
     async remove(appointmentCode: string, serviceId: number) {
         const appointment = await appointmentRepo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
+        if (!appointment) throw new Error("appointment not found");
 
         const item = await appointmentServiceRepo.findById(serviceId);
-        if (!item) throw new Error("Appointment service not found");
+        if (!item) throw new Error("appointment service not found");
 
         return await appointmentServiceRepo.delete(serviceId);
     }

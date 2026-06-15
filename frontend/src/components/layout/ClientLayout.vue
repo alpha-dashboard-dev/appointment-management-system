@@ -64,7 +64,7 @@ const collapsed = ref(false)
 
 const titleMap = {
   '/client/dashboard': 'Home',
-  '/client/book': 'Book Appointment',
+  '/client/book': 'Book appointment',
   '/client/appointments': 'My Appointments',
 }
 const pageTitle = computed(() => titleMap[route.path] || 'Client Portal')

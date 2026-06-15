@@ -89,7 +89,7 @@
           </div>
           <div class="modal-body">
             <dl class="row">
-<!--              <dt class="col-5 text-muted">Appointment Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>-->
+<!--              <dt class="col-5 text-muted">appointment Code</dt><dd class="col-7"><code>{{ selected.appointment_code }}</code></dd>-->
               <dt class="col-5 text-muted">Buisness Name</dt><dd class="col-7">{{ selected.business_name }}</dd>
               <dt class="col-5 text-muted">Status</dt><dd class="col-7"><span :class="['ams-badge', selected.status]">{{ selected.status }}</span></dd>
               <dt class="col-5 text-muted">Start Date</dt><dd class="col-7">{{ formatDate(selected.appointment_start_date) }}</dd>

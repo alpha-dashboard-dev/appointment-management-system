@@ -126,12 +126,12 @@ class Service extends Model {
             constraints: false,
         });
 
-        Service.hasMany(models.AppointmentRecurrence, {
-            foreignKey: "service_code",
-            sourceKey: "service_code",
-            as: "appointment_recurrences",
-            constraints: false,
-        });
+    //     Service.hasMany(models.appointment_recurrence, {
+    //         foreignKey: "service_code",
+    //         sourceKey: "service_code",
+    //         as: "appointment_recurrences",
+    //         constraints: false,
+    //     });
     }
 }
 

@@ -185,7 +185,7 @@
           </div>
           <div class="modal-body">
 
-            <!-- Appointment summary -->
+            <!-- appointment summary -->
             <div class="bg-light rounded p-3 mb-3 d-flex flex-wrap gap-3" v-if="selected">
               <div><span class="text-muted small">Service Name</span><div>{{ selected.service_name }}</div></div>
               <div><span class="text-muted small">Start Date</span><div>{{ formatDate(selected.appointment_start_date) }}</div></div>
@@ -274,7 +274,12 @@
                     </div>
 
                     <div v-for="charge in autoCharges" :key="charge.charge_code" class="form-check mb-2">
-                      <input type="checkbox" class="form-check-input">
+                      <input
+                          :id="`charge-${charge.charge_code}`"
+                          v-model="selectedChargeCodes"
+                          :value="charge.charge_code"
+                          type="checkbox"
+                          class="form-check-input">
                       <label class="form-check-label">
                         {{ charge.name }}
                         <span class="text-muted">

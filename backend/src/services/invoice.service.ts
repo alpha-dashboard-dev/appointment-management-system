@@ -17,7 +17,7 @@ class InvoiceService {
         validateInvoice(data);
 
         const appointment = await appointmentRepo.findByCode(appointment_code);
-        if (!appointment) throw new Error("Appointment not found");
+        if (!appointment) throw new Error("appointment not found");
 
         if (actor && actor.userType !== ROLES.ADMIN) {
             const apptBusiness = appointment.dataValues?.business_code ?? appointment.business_code;
@@ -31,7 +31,7 @@ class InvoiceService {
             appointment_code,
             subtotal: subtotal || null,
             total: total || null,
-            invoice_status: "draft",
+            invoice_status: "unpaid",
             date: date || new Date().toISOString().split("T")[0],
             updated_by: actor?.userCode || null,
         });

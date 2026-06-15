@@ -29,7 +29,7 @@
         <table v-else class="table table-hover ams-table mb-0 align-middle">
           <thead class="table-light">
             <tr>
-<!--              <th class="ps-3">Appointment Code</th>-->
+<!--              <th class="ps-3">appointment Code</th>-->
               <th>Service Name</th>
               <th>Notes</th>
               <th>Created By</th>
@@ -140,7 +140,7 @@
           </div>
           <div class="modal-body">
 
-            <!-- Appointment summary -->
+            <!-- appointment summary -->
             <div class="bg-light rounded p-3 mb-3 d-flex flex-wrap gap-3" v-if="selected">
               <div><span class="text-muted small">Service Name</span><div>{{ selected.service_name }}</div></div>
               <div><span class="text-muted small">Start Date</span><div>{{ formatDate(selected.appointment_start_date) }}</div></div>
@@ -465,7 +465,7 @@
 <!--            <button type="button" class="btn-close" @click="closeAssign"></button>-->
 <!--          </div>-->
 <!--          <div class="modal-body">-->
-<!--            <p class="text-muted small mb-3">Appointment: <code>{{ assignAppt.appointment_code }}</code></p>-->
+<!--            <p class="text-muted small mb-3">appointment: <code>{{ assignAppt.appointment_code }}</code></p>-->
 <!--            <div v-if="staffLoading" class="text-center text-muted py-3">Loading staff...</div>-->
 <!--            <div v-else-if="!staffList.length" class="text-center text-muted py-3">No service staff found</div>-->
 <!--            <div v-else class="d-flex flex-column gap-2" style="max-height:220px;overflow-y:auto">-->

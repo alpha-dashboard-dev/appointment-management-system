@@ -299,7 +299,7 @@ function submitAppointment() {
     status: 'pending'
   })
 
-  console.log('Appointment Requested:', form)
+  console.log('appointment Requested:', form)
 
   // API READY
   // await axios.post('/appointments', form)

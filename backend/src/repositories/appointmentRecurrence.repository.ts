@@ -23,6 +23,7 @@ class AppointmentRecurrenceRepository {
     }
 
     async create(data: any) {
+        // console.log(data);
         return dbHelper.create(this.tables, data);
     }
 
@@ -64,7 +65,7 @@ class AppointmentRecurrenceRepository {
     }
 
     async update(id: number, data: any) {
-        return dbHelper.update(this.tables, id, data);
+        return dbHelper.update(this.tables, {"id": id}, data);
     }
 
     async delete(id: number) {

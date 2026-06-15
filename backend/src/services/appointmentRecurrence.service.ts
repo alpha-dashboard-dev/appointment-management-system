@@ -9,12 +9,13 @@ class AppointmentRecurrenceService {
         if (actor && actor.userType !== ROLES.ADMIN) {
             data.business_code = actor.businessCode;
         }
+        // console.log(data)
 
         validateAppointmentRecurrence(data);
 
         return await appointmentRecurrenceRepo.create({
             business_code: data.business_code,
-            service_code: data.service_code,
+            appointment_code: data.appointment_code,
             recurrence_uom: data.recurrence_uom,
             recurrence_value:
                 data.recurrence_value ??
@@ -31,8 +32,8 @@ class AppointmentRecurrenceService {
         const filters: any = {
             business_code:
                 query.business_code,
-            service_code:
-                query.service_code,
+            appointment_code:
+                query.appointment_code,
             status: query.status,
         };
 
@@ -42,7 +43,7 @@ class AppointmentRecurrenceService {
 
         return await appointmentRecurrenceRepo.findAll(
             filters,
-            this.buildQueryOptions(query)
+            buildQueryOptions(query)
         );
     }
 
@@ -50,7 +51,7 @@ class AppointmentRecurrenceService {
         const recurrence =
             await appointmentRecurrenceRepo.findById(
                 id,
-                this.buildQueryOptions(query)
+                buildQueryOptions(query)
             );
 
         if (!recurrence) {

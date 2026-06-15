@@ -115,59 +115,37 @@ export class AppointmentPricingService {
 
     async applyBusinessCharges(businessCode: string, appointmentCode: string, selectedChargeCodes: string[] = []): Promise<void> {
 
-        const existing =
+        const beforeCharges =
             await appointmentChargeRepo.findByAppointment(
                 appointmentCode
             );
+        const existing = await appointmentChargeRepo.findByAppointment(appointmentCode);
 
         const existingCodes = new Set(
-            (existing || [])
-                .map((row: any) => extractRow(row).charge_code)
+            (existing || []).map((row: any) => extractRow(row).charge_code)
         );
 
         // Auto-applied charges
-        const autoCharges =
-            await chargeRepo.findAutoApplyByBusiness(
-                businessCode
-            );
-
-        // Optional charges selected by user
-        const selectedCharges = [];
+        // const autoCharges = await chargeRepo.findAutoApplyByBusiness(businessCode);
+        //
+        // // Optional charges selected by user
+        // const selectedCharges = [];
 
         for (const chargeCode of selectedChargeCodes) {
 
-            const charge =
-                await chargeRepo.findByCode(chargeCode);
+            const charge = await chargeRepo.findByCode(chargeCode);
 
             if (!charge) continue;
 
-            const row = extractRow(charge);
+            const chargeData = extractRow(charge);
 
-            if (
-                row.business_code !== businessCode ||
-                row.status !== "active"
-            ) {
+            if (chargeData.business_code !== businessCode || chargeData.status !== "active")
+            {
                 continue;
             }
 
-            selectedCharges.push(charge);
-        }
-
-        const chargesToApply = [
-            ...autoCharges,
-            ...selectedCharges,
-        ];
-
-        for (const charge of chargesToApply) {
-
-            const chargeData =
-                extractRow(charge);
-
-            if (
-                existingCodes.has(
-                    chargeData.charge_code
-                )
-            ) {
+            if (existingCodes.has(chargeData.charge_code))
+            {
                 continue;
             }
 
@@ -179,6 +157,9 @@ export class AppointmentPricingService {
                 charge_value: chargeData.charge_value,
             });
         }
+        const rows = await appointmentChargeRepo.findByAppointment(
+            appointmentCode
+        );
     }
 
     /**
@@ -197,7 +178,7 @@ export class AppointmentPricingService {
         const invoiceData = {
             subtotal,
             total,
-            invoice_status: "draft",
+            invoice_status: "unpaid",
             date: new Date().toISOString().split("T")[0],
             updated_by: updatedBy,
         };
@@ -225,6 +206,7 @@ export class AppointmentPricingService {
         });
 
         const appointmentCharges = await appointmentChargeRepo.findByAppointment(appointmentCode);
+
         return this.calculatePricing(businessCode, serviceCodes, appointmentCharges || []);
     }
 
@@ -283,19 +265,11 @@ export class AppointmentPricingService {
         };
     }
 
-    async getApprovalCharges(
-        businessCode: string
-    ) {
+    async getApprovalCharges(businessCode: string) {
 
-        const autoCharges =
-            await chargeRepo.findAutoApplyByBusiness(
-                businessCode
-            );
+        const autoCharges = await chargeRepo.findAutoApplyByBusiness(businessCode);
 
-        const optionalCharges =
-            await chargeRepo.findOptionalByBusiness(
-                businessCode
-            );
+        const optionalCharges = await chargeRepo.findOptionalByBusiness(businessCode);
 
         return {
             auto_charges: autoCharges.map(extractRow),

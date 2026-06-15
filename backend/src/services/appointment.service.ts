@@ -62,7 +62,7 @@ class AppointmentService {
 
             const appointment_code = generateCode();
 
-            // 2. Create Appointment
+            // 2. Create appointment
             const appointment = await repo.create(
                 {
                     business_code,
@@ -176,7 +176,7 @@ class AppointmentService {
         const options = buildQueryOptions(query);
         const appointment = await repo.findByCode(appointmentCode, options);
 
-        if (!appointment) throw new Error("Appointment not found");
+        if (!appointment) throw new Error("appointment not found");
 
         const appointmentRow = extractRow(appointment);
 
@@ -204,7 +204,7 @@ class AppointmentService {
 
     async update(appointmentCode: string, data: any, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
+        if (!appointment) throw new Error("appointment not found");
 
         const appointmentRow = extractRow(appointment);
         validateActorBusiness(actor, appointmentRow.business_code);
@@ -248,7 +248,7 @@ class AppointmentService {
             throw new Error("Cannot approve appointment without a location");
         }
         if (!appointmentRow.appointment_start_date || !appointmentRow.start_time || !appointmentRow.end_time) {
-            throw new Error("Appointment is missing date or time information");
+            throw new Error("appointment is missing date or time information");
         }
 
         const date = normalizeDateOnly(appointmentRow.appointment_start_date);
@@ -293,32 +293,11 @@ class AppointmentService {
     /**
      * Finalize approval by applying charges and creating invoice
      */
-    // private async finalizeApproval(appointmentRow: any, appointmentCode: string, actor: any): Promise<void> {
-    //     await pricingService.applyActiveCharges(appointmentRow.business_code, appointmentCode);
-    //     const pricing = await pricingService.computeAppointmentPricing(
-    //         appointmentRow.business_code,
-    //         appointmentCode
-    //     );
-    //     await pricingService.upsertDraftInvoice(
-    //         appointmentRow.business_code,
-    //         appointmentCode,
-    //         pricing.subtotal,
-    //         pricing.total,
-    //         actor?.userCode || null
-    //     );
-    // }
     private async finalizeApproval(appointmentRow: any, appointmentCode: string, actor: any, selectedChargeCodes: string[] = []): Promise<void> {
 
-        await pricingService.applyBusinessCharges(
-            appointmentRow.business_code,
-            appointmentCode,
-            selectedChargeCodes
-        );
+        await pricingService.applyBusinessCharges(appointmentRow.business_code, appointmentCode, selectedChargeCodes);
 
-        const pricing = await pricingService.computeAppointmentPricing(
-                appointmentRow.business_code,
-                appointmentCode
-            );
+        const pricing = await pricingService.computeAppointmentPricing(appointmentRow.business_code, appointmentCode);
 
         await pricingService.upsertDraftInvoice(
             appointmentRow.business_code,
@@ -333,7 +312,7 @@ class AppointmentService {
         validateAppointmentStatus({ status });
 
         const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
+        if (!appointment) throw new Error("appointment not found");
 
         const appointmentRow = extractRow(appointment);
         validateActorBusiness(actor, appointmentRow.business_code);
@@ -389,7 +368,7 @@ class AppointmentService {
             const original = await repo.findByCode(appointmentCode);
 
             if (!original) {
-                throw new Error("Appointment not found");
+                throw new Error("appointment not found");
             }
 
             const originalRow = extractRow(original);
@@ -683,7 +662,7 @@ class AppointmentService {
                 );
 
                 // Apply pricing
-                await pricingService.applyActiveCharges(
+                await pricingService.applyBusinessCharges(
                     originalRow.business_code,
                     rescheduledCode
                 );
@@ -812,152 +791,22 @@ class AppointmentService {
         }
     }
 
-    // async reschedule(appointmentCode: string, data: any, actor: any) {
-    //     const original = await repo.findByCode(appointmentCode);
-    //     if (!original) throw new Error("Appointment not found");
-    //
-    //     const originalRow = extractRow(original);
-    //     validateActorBusiness(actor, originalRow.business_code);
-    //
-    //     const {
-    //         appointment_start_date,
-    //         appointment_end_date,
-    //         start_time,
-    //         end_time,
-    //         location_code,
-    //         notes,
-    //     } = data;
-    //
-    //     // Build payload, using original values as defaults
-    //     const resolvedPayload = {
-    //         appointment_start_date: normalizeDateOnly(appointment_start_date || originalRow.appointment_start_date),
-    //         appointment_end_date: normalizeDateOnly(appointment_end_date || originalRow.appointment_end_date),
-    //         start_time: normalizeTimeToHHMM(start_time || originalRow.start_time, "startTime"),
-    //         end_time: normalizeTimeToHHMM(end_time || originalRow.end_time, "endTime"),
-    //     };
-    //
-    //     validateReschedule(resolvedPayload);
-    //
-    //     const new_appointment_code = generateCode();
-    //
-    //     // Create new rescheduled appointment
-    //     const newAppointment = await repo.create({
-    //         business_code: originalRow.business_code,
-    //         appointment_code: new_appointment_code,
-    //         appointment_start_date: resolvedPayload.appointment_start_date,
-    //         appointment_end_date: resolvedPayload.appointment_end_date,
-    //         start_time: resolvedPayload.start_time,
-    //         end_time: resolvedPayload.end_time,
-    //         location_code: location_code || originalRow.location_code || null,
-    //         status: "pending",
-    //         created_by: actor?.userCode,
-    //         rescheduled_from: appointmentCode,
-    //         notes: notes || null,
-    //     });
-    //
-    //     // Mark original as rescheduled
-    //     await repo.update(appointmentCode, { status: "rescheduled" });
-    //
-    //     // Record history
-    //     await historyRepo.create({
-    //         business_code: originalRow.business_code,
-    //         appointment_code: new_appointment_code,
-    //         action: "rescheduled",
-    //         changed_by: actor?.userCode,
-    //         old_value: { appointment_code: appointmentCode },
-    //         new_value: { appointment_code: new_appointment_code },
-    //     });
-    //
-    //     return newAppointment;
-    // }
-
-    // async respondToReschedule(originalAppointmentCode: string, action: string, actor: any) {
-    //     if (!["accepted", "rejected"].includes(action)) {
-    //         throw new Error("Action must be 'accepted' or 'rejected'");
-    //     }
-    //
-    //     const original = await repo.findByCode(originalAppointmentCode);
-    //     if (!original) throw new Error("Original appointment not found");
-    //
-    //     if (actor?.userType !== ROLES.CLIENT) {
-    //         throw new Error("Only clients can respond to reschedule offers");
-    //     }
-    //
-    //     const originalRow = extractRow(original);
-    //     validateActorIsCreator(actor, originalRow.created_by);
-    //
-    //     if (originalRow.status !== "rescheduled") {
-    //         throw new Error("No reschedule offer on this appointment");
-    //     }
-    //
-    //     // Find the rescheduled appointment
-    //     const candidates = await repo.findAll({ rescheduled_from: originalAppointmentCode } as any);
-    //     if (!candidates.length) throw new Error("Reschedule offer not found");
-    //
-    //     const rescheduledAppointment = extractRow(candidates[0]);
-    //     const rescheduledCode = rescheduledAppointment.appointment_code;
-    //
-    //     if (action === "accepted") {
-    //         // Apply charges and finalize the rescheduled appointment
-    //         await pricingService.applyActiveCharges(originalRow.business_code, rescheduledCode);
-    //         await repo.update(rescheduledCode, { status: "approved" });
-    //
-    //         const pricing = await pricingService.computeAppointmentPricing(
-    //             originalRow.business_code,
-    //             rescheduledCode
-    //         );
-    //         await pricingService.upsertDraftInvoice(
-    //             originalRow.business_code,
-    //             rescheduledCode,
-    //             pricing.subtotal,
-    //             pricing.total,
-    //             actor.userCode
-    //         );
-    //
-    //         await historyRepo.create({
-    //             business_code: originalRow.business_code,
-    //             appointment_code: rescheduledCode,
-    //             action: "approved",
-    //             changed_by: actor.userCode,
-    //             old_value: { status: "pending" },
-    //             new_value: { status: "approved" },
-    //         });
-    //
-    //         return { originalAppointmentCode, rescheduledCode, action: "accepted" };
-    //     } else {
-    //         // Reject: cancel the rescheduled appointment, restore original to pending
-    //         await repo.update(rescheduledCode, { status: "canceled", cancelled_by: actor.userCode });
-    //         await repo.update(originalAppointmentCode, { status: "pending" });
-    //
-    //         await historyRepo.create({
-    //             business_code: originalRow.business_code,
-    //             appointment_code: rescheduledCode,
-    //             action: "canceled",
-    //             changed_by: actor.userCode,
-    //             old_value: { status: "pending" },
-    //             new_value: { status: "canceled" },
-    //         });
-    //
-    //         return { originalAppointmentCode, rescheduledCode, action: "rejected" };
-    //     }
-    // }
-
 
     /**
      * Returns availability insights for an appointment without making changes
      */
     async checkAvailability(appointmentCode: string, actor: any) {
         const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
+        if (!appointment) throw new Error("appointment not found");
 
         const appointmentRow = extractRow(appointment);
         validateActorBusiness(actor, appointmentRow.business_code);
 
         if (!appointmentRow.location_code) {
-            throw new Error("Appointment has no location assigned");
+            throw new Error("appointment has no location assigned");
         }
         if (!appointmentRow.appointment_start_date || !appointmentRow.start_time || !appointmentRow.end_time) {
-            throw new Error("Appointment is missing date or time information");
+            throw new Error("appointment is missing date or time information");
         }
 
         return await availabilityChecker.buildInsights(appointmentRow, appointmentCode);
@@ -969,7 +818,7 @@ class AppointmentService {
     async approveWithStaff(appointmentCode: string, staffCode: string, actor: any, selectedChargeCodes: string[] = []) {
         // console.log(actor)
         const appointment = await repo.findByCode(appointmentCode);
-        if (!appointment) throw new Error("Appointment not found");
+        if (!appointment) throw new Error("appointment not found");
 
         const appointmentRow = extractRow(appointment);
         validateActorBusiness(actor, appointmentRow.business_code);
@@ -983,7 +832,7 @@ class AppointmentService {
             throw new Error("Cannot approve appointment without a location");
         }
         if (!appointmentRow.appointment_start_date || !appointmentRow.start_time || !appointmentRow.end_time) {
-            throw new Error("Appointment is missing date or time information");
+            throw new Error("appointment is missing date or time information");
         }
 
         const dateStr = normalizeDateOnly(appointmentRow.appointment_start_date);
@@ -1016,54 +865,6 @@ class AppointmentService {
                 "Selected staff is not scheduled at this location"
             );
         }
-
-        // const scheduledStaff = await scheduleRepo.findAvailableStaff(
-        //     appointmentRow.business_code,
-        //     appointmentRow.location_code,
-        //     workingDay,
-        //     startTime,
-        //     endTime
-        // );
-        //
-        // const exists = scheduledStaff.some(
-        //     s => s.user_code === staffCode
-        // );
-        //
-        // if (!exists) {
-        //     throw new Error(
-        //         "Staff is not scheduled at this location and time"
-        //     );
-        // }
-
-        // Check staff availability
-        // const busyStaffCodes = new Set(
-        //     await participantRepo.findBusyStaffCodes(dateStr, startTime, endTime, appointmentCode)
-        // );
-        // const availableStaff = await scheduleRepo.findAvailableStaff(
-        //     appointmentRow.business_code,
-        //     appointmentRow.location_code,
-        //     workingDay,
-        //     startTime,
-        //     endTime
-        // );
-        // const staffRecord = (availableStaff || []).find(
-        //     (s: any) => s.user_code === staffCode && !busyStaffCodes.has(s.user_code)
-        // );
-        // if (!staffRecord) {
-        //     throw new Error("Selected service staff is not available for this appointment slot");
-        // }
-
-        // Check for staff double-booking
-        // const conflicts = await participantRepo.findConflictsForStaff(
-        //     staffCode,
-        //     dateStr,
-        //     startTime,
-        //     endTime,
-        //     appointmentCode
-        // );
-        // if (conflicts && conflicts.length > 0) {
-        //     throw new Error("Selected staff member has a conflicting appointment at this time");
-        // }
 
         // Assign staff as participant
         await participantRepo.create({

@@ -1,10 +1,10 @@
 const DAYS_OF_WEEK = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 function normalizeDateOnly(input: any): string {
-    if (!input) throw new Error("Appointment has invalid date");
+    if (!input) throw new Error("appointment has invalid date");
 
     if (input instanceof Date) {
-        if (isNaN(input.getTime())) throw new Error("Appointment has invalid date");
+        if (isNaN(input.getTime())) throw new Error("appointment has invalid date");
         return input.toISOString().split("T")[0];
     }
 
@@ -13,7 +13,7 @@ function normalizeDateOnly(input: any): string {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
     if (!m) {
         const parsed = new Date(text);
-        if (isNaN(parsed.getTime())) throw new Error("Appointment has invalid date");
+        if (isNaN(parsed.getTime())) throw new Error("appointment has invalid date");
         return parsed.toISOString().split("T")[0];
     }
 

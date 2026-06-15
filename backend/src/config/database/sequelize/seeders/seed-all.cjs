@@ -513,7 +513,7 @@ module.exports = {
         //     },
         // ]);
         
-        // // 12. Appointment Services
+        // // 12. appointment Services
         // await queryInterface.bulkInsert("appointment_services", [
         //     { business_code: "BIZ00001", service_code: "SVC00001", appointment_code: "APT00001", created_at: now, updated_at: now },
         //     { business_code: "BIZ00001", service_code: "SVC00002", appointment_code: "APT00001", created_at: now, updated_at: now },
@@ -522,7 +522,7 @@ module.exports = {
         //     { business_code: "BIZ00002", service_code: "SVC00004", appointment_code: "APT00004", created_at: now, updated_at: now },
         // ]);
         
-        // // 13. Appointment Participants
+        // // 13. appointment Participants
         // await queryInterface.bulkInsert("appointment_participants", [
         //     { business_code: "BIZ00001", appointment_code: "APT00001", user_code: "OWN00001", user_type: "business_owner", user_role: "Manager", status: "active", created_at: now, updated_at: now },
         //     { business_code: "BIZ00001", appointment_code: "APT00001", user_code: "STF00001", user_type: "service_staff", user_role: "Therapist", status: "active", created_at: now, updated_at: now },
@@ -536,20 +536,20 @@ module.exports = {
         //     { business_code: "BIZ00002", appointment_code: "APT00004", user_code: "CLU00003", user_type: "client", user_role: null, status: "active", created_at: now, updated_at: now },
         // ]);
         
-        // // 14. Appointment Charges
+        // // 14. appointment Charges
         // await queryInterface.bulkInsert("appointment_charges", [
         //     { business_code: "BIZ00001", appointment_code: "APT00001", charge_code: "CHG00001", charge_uom: "percentage", charge_value: 10.00, created_at: now, updated_at: now },
         //     { business_code: "BIZ00001", appointment_code: "APT00002", charge_code: "CHG00001", charge_uom: "percentage", charge_value: 10.00, created_at: now, updated_at: now },
         //     { business_code: "BIZ00002", appointment_code: "APT00004", charge_code: "CHG00003", charge_uom: "percentage", charge_value: 10.00, created_at: now, updated_at: now },
         // ]);
         
-        // // 15. Appointment Discounts
+        // // 15. appointment Discounts
         // await queryInterface.bulkInsert("appointment_discounts", [
         //     { business_code: "BIZ00001", appointment_code: "APT00001", service_code: "SVC00001", discount_uom: "percentage", discount_value: 10, created_at: now, updated_at: now },
         //     { business_code: "BIZ00001", appointment_code: "APT00002", service_code: "SVC00002", discount_uom: "fixed", discount_value: 5, created_at: now, updated_at: now },
         // ]);
         
-        // // 16. Appointment Recurrence
+        // // 16. appointment Recurrence
         // await queryInterface.bulkInsert("appointment_recurrence", [
         //     {
         //         business_code: "BIZ00001",
@@ -575,7 +575,7 @@ module.exports = {
         //     },
         // ]);
         
-        // // 17. Appointment History
+        // // 17. appointment History
         // await queryInterface.bulkInsert("appointment_history", [
         //     {
         //         business_code: "BIZ00001",

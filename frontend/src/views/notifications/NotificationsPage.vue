@@ -42,7 +42,7 @@
 import { ref } from 'vue'
 
 const notifications = ref([
-  { id: 1, title: 'New Appointment', message: 'Ali booked an appointment.', time: '2 min ago', unread: true },
+  { id: 1, title: 'New appointment', message: 'Ali booked an appointment.', time: '2 min ago', unread: true },
   { id: 2, title: 'Reminder', message: '3 pending appointments need your attention.', time: '15 min ago', unread: true },
   { id: 3, title: 'Organization Updated', message: 'Organization details were modified.', time: '30 min ago', unread: false },
   { id: 4, title: 'System Alert', message: 'Backup completed successfully.', time: '1 hr ago', unread: false },

@@ -211,6 +211,13 @@ class Appointment extends Model {
             as: "invoices",
             constraints: false,
         });
+
+        Appointment.hasMany(models.AppointmentRecurrence, {
+            foreignKey: "appointment_code",
+            sourceKey: "appointment_code",
+            as: "appointment_recurrences",
+            constraints: false,
+        });
     }
 }
 

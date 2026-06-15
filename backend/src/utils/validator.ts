@@ -10,7 +10,7 @@ const VALID_RECURRENCE_UOMS = ["monthly", "daily", "weekly", "fortnightly", "qua
 const VALID_DURATION_UOMS = ["week", "day", "hour", "minutes"];
 const VALID_CHARGE_UOMS = ["fixed", "percentage"];
 const VALID_DISCOUNT_UOMS = ["fixed", "percentage"];
-const VALID_INVOICE_STATUSES = ["draft", "issued", "paid", "canceled"];
+const VALID_INVOICE_STATUSES = ["draft", "issued", "paid", "unpaid", "canceled"];
 const VALID_LOCATION_TYPES = ["business", "client"];
 const VALID_AVAILABILITY = ["available", "not_available"];
 const VALID_PARTICIPANT_USER_TYPES = ["business_owner", "operational_staff", "service_staff", "client"];
@@ -409,21 +409,21 @@ export const validateAppointmentDiscount = (data: any) => {
 
 
 export const validateAppointmentRecurrence = (data: any) => {
-    const { business_code, service_code, recurrence_uom, recurrence_Value, auto_cancel_after_days, reschedule_after_days } = data;
+    const { business_code, appointment_code, recurrence_uom, recurrence_value, auto_cancel_after_days, reschedule_after_days } = data;
 
     if (!business_code || !isValidCode(business_code)) {
         throw new Error("Valid 8-character businessCode is required");
     }
 
-    if (!service_code || !isValidCode(service_code)) {
-        throw new Error("Valid 8-character serviceCode is required");
+    if (!appointment_code || !isValidCode(appointment_code)) {
+        throw new Error("Valid 8-character apppointmentCode is required");
     }
 
     if (!recurrence_uom || !VALID_RECURRENCE_UOMS.includes(recurrence_uom)) {
         throw new Error("Invalid recurrenceUom. Must be one of: " + VALID_RECURRENCE_UOMS.join(", "));
     }
 
-    if (!recurrence_Value || !Number.isInteger(Number(recurrence_Value)) || Number(recurrence_Value) < 1) {
+    if (!recurrence_value || !Number.isInteger(Number(recurrence_value)) || Number(recurrence_value) < 1) {
         throw new Error("recurrenceValue must be a positive integer");
     }
 

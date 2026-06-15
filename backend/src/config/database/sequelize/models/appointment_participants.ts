@@ -72,7 +72,7 @@ class AppointmentParticipant extends Model {
     }
 
     static associate(models) {
-        // Appointment
+        // appointment
         AppointmentParticipant.belongsTo(models.Appointment, {
             foreignKey: "appointment_code",
             targetKey: "appointment_code",

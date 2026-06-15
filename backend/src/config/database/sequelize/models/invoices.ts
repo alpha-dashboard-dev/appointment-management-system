@@ -40,6 +40,7 @@ class Invoice extends Model {
                     "draft",
                     "issued",
                     "paid",
+                    "unpaid",
                     "canceled",
                 ),
                 allowNull: false,

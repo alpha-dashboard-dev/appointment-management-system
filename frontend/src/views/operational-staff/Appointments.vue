@@ -185,7 +185,7 @@
           </div>
           <div class="modal-body">
 
-            <!-- Appointment summary -->
+            <!-- appointment summary -->
             <div class="bg-light rounded p-3 mb-3 d-flex flex-wrap gap-3" v-if="selected">
               <div><span class="text-muted small">Service Name</span><div>{{ selected.service_name }}</div></div>
               <div><span class="text-muted small">Start Date</span><div>{{ formatDate(selected.appointment_start_date) }}</div></div>
