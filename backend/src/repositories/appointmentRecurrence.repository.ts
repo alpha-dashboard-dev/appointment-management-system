@@ -55,10 +55,10 @@ class AppointmentRecurrenceRepository {
         });
     }
 
-    async findByService(serviceCode: string) {
+    async findByAppointmentCode(appointmentCode: string) {
         return dbHelper.findAll(this.tables, {
             where: {
-                service_code: serviceCode,
+                appointment_code: appointmentCode,
             },
             order: [["created_at", "DESC"]],
         });

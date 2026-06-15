@@ -1,12 +1,9 @@
 import appointmentRepo from "../repositories/appointment.repository";
 import appointmentRecurrenceRepo from "../repositories/appointmentRecurrence.repository";
+import {normalizeTimeToHHMMSS} from "../utils/date_time_format";
 
 class AppointmentRecurrenceExecutorService {
 
-    /**
-     * Run recurrence rules for all active recurrences
-     * (should be called by cron job)
-     */
     async processRecurrences() {
 
         const recurrences = await appointmentRecurrenceRepo.findAll({
@@ -20,37 +17,43 @@ class AppointmentRecurrenceExecutorService {
         }
     }
 
-    /**
-     * AUTO CANCEL LOGIC
-     */
     async applyAutoCancel(recurrence: any) {
+        // console.log(recurrence);
 
         if (!recurrence.auto_cancel_after_days) return;
+        // console.log(recurrence.auto_cancel_after_days);
 
         const cutoffDate = new Date();
+        // console.log(normalizeTimeToHHMMSS(cutoffDate));
+
+        // console.log(cutoffDate);
         cutoffDate.setDate(cutoffDate.getDate() - recurrence.auto_cancel_after_days);
+        // console.log(normalizeTimeToHHMMSS(cutoffDate));
+
 
         const appointments = await appointmentRepo.findAll({
             appointment_code: recurrence.appointment_code,
             status: "pending"
         });
 
+        // console.log(appointments);
+
         for (const appt of appointments) {
 
             const apptDate = new Date(appt.appointment_start_date);
+            console.log(normalizeTimeToHHMMSS(cutoffDate));
+            console.log(normalizeTimeToHHMMSS(apptDate));
 
             if (apptDate <= cutoffDate) {
-                await appointmentRepo.update(appt.id, {
+                await appointmentRepo.update(appt.appointment_code, {
                     status: "canceled",
-                    cancel_reason: "Auto-cancel by recurrence rule"
+                    notes: "Auto-cancel by recurrence rule",
                 });
             }
         }
+
     }
 
-    /**
-     * AUTO RESCHEDULE LOGIC
-     */
     async applyAutoReschedule(recurrence: any) {
 
         if (!recurrence.reschedule_after_days) return;
@@ -60,7 +63,7 @@ class AppointmentRecurrenceExecutorService {
 
         const appointments = await appointmentRepo.findAll({
             appointment_code: recurrence.appointment_code,
-            status: "cancelled"
+            status: "canceled"
         });
 
         for (const appt of appointments) {
