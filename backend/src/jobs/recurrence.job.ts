@@ -4,11 +4,11 @@ import recurrenceExecutor from "../services/appointmentRecurrenceExecutor.servic
 export function startRecurrenceJob() {
 
     cron.schedule("* * * * *", async () => {
-        console.log("Running recurrence engine...");
+        // console.log("Running recurrence engine...");
 
         try {
             await recurrenceExecutor.processRecurrences();
-            console.log("Recurrence job completed");
+            // console.log("Recurrence job completed");
         } catch (err) {
             console.error("Recurrence job failed:", err);
         }
