@@ -9,8 +9,6 @@ export async function apiHandler(section, action,
     } = {}
 ) {
 
-    console.log(section, action)
-
     const config = API_CONFIG?.[section]?.[action]
 
     if (!config) {
