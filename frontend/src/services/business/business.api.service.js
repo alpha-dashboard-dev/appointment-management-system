@@ -9,7 +9,6 @@ export default {
                 }
             })
     },
-
     create(data) {
         return api.post('/businesses/create-business', data)
     },
@@ -18,8 +17,9 @@ export default {
         return api.put(`/businesses/update-business/${business_code}`, data)
     },
 
-    deactivate(business_code, data) {
-        return api.patch(`/businesses/update-business-status/${business_code}`, data)
+    deactivate(business_code) {
+        return api.patch(`/businesses/update-business-status/${business_code}`,
+            {status: 'inactive'})
     },
 
     remove(business_code) {

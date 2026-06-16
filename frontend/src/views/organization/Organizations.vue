@@ -68,7 +68,7 @@
             <h5 class="modal-title">Edit Organization</h5>
             <button type="button" class="btn-close" @click="showEditModal = false"></button>
           </div>
-          <form @submit.prevent="updateOrg">
+          <form @submit.prevent="submitUpdate(updateOrganization, fetchOrganizations)">
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label fw-semibold">Organization Name *</label>
@@ -105,7 +105,7 @@
           </div>
           <div class="modal-footer justify-content-center">
             <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
-            <button class="btn btn-danger btn-sm" @click="deactivateOrg" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
+            <button class="btn btn-danger btn-sm" @click="confirmDeactivate(deactivateOrganization, fetchOrganizations)" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
           </div>
         </div>
       </div>
@@ -115,75 +115,38 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import { onMounted } from 'vue'
 
-const organizations = ref([])
-const loading = ref(true)
-const saving = ref(false)
-const error = ref('')
-const formError = ref('')
+import { useOrganization } from '@/composables/organization/useOrganization'
 
-const showEditModal = ref(false)
-const showDeleteModal = ref(false)
-const selected = ref(null)
+import { useOrganizationModals } from '@/composables/organization/useOrganizationModals'
 
-const editForm = reactive({ name: '', status: 'active' })
+// ---------------- ORGANIZATION ----------------
+const {
+  organizations,
+  loading,
+  error,
+  fetchOrganizations,
+  updateOrganization,
+  deactivateOrganization
+} = useOrganization()
 
-async function fetchOrgs() {
-  loading.value = true
-  error.value = ''
-  try {
-    const res = await api.get('/organizations/get-all-organization')
-    organizations.value = res.data.data || []
-  } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load organizations'
-  } finally {
-    loading.value = false
-  }
-}
+// ---------------- MODALS ----------------
+const {
+  showEditModal,
+  showDeleteModal,
+  selected,
+  saving,
+  formError,
+  editForm,
+  openEdit,
+  openDelete,
+  submitUpdate,
+  confirmDeactivate
+} = useOrganizationModals()
 
-function openEdit(org) {
-  selected.value = org
-  editForm.name = org.name
-  editForm.status = org.status
-  formError.value = ''
-  showEditModal.value = true
-}
-
-function openDelete(org) {
-  selected.value = org
-  showDeleteModal.value = true
-}
-
-async function updateOrg() {
-  saving.value = true
-  formError.value = ''
-  try {
-    await api.put(`/organizations/update-organization/${selected.value.organization_code}`, editForm)
-    showEditModal.value = false
-    await fetchOrgs()
-  } catch (err) {
-    formError.value = err.response?.data?.message || 'Update failed'
-  } finally {
-    saving.value = false
-  }
-}
-
-async function deactivateOrg() {
-  saving.value = true
-  try {
-    await api.patch(`/organizations/update-organization-status/${selected.value.organization_code}`, { status: 'inactive' })
-    showDeleteModal.value = false
-    await fetchOrgs()
-  } catch (err) {
-    error.value = err.response?.data?.message || 'Delete failed'
-  } finally {
-    saving.value = false
-  }
-}
-
-onMounted(fetchOrgs)
+// ---------------- INIT ----------------
+onMounted(() => {
+  fetchOrganizations()
+})
 </script>
-
-

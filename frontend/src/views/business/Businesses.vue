@@ -81,7 +81,7 @@
             <h5 class="modal-title">Edit Business</h5>
             <button type="button" class="btn-close" @click="showEditModal = false"></button>
           </div>
-          <form @submit.prevent="updateBusiness">
+          <form @submit.prevent="submitUpdate(updateBusiness, fetchBusinesses)">
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label fw-semibold">Business Name *</label>
@@ -118,7 +118,7 @@
           </div>
           <div class="modal-footer justify-content-center">
             <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
-            <button class="btn btn-danger btn-sm" @click="deactivateBusiness" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
+            <button class="btn btn-danger btn-sm" @click="confirmDeactivate(deactivateBusiness, fetchBusinesses)" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
           </div>
         </div>
       </div>
@@ -128,106 +128,17 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import {onMounted} from 'vue';
+import {useBusiness} from "@/composables/business/useBusiness"
+import {useBusinessModals} from "../../composables/business/useBusinessModals.js";
 
-const businesses = ref([])
-const loading = ref(true)
-const saving = ref(false)
-const error = ref('')
-const formError = ref('')
+const { businesses, loading, error, fetchBusinesses, updateBusiness, deactivateBusiness } = useBusiness()
 
-const showEditModal = ref(false)
-const showDeleteModal = ref(false)
-const selected = ref(null)
+const { showEditModal, showDeleteModal, selected, saving, formError, editForm,
+  openEdit, openDelete, submitUpdate, confirmDeactivate} = useBusinessModals()
 
-const editForm = reactive({ name: '', status: 'active' })
+onMounted(() => {
+  fetchBusinesses()
+})
 
-
-async function fetchBusinesses() {
-  loading.value = true
-  error.value = ''
-
-  try {
-    const response = await api.get('/businesses/get-business', {
-      params: {
-        include: "organization"
-      }
-    })
-    console.log(response)
-
-    businesses.value = (response.data.data || []).map(
-        (business) => ({
-          ...business,
-          organization_name:
-              business.organization?.name || '',
-        })
-    )
-  } catch (err) {
-    error.value =
-        err.response?.data?.message ||
-        'Failed to load businesses'
-  } finally {
-    loading.value = false
-  }
-}
-
-function openEdit(business){
-  selected.value = business
-  editForm.name = business.name
-  editForm.status = business.status
-  formError.value = ''
-  showEditModal.value = true
-}
-
-function openDelete(business) {
-  selected.value = business
-  showDeleteModal.value = true
-}
-
-async function updateBusiness() {
-  saving.value = true
-  formError.value = ''
-  try {
-    await api.put(`/businesses/update-business/${selected.value.business_code}`, editForm)
-    showEditModal.value = false
-    await fetchBusinesses()
-  } catch (err) {
-    formError.value = err.response?.data?.message || 'Update failed'
-  } finally {
-    saving.value = false
-  }
-}
-
-// Deactivate Business
-
-async function deactivateBusiness() {
-  saving.value = true
-  try {
-    await api.patch(`/businesses/update-business-status/${selected.value.business_code}`, { status: 'inactive' })
-    showDeleteModal.value = false
-    await fetchBusinesses()
-  } catch (err) {
-    error.value = err.response?.data?.message || 'Deactivation failed'
-  } finally {
-    saving.value = false
-  }
-}
-
-// async function deleteBusiness() {
-//   saving.value = true
-//   try {
-//     await api.delete(`/businesses/delete-business${selected.value.business_code}`)
-//     showDeleteModal.value = false
-//     await fetchBusinesses()
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Delete failed'
-//   } finally {
-//     saving.value = false
-//   }
-// }
-
-onMounted(fetchBusinesses)
 </script>
-
-
