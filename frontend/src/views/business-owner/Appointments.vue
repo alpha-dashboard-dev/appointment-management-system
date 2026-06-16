@@ -456,38 +456,6 @@
       </div>
     </div>
 
-    <!-- ASSIGN STAFF MODAL -->
-<!--    <div v-if="showAssign && assignAppt" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">-->
-<!--      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">-->
-<!--        <div class="modal-content">-->
-<!--          <div class="modal-header">-->
-<!--            <h5 class="modal-title">Assign Service Staff</h5>-->
-<!--            <button type="button" class="btn-close" @click="closeAssign"></button>-->
-<!--          </div>-->
-<!--          <div class="modal-body">-->
-<!--            <p class="text-muted small mb-3">appointment: <code>{{ assignAppt.appointment_code }}</code></p>-->
-<!--            <div v-if="staffLoading" class="text-center text-muted py-3">Loading staff...</div>-->
-<!--            <div v-else-if="!staffList.length" class="text-center text-muted py-3">No service staff found</div>-->
-<!--            <div v-else class="d-flex flex-column gap-2" style="max-height:220px;overflow-y:auto">-->
-<!--              <div-->
-<!--                v-for="s in staffList" :key="s.user_code"-->
-<!--                :class="['list-group-item list-group-item-action', { active: selectedStaff === s.user_code }]"-->
-<!--                style="cursor:pointer"-->
-<!--                @click="selectedStaff = s.user_code">-->
-<!--                <div class="fw-semibold">{{ s.name}}</div>-->
-<!--                <div class="text-muted small">{{ s.user_code }}</div>-->
-<!--              </div>-->
-<!--            </div>-->
-<!--            <p v-if="assignError" class="text-danger small mt-2 mb-0">{{ assignError }}</p>-->
-<!--          </div>-->
-<!--          <div class="modal-footer">-->
-<!--            <button type="button" class="btn btn-secondary" @click="closeAssign">Cancel</button>-->
-<!--            <button class="btn btn-ams" :disabled="!selectedStaff || assigning" @click="assignStaff">{{ assigning ? 'Assigning...' : 'Assign' }}</button>-->
-<!--          </div>-->
-<!--        </div>-->
-<!--      </div>-->
-<!--    </div>-->
-
     <!-- RESCHEDULE MODAL -->
     <div v-if="showReschedule" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
       <div class="modal-dialog modal-dialog-centered">
@@ -894,49 +862,9 @@ function prefillApprovalReschedule({ locationCode, startTime, endTime }) {
   approvalError.value = ''
 }
 
-// async function openAssign(appt) {
-//   assignAppt.value = appt
-//   selectedStaff.value = ''
-//   assignError.value = ''
-//   showAssign.value = true
-//   staffLoading.value = true
-//   try {
-//     const biz = authStore.user?.business_code
-//     const res = await api.get('/users/get-users', { params: { business_code: biz, user_type: 'service_staff' } })
-//     staffList.value = res.data.data || []
-//   } catch (_) {
-//     staffList.value = []
-//   } finally {
-//     staffLoading.value = false
-//   }
-// }
-
-// function closeAssign() {
-//   showAssign.value = false
-//   assignAppt.value = null
-//   assignError.value = ''
-// }
-
 function toggleActionDropdown(appointmentCode) {
   openDropdownCode.value = openDropdownCode.value === appointmentCode ? '' : appointmentCode
 }
-
-// async function assignStaff() {
-//   assigning.value = true
-//   assignError.value = ''
-//   try {
-//     await api.post(`/appointments/create-appointment-participants/${assignAppt.value.appointment_code}`, {
-//       user_code: selectedStaff.value,
-//       user_type: 'service_staff',
-//       user_role: 'service_staff',
-//     })
-//     closeAssign()
-//   } catch (err) {
-//     assignError.value = err.response?.data?.message || 'Assignment failed'
-//   } finally {
-//     assigning.value = false
-//   }
-// }
 
 function closeActionDropdown() {
   openDropdownCode.value = ''
