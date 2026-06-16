@@ -68,7 +68,7 @@
             <h5 class="modal-title">Edit Organization</h5>
             <button type="button" class="btn-close" @click="showEditModal = false"></button>
           </div>
-          <form @submit.prevent="submitUpdate(updateOrganization, fetchOrganizations)">
+          <form @submit.prevent="updateOrganization">
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label fw-semibold">Organization Name *</label>
@@ -105,7 +105,7 @@
           </div>
           <div class="modal-footer justify-content-center">
             <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
-            <button class="btn btn-danger btn-sm" @click="confirmDeactivate(deactivateOrganization, fetchOrganizations)" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
+            <button class="btn btn-danger btn-sm" @click="deactivateOrganization" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
           </div>
         </div>
       </div>
@@ -115,38 +115,152 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
-import { useOrganization } from '@/composables/organization/useOrganization'
+const organizations = ref([])
+const loading = ref(false)
+const error = ref('')
 
-import { useOrganizationModals } from '@/composables/organization/useOrganizationModals'
+const saving = ref(false)
+const formError = ref('')
 
-// ---------------- ORGANIZATION ----------------
-const {
-  organizations,
-  loading,
-  error,
-  fetchOrganizations,
-  updateOrganization,
-  deactivateOrganization
-} = useOrganization()
+const showEditModal = ref(false)
+const showDeleteModal = ref(false)
 
-// ---------------- MODALS ----------------
-const {
-  showEditModal,
-  showDeleteModal,
-  selected,
-  saving,
-  formError,
-  editForm,
-  openEdit,
-  openDelete,
-  submitUpdate,
-  confirmDeactivate
-} = useOrganizationModals()
+const selected = ref(null)
 
-// ---------------- INIT ----------------
+const editForm = reactive({
+  name: '',
+  status: 'active'
+})
+
+
+async function fetchOrganizations() {
+
+  loading.value = true
+  error.value = ''
+
+  try {
+    const res = await apiHandler('organization', 'getAllOrganizations')
+
+    console.log(res)
+
+    organizations.value = res.data.data || []
+
+  } catch (err) {
+
+    error.value =
+        err.response?.data?.message || 'Failed to load organizations'
+
+  } finally {
+    loading.value = false
+  }
+}
+
+function openEdit(org) {
+
+  selected.value = org
+
+  editForm.name = org.name
+  editForm.status = org.status
+
+  showEditModal.value = true
+}
+
+function openDelete(org) {
+  selected.value = org
+  showDeleteModal.value = true
+}
+
+async function updateOrganization() {
+
+  saving.value = true
+  formError.value = ''
+
+  try {
+
+    await apiHandler('organization', 'updateOrganization')
+
+    showEditModal.value = false
+
+    await fetchOrganizations()
+
+  } catch (err) {
+
+    formError.value =
+        err.response?.data?.message ||
+        'Update failed'
+
+  } finally {
+
+    saving.value = false
+
+  }
+}
+
+async function deactivateOrganization() {
+
+  saving.value = true
+
+  try {
+
+
+    showDeleteModal.value = false
+
+    await fetchOrganizations()
+
+  } catch (err) {
+
+    error.value =
+        err.response?.data?.message ||
+        'Deactivation failed'
+
+  } finally {
+
+    saving.value = false
+
+  }
+}
+
 onMounted(() => {
   fetchOrganizations()
 })
 </script>
+
+<!--<script setup>-->
+<!--import { onMounted } from 'vue'-->
+
+<!--import { useOrganization } from '@/composables/organization/useOrganization'-->
+
+<!--import { useOrganizationModals } from '@/composables/organization/useOrganizationModals'-->
+
+<!--// &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; ORGANIZATION &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
+<!--const {-->
+<!--  organizations,-->
+<!--  loading,-->
+<!--  error,-->
+<!--  fetchOrganizations,-->
+<!--  updateOrganization,-->
+<!--  deactivateOrganization-->
+<!--} = useOrganization()-->
+
+<!--// &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; MODALS &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
+<!--const {-->
+<!--  showEditModal,-->
+<!--  showDeleteModal,-->
+<!--  selected,-->
+<!--  saving,-->
+<!--  formError,-->
+<!--  editForm,-->
+<!--  openEdit,-->
+<!--  openDelete,-->
+<!--  submitUpdate,-->
+<!--  confirmDeactivate-->
+<!--} = useOrganizationModals()-->
+
+<!--// &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; INIT &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
+<!--onMounted(() => {-->
+<!--  fetchOrganizations()-->
+<!--})-->
+<!--</script>-->

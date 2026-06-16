@@ -34,6 +34,13 @@ router.put(
     controller.update
 );
 
+router.patch(
+    "deactivate-charge/:chargeCode",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.deactivate
+)
+
 router.delete(
     "/delete-charge/:chargeCode",
     authenticate,

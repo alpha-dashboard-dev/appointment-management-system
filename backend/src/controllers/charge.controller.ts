@@ -43,6 +43,30 @@ class ChargeController {
         }
     }
 
+    async deactivate(req: Request, res: Response) {
+
+        try {
+
+            const data = await service.deactivate(
+                    String(req.params.chargeCode),
+                    req.body.status
+                );
+
+            return res.status(200).json({
+                success: true,
+                message: "Status updated",
+                data,
+            });
+
+        } catch (err: any) {
+
+            return res.status(400).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+
     async delete(req: Request, res: Response) {
         try {
             await service.delete(String(req.params.chargeCode), req.user);

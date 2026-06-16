@@ -12,8 +12,7 @@ class LocationRepository {
     }
 
     buildIncludes(include: string[] = []) {
-        const associations =
-            db.Location.associations || {};
+        const associations = db.Location.associations || {};
 
         return [...new Set(include)]
             .filter((alias) => associations[alias])

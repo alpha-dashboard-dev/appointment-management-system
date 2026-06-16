@@ -368,5 +368,3 @@ onMounted(async () => {
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>
-
-

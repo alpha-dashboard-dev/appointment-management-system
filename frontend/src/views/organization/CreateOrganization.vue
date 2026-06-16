@@ -31,10 +31,40 @@
 </template>
 
 <script setup>
-import { useCreateOrganization } from '@/composables/organization/useCreateOrganization'
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/utils/api'
+import { validateOrganizationForm } from '@/utils/validator'
 
-const { form, loading, error, errors, validateField, submit} = useCreateOrganization()
+const router = useRouter()
 
+const form = reactive({ name: '', status: 'active' })
+const loading = ref(false)
+const error = ref('')
+const errors = reactive({})
+
+function validateField(field) {
+  const result = validateOrganizationForm(form)
+  if (result[field]) { errors[field] = result[field] } else { delete errors[field] }
+}
+
+async function submit() {
+  const validationErrors = validateOrganizationForm(form)
+  Object.keys(errors).forEach(k => delete errors[k])
+  Object.assign(errors, validationErrors)
+  if (Object.keys(errors).length > 0) return
+
+  loading.value = true
+  error.value = ''
+  try {
+    await api.post('/organizations/create-organization', form)
+    router.push('/organizations')
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to create organization'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <style scoped>

@@ -132,6 +132,19 @@ class ChargeService {
         return await repo.update(chargeCode, allowed);
     }
 
+    async changeStatus(businessCode: string, status: string) {
+
+        if (!["active", "inactive"].includes(status)) {
+            throw new Error("Invalid status");
+        }
+        await this.findBusinessOrFail(businessCode);
+
+        return await repo.update(
+            businessCode,
+            { status }
+        );
+    }
+
     async delete(chargeCode: string, actor: any) {
         const charge = await repo.findByCode(chargeCode);
         if (!charge) throw new Error("Charge not found");
