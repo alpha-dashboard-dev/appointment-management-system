@@ -14,7 +14,7 @@ router.post(
 );
 
 router.get(
-    "/get-all-organization",
+    "/get-all-organizations",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.getAll
