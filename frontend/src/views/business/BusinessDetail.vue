@@ -152,13 +152,20 @@
             <tr>
               <th>Appointment Code</th>
               <th>Start Date</th>
+              <th>End Date</th>
+              <th>Start time</th>
+              <th>End time</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-          <tr v-for="appt in appointments" :key="appt.appointment_code">
+          <tr v-for="appt in appointments"  :key="appt.appointment_code">
             <td><code>{{ appt.appointment_code}}</code></td>
-            <td>{{ appt.appointment_start_date }}</td>
+            <td>{{ formatDate(appt.appointment_start_date) }}</td>
+            <td>{{ formatDate(appt.appointment_end_date) }}</td>
+            <td>{{formatTime(appt.start_time)}}</td>
+            <td>{{formatTime(appt.end_time)}}</td>
+
             <td>
                 <span :class="['badge', appt.status]">
                   {{ appt.status }}
@@ -167,7 +174,7 @@
           </tr>
 
           <tr v-if="appointments.length === 0">
-            <td colspan="3" class="empty">No appointments</td>
+            <td colspan="6" class="empty">No appointments</td>
           </tr>
           </tbody>
         </table>
@@ -181,6 +188,8 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useBusinessDetails } from '@/composables/business/useBusinessDetails'
+import formatDate from "../../utils/formatDate.js";
+import formatTime from "../../utils/formatTime.js";
 
 const route = useRoute()
 const businessCode = route.params.business_code
