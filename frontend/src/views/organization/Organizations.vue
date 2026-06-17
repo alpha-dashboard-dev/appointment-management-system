@@ -150,8 +150,7 @@ async function fetchOrganizations() {
 
   } catch (err) {
 
-    error.value =
-        err.response?.data?.message || 'Failed to load organizations'
+    error.value = err.response?.data?.message || 'Failed to load organizations'
 
   } finally {
     loading.value = false
@@ -179,19 +178,16 @@ async function updateOrganization() {
   formError.value = ''
 
   try {
-
-    await apiHandler('organization', 'updateOrganization')
-
+    await apiHandler('organization', 'updateOrganization',
+        {
+          code: selected.value.organization_code,
+          ...editForm,
+        })
     showEditModal.value = false
-
     await fetchOrganizations()
 
   } catch (err) {
-
-    formError.value =
-        err.response?.data?.message ||
-        'Update failed'
-
+    formError.value = err.response?.data?.message || 'Update failed'
   } finally {
 
     saving.value = false
@@ -205,19 +201,18 @@ async function deactivateOrganization() {
 
   try {
 
-
+    await apiHandler('organization', 'deactivateOrganization',
+        {
+          code: selected.value.organization_code,
+          status: "inactive"
+        })
     showDeleteModal.value = false
 
     await fetchOrganizations()
 
   } catch (err) {
-
-    error.value =
-        err.response?.data?.message ||
-        'Deactivation failed'
-
+    error.value = err.response?.data?.message || 'Deactivation failed'
   } finally {
-
     saving.value = false
 
   }
@@ -227,40 +222,3 @@ onMounted(() => {
   fetchOrganizations()
 })
 </script>
-
-<!--<script setup>-->
-<!--import { onMounted } from 'vue'-->
-
-<!--import { useOrganization } from '@/composables/organization/useOrganization'-->
-
-<!--import { useOrganizationModals } from '@/composables/organization/useOrganizationModals'-->
-
-<!--// &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; ORGANIZATION &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
-<!--const {-->
-<!--  organizations,-->
-<!--  loading,-->
-<!--  error,-->
-<!--  fetchOrganizations,-->
-<!--  updateOrganization,-->
-<!--  deactivateOrganization-->
-<!--} = useOrganization()-->
-
-<!--// &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; MODALS &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
-<!--const {-->
-<!--  showEditModal,-->
-<!--  showDeleteModal,-->
-<!--  selected,-->
-<!--  saving,-->
-<!--  formError,-->
-<!--  editForm,-->
-<!--  openEdit,-->
-<!--  openDelete,-->
-<!--  submitUpdate,-->
-<!--  confirmDeactivate-->
-<!--} = useOrganizationModals()-->
-
-<!--// &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; INIT &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
-<!--onMounted(() => {-->
-<!--  fetchOrganizations()-->
-<!--})-->
-<!--</script>-->
