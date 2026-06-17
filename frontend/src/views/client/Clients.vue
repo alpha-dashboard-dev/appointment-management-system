@@ -161,6 +161,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const clients = ref([])
 const loading = ref(true)
@@ -191,17 +192,14 @@ async function fetchClients() {
   error.value = ''
 
   try {
-    const response = await api.get('/clients/get-client', {
-      params: {
+    const response = await apiHandler("client","getAllClients",{
         include: "business"
-      }
     })
 
     clients.value = (response.data.data || []).map(
         (clients) => ({
           ...clients,
-          business_name:
-              clients.business?.name || '',
+          business_name: clients.business?.name || '',
         })
     )
   } catch (err) {
@@ -247,7 +245,12 @@ async function updateClient() {
 async function deactivateClient() {
   saving.value = true
   try {
-    await api.patch(`/users/update-user-status/${selected.value.user_code}`, { is_active: 'inactive' })
+    await apiHandler("clients" ,"deactivateClient",
+        {
+          code: selected.value.user_code,
+          is_active: 'inactive'
+        }
+    )
     showDeleteModal.value = false
     await fetchClients()
   } catch (err) {
