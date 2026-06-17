@@ -385,7 +385,7 @@ export const API_CONFIG = {
             method: 'PUT'
         },
 
-        deactivateUser: {
+        deactivateUsers: {
             endpoint: '/users/update-user-status/:code',
             method: 'PATCH'
         },

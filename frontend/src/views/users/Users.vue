@@ -142,6 +142,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const users = ref([])
 const loading = ref(true)
@@ -161,10 +162,8 @@ async function fetchUsers() {
   error.value = ''
 
   try {
-    const response = await api.get('/users/get-all-users', {
-      params: {
-        include: "business"
-      }
+    const response = await apiHandler("user", "getAllUsers", {
+      include: "business"
     })
 
     users.value = (response.data.data || []).map(
