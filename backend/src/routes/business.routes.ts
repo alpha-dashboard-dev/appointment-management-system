@@ -14,14 +14,14 @@ router.post(
 );
 
 router.get(
-    "/get-business",
+    "/get-all-businesses",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.CLIENT),
     controller.getAll
 );
 
 router.get(
-    "/get-business/:businessCode",
+    "/get-one-business/:businessCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.CLIENT),
     controller.getByCode

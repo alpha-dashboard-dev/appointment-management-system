@@ -132,12 +132,12 @@ class ChargeService {
         return await repo.update(chargeCode, allowed);
     }
 
-    async changeStatus(businessCode: string, status: string) {
+    async deactivate(businessCode: string, status: string) {
 
         if (!["active", "inactive"].includes(status)) {
             throw new Error("Invalid status");
         }
-        await this.findBusinessOrFail(businessCode);
+        // await this.findBusinessOrFail(businessCode);
 
         return await repo.update(
             businessCode,

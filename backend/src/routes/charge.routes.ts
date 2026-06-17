@@ -14,7 +14,7 @@ router.post(
 );
 
 router.get(
-    "/get-charge",
+    "/get-all-charges",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.CLIENT),
     controller.getAll
@@ -35,7 +35,7 @@ router.put(
 );
 
 router.patch(
-    "deactivate-charge/:chargeCode",
+    "/deactivate-charge/:chargeCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.deactivate
