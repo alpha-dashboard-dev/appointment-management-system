@@ -7,10 +7,7 @@ class OrganizationController {
     async create(req: Request, res: Response) {
 
         try {
-            const data =
-                await service.create(
-                    req.body
-                );
+            const data = await service.create(req.body);
 
             return res.status(201).json({
                 success: true,
