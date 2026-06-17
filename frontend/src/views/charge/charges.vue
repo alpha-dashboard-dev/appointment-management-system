@@ -58,12 +58,12 @@
                         Deactivate
                       </button>
                     </li>
-                    <!-- <li>
+                    <li>
                       <button class="dropdown-item text-danger" @click="openDelete(charge)">
                         <i class="bi bi-trash me-2"></i>
                         Delete
                       </button>
-                    </li> -->
+                    </li>
                   </ul>
                 </div>
               </td>
@@ -218,8 +218,8 @@
 <script setup>
 import {ref, computed, onMounted, reactive} from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
 import { validateChargeForm } from '@/utils/validator'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.role === 'admin')
@@ -251,8 +251,8 @@ async function fetchCharges() {
         : {}
 
     const [chargeRes, businessRes] = await Promise.all([
-      api.get('/charges/get-charge', { params }),
-      api.get('/businesses/get-business'),
+      apiHandler("charge", "getAllCharges",{ params }),
+      apiHandler("business", "getAllBusinesses"),
     ])
 
     const businesses = businessRes.data.data || []
@@ -299,7 +299,10 @@ function openDeactivate(charge) {
 async function deleteCharge() {
   saving.value = true
   try {
-    await api.delete(`/charges/delete-charge/${selected.value.charge_code}`)
+    await apiHandler("charge", "deleteCharge",
+        {
+          code: selected.value.charge_code
+        })
     showDeleteModal.value = false
     await fetchCharges()
   } catch (err) {
@@ -319,7 +322,7 @@ async function createCharge() {
   try {
     const payload = { ...createForm.value }
     if (!payload.description) delete payload.description
-    await api.post('/charges/create-charge', payload)
+    await apiHandler("charge","createBusinessCharge", payload)
     showCreateModal.value = false
     createForm.value = { business_code: isAdmin.value ? '' : (authStore.user?.business_code || ''), name: '', charge_uom: '', charge_value: '', description: '' }
     createErrors.value = {}
@@ -335,7 +338,11 @@ async function updateCharge() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/charges/update-charge/${selected.value.charge_code}`, editForm)
+    await apiHandler("charge", "updateCharge",
+        {
+          code: selected.value.charge_code,
+          ...editForm
+        })
     showEditModal.value = false
     await fetchCharges()
   } catch (err) {
@@ -348,7 +355,12 @@ async function updateCharge() {
 async function deactivateCharge() {
   saving.value = true
   try {
-    await api.put(`/charges/update-charge/${selected.value.charge_code}`, { status: 'inactive' })
+    await apiHandler("charge","deactivateCharge",
+        {
+          code: selected.value.charge_code,
+          status: 'inactive'
+        }
+    )
     showDeactivateModal.value = false
     await fetchCharges()
   } catch (err) {
@@ -364,7 +376,7 @@ onMounted(async () => {
     await fetchCharges()
     return
   }
-  const [_, bizRes] = await Promise.allSettled([fetchCharges(), api.get('/businesses/get-business')])
+  const [_, bizRes] = await Promise.allSettled([fetchCharges(), apiHandler("business", "getAllBusinesses")])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>
