@@ -185,23 +185,64 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import {ref, onMounted, computed} from 'vue'
 import { useRoute } from 'vue-router'
-import { useBusinessDetails } from '@/composables/business/useBusinessDetails'
 import formatDate from "../../utils/formatDate.js";
 import formatTime from "../../utils/formatTime.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const route = useRoute()
 const businessCode = route.params.business_code
+const loading = ref(false)
+
+const business = ref(null)
 
 const tabs = ['Services', 'Staff', 'Locations', 'Appointments']
 
-const { loading, business, organization, services, staff, locations, appointments, fetchBusiness } = useBusinessDetails()
-
 const activeTab = ref('Services')
+const organization = computed( () =>
+    business.value?.organization || []
+)
+
+const services = computed(() =>
+    business.value?.services || []
+)
+
+const staff = computed(() => {
+  const users = business.value?.users || []
+  return users.filter(
+      u =>
+          u.user_type === 'operational_staff' ||
+          u.user_type === 'service_staff'
+  )
+})
+
+const locations = computed(() =>
+    business.value?.locations || []
+)
+
+const appointments = computed(() =>
+    business.value?.appointments || []
+)
+
+async function fetchBusiness(code) {
+
+  loading.value = true
+
+  try {
+    const res = await apiHandler("business", "getOneBusiness", {
+      code: businessCode,
+      include: 'organization,services,users,locations,appointments'
+    })
+
+    business.value = res.data.data || {}
+  } finally {
+    loading.value = false
+  }
+}
 
 onMounted(async () => {
-  await fetchBusiness(businessCode)
+  await fetchBusiness()
 })
 </script>
 

@@ -71,22 +71,77 @@
 </template>
 
 <script setup>
-import { useBusiness } from '@/composables/business/useBusiness'
-import { useCreateBusiness } from '@/composables/business/useCreateBusiness'
+import { reactive, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/utils/api'
+import { validateBusinessForm } from '@/utils/validator'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
-const {createBusiness} = useBusiness()
+const router = useRouter();
+const form = reactive({ name: '', organization_code: '', email: '', timezone: '', status: 'active', phone: '' })
+const timezones = [
+  'Asia/Karachi',
+  'Asia/Dubai',
+  'Asia/Kolkata',
+  'Europe/London',
+  'America/New_York',
+  'UTC'
+]
+const organizations = ref([])
+const loading = ref(false)
+const error = ref('')
+const errors = reactive({})
 
-const {
-  form,
-  organizations,
-  timezones,
-  loading,
-  error,
-  errors,
-  validateField,
-  submit
-} = useCreateBusiness(createBusiness)
+function validateField(field) {
+  const result = validateBusinessForm(form)
+  if (result[field]) { errors[field] = result[field] } else { delete errors[field] }
+}
+
+onMounted(async () => {
+  try {
+    const res = await api.get('/organizations/get-all-organizations')
+    organizations.value = res.data.data || []
+  } catch (_) {}
+})
+
+async function submit() {
+  const validationErrors = validateBusinessForm(form)
+  Object.keys(errors).forEach(k => delete errors[k])
+  Object.assign(errors, validationErrors)
+  if (Object.keys(errors).length > 0) return
+
+  loading.value = true
+  error.value = ''
+  try {
+    await apiHandler("business", "createBusiness", form)
+    router.push('/businesses')
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to create business'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
+
+<!--</script>-->
+
+<!--<script setup>-->
+<!--import { useBusiness } from '@/composables/business/useBusiness'-->
+<!--import { useCreateBusiness } from '@/composables/business/useCreateBusiness'-->
+
+<!--const {createBusiness} = useBusiness()-->
+
+<!--const {-->
+<!--  form,-->
+<!--  organizations,-->
+<!--  timezones,-->
+<!--  loading,-->
+<!--  error,-->
+<!--  errors,-->
+<!--  validateField,-->
+<!--  submit-->
+<!--} = useCreateBusiness(createBusiness)-->
+<!--</script>-->
 
 <style scoped>
 .page { display: flex; flex-direction: column; gap: 16px; }

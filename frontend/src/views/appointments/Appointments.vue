@@ -514,6 +514,7 @@ import { computed, reactive, ref, onMounted } from 'vue'
 import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
 import formatDate from "../../utils/formatDate.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const appointments = ref([])
 const loading = ref(true)
@@ -544,13 +545,10 @@ async function fetchAppointments() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/appointments/get-all-appointments', {
-      params: {
-        include: "business,creator,approver,services,services.service,location"
-      }
+    const res = await apiHandler("appointment", "getAllAppointments",
+        {
+            include: "business,creator,approver,services,services.service,location"
     })
-    console.log(res)
-
     appointments.value = (res.data.data || []).map((appt) => ({
       ...appt,
       business_name: appt.business?.name || '',
@@ -560,7 +558,7 @@ async function fetchAppointments() {
       location_address: appt.location?.address + " " +  appt.location?.street + " " + appt.location?.city || '',
     }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load appointments'
+    error.value = err.response?.data?.message
   } finally {
     loading.value = false
   }
@@ -583,11 +581,10 @@ async function openDetails(appt) {
   showDetails.value = true
   historyLoading.value = true
   try {
-    const res = await api.get(`/appointments/get-appointment-history/${appt.appointment_code}`, {
-          params: {
-            include : "changedByUser"
-          }
-        })
+    const res = await apiHandler("appointment", "getAppointmentHistory", {
+      code: appt.appointment_code,
+      include : "changedByUser"
+    })
     appointmentHistory.value = (res.data.data || []).map((appt) => ({
       ...appt,
       changed_by: appt.changedByUser?.name || '',
@@ -611,7 +608,10 @@ function openReschedule(appt) {
 
 async function changeStatus(appt, status) {
   try {
-    await api.patch(`/appointments/update-appointment-status/${appt.appointment_code}`, { status })
+    await apiHandler("appointment", "updateAppointmentStatus", {
+      code: appt.appointment_code,
+      status
+    })
     appt.status = status
   } catch (err) {
     error.value = err.response?.data?.message || 'Status update failed'
@@ -622,7 +622,10 @@ async function submitReschedule() {
   saving.value = true
   rescheduleError.value = ''
   try {
-    await api.post(`/appointments/reschedule-appointment/${selected.value.appointment_code}`, rescheduleForm)
+    await apiHandler("appointment", "rescheduleAppointment",{
+      code: selected.value.appointment_code,
+      ...rescheduleForm
+    })
     showReschedule.value = false
     await fetchAppointments()
   } catch (err) {
@@ -795,7 +798,9 @@ async function loadApprovalAvailability(appt) {
 
   availabilityLoading.value = true
   try {
-    const res = await api.get(`/appointments/check-availability/${appt.appointment_code}`)
+    const res = await apiHandler("appointment", "checkStaffAvailability", {
+      code: appt.appointment_code
+    })
     const payload = res.data.data || {}
     availableStaff.value = payload.available_staff || []
     engagedStaff.value = payload.engaged_staff || []
@@ -830,8 +835,9 @@ async function submitApproveWithStaff() {
   approvalSaving.value = true
   approvalError.value = ''
   try {
-    await api.post(`/appointments/approve-appointment/${selected.value.appointment_code}`,
+    await apiHandler("appointment", "approveAppointment",
         {
+          code: selected.value.appointment_code,
           staff_code: selectedStaff.value,
           selected_charge_codes: selectedChargeCodes.value
         })
@@ -855,7 +861,10 @@ async function submitApprovalReschedule() {
   approvalSaving.value = true
   approvalError.value = ''
   try {
-    await api.post(`/appointments/reschedule-appointment/${selected.value.appointment_code}`, approvalRescheduleForm)
+    await apiHandler("appointment", "rescheduleAppointment", {
+      code: selected.value.appointment_code,
+      ...approvalRescheduleForm
+    })
     showApproval.value = false
     await fetchAppointments()
   } catch (err) {

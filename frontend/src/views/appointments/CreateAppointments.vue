@@ -102,6 +102,7 @@ import { useRouter } from 'vue-router'
 import api from '@/utils/api'
 import { validateAppointmentForm } from '@/utils/validator'
 import { useAuthStore } from '@/stores/auth.store'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -134,8 +135,8 @@ function validateField(field) {
 
 onMounted(async () => {
   const [bizRes, clientRes] = await Promise.allSettled([
-    api.get('/businesses/get-business'),
-    api.get('/clients/get-client'),
+    apiHandler("business", "getAllBusinesses"),
+    apiHandler("client", "getAllClients"),
   ])
 
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []

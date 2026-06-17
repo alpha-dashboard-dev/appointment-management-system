@@ -138,7 +138,7 @@
             <button class="btn-close" @click="showEditModal = false"></button>
           </div>
 
-          <form @submit.prevent="handleUpdate">
+          <form @submit.prevent="updateRecurrence">
 
             <div class="modal-body">
 
@@ -219,7 +219,7 @@
               Cancel
             </button>
 
-            <button class="btn btn-danger btn-sm" @click="handleDelete" :disabled="saving">
+            <button class="btn btn-danger btn-sm" @click="deleteRecurrence" :disabled="saving">
               {{ saving ? '...' : 'Delete' }}
             </button>
           </div>
@@ -234,44 +234,151 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
 
-import { useAppointmentRecurrence } from '@/composables/appointment/appointment_recurrence/useAppointmentRecurrence'
-// import { useBusiness } from '@/composables/business/useBusiness'
-import { useRecurrenceFilters } from '@/composables/appointment/appointment_recurrence/useRecurrenceFilters'
-import { useRecurrenceModals } from '@/composables/appointment/appointment_recurrence/useRecurrenceModals'
+import {computed, onMounted, reactive, ref} from "vue";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
-// ---------------- API ----------------
-const {recurrences, loading, error, fetchRecurrences, updateRecurrence, deleteRecurrence} = useAppointmentRecurrence()
+const recurrences = ref([])
+const businesses = ref([])
+const loading = ref(false)
+const error = ref('')
+const search = ref('')
+const bizFilter = ref('')
+const statusFilter = ref('')
+const showEditModal = ref(false)
+const showDeleteModal = ref(false)
+const selected = ref(null)
 
-// const { businesses, fetchBusinesses } = useBusiness()
+const saving = ref(false)
+const formError = ref('')
 
-// ---------------- FILTERS ----------------
-const { search, bizFilter, statusFilter, filteredRecurrences} = useRecurrenceFilters(recurrences)
+const editForm = reactive({
+  recurrence_uom: '',
+  recurrence_value: 1,
+  status: 'active',
+  auto_cancel_after_days: null,
+  reschedule_after_days: null
+})
 
-// ---------------- MODALS ----------------
-const { showEditModal, showDeleteModal, selected, saving, formError, editForm,
-  openEdit, openDelete, submitUpdate, confirmDelete} = useRecurrenceModals()
+async function fetchRecurrences(params = {}) {
+  loading.value = true
+  error.value = ''
 
-async function handleUpdate() {
-  await submitUpdate(updateRecurrence, () =>
-      fetchRecurrences({ include: 'business' })
-  )
+  try {
+    const res = await apiHandler("appointment", "getAllAppointmentRecurrences", {
+      include: "business"
+    })
+
+    console.log(res)
+
+    recurrences.value = (res.data.data || []).map((mapRecurrence) => ({
+      ...mapRecurrence,
+      business_name: mapRecurrence.business?.name
+    }))
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load recurrences'
+  } finally {
+    loading.value = false
+  }
 }
 
-async function handleDelete() {
-  await confirmDelete(deleteRecurrence, () =>
-      fetchRecurrences({ include: 'business' })
-  )
+async function fetchBusinesses() {
+
+  loading.value = true
+  error.value = ''
+
+  try {
+    const res = await apiHandler("business", "getAllBusinesses")
+
+    businesses.value = (res.data.data || []).map(
+        (business) => ({
+          ...business,
+          organization_name:
+              business.organization?.name || '',
+        })
+    )
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Failed to load Businesses'
+  } finally {
+    loading.value = false
+  }
 }
 
-// ---------------- INIT ----------------
+const filteredRecurrences = computed(() => {
+  return recurrences.value.filter(r => {
+
+    const matchSearch =
+        !search.value ||
+        r.appointment_code?.toLowerCase().includes(search.value.toLowerCase())
+
+    const matchBiz = !bizFilter.value || r.business_code === bizFilter.value
+    const matchStatus = !statusFilter.value || r.status === statusFilter.value
+
+    return matchSearch && matchBiz && matchStatus
+  })
+})
+
+function openEdit(rec) {
+  selected.value = rec
+
+  editForm.recurrence_uom = rec.recurrence_uom
+  editForm.recurrence_value = rec.recurrence_value
+  editForm.status = rec.status
+  editForm.auto_cancel_after_days = rec.auto_cancel_after_days
+  editForm.reschedule_after_days = rec.reschedule_after_days
+
+  formError.value = ''
+  showEditModal.value = true
+}
+
+function openDelete(rec) {
+  selected.value = rec
+  showDeleteModal.value = true
+}
+
+async function updateRecurrence() {
+
+  saving.value = true
+  formError.value = ''
+
+  try {
+    await apiHandler('appointment', 'updateAppointmentRecurrence',
+        {
+          id: selected.value.id,
+          ...editForm,
+        })
+    showEditModal.value = false
+
+  } catch (err) {
+    formError.value = err.response?.data?.message || 'Update failed'
+  } finally {
+
+    saving.value = false
+
+  }
+}
+
+async function deleteRecurrence() {
+  saving.value = true
+
+  try {
+    await apiHandler("appointment", "deleteAppointmentRecurrence" , {
+      id: selected.value.id
+    })
+    showDeleteModal.value = false
+  } catch (err) {
+    formError.value = err.response?.data?.message || 'Delete failed'
+  } finally {
+    saving.value = false
+  }
+}
+
 onMounted(async () => {
   await Promise.all([
     fetchRecurrences({
       include: 'business'
     }),
-    // fetchBusinesses()
+    fetchBusinesses()
   ])
 })
 </script>

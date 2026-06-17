@@ -94,8 +94,8 @@
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/utils/api'
 import { useAuthStore } from '@/stores/auth.store'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -122,10 +122,10 @@ onMounted(async () => {
   const requests = []
 
   if (isAdmin.value) {
-    requests.push(api.get('/businesses/get-business'))
+    requests.push(apiHandler("business", "getAllBusinesses"))
   }
 
-  requests.push(api.get('/appointments/get-all-appointments'))
+  requests.push(apiHandler("appointment", "getAllAppointments"))
 
   const results = await Promise.allSettled(requests)
 
@@ -183,7 +183,7 @@ async function submit() {
     if (!payload.auto_cancel_after_days) delete payload.auto_cancel_after_days
     if (!payload.reschedule_after_days) delete payload.reschedule_after_days
 
-    await api.post('/appointments/create-appointment-recurrence', payload)
+    await apiHandler("appointment", "createAppointmentRecurrence", payload)
 
     await router.push('/appointment-recurrence')
 
