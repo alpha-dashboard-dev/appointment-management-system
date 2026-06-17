@@ -20,27 +20,12 @@ router.get(
     controller.getAll
 );
 
-// router.get(
-//     "/get-location-with-business",
-//     authenticate,
-//     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.CLIENT),
-//     controller.getAllLocationsWithBusiness
-// );
-
 router.get(
     "/get-location/:locationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getByCode
 );
-
-// router.get(
-//     "/get-location-with-business/:locationCode",
-//     authenticate,
-//     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
-//     controller.getByLocationCodeWithBusiness
-// );
-
 
 router.put(
     "/update-location/:locationCode",

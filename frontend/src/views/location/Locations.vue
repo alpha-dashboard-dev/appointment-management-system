@@ -166,7 +166,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const locations = ref([])
 const businesses = ref([])
@@ -181,19 +181,15 @@ const showDeleteModal = ref(false)
 const selected = ref(null)
 const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active', apartment: '' })
 
-// fetch location with business details
-
 async function fetchLocations() {
   loading.value = true
   error.value = ''
 
   try {
 
-    const response = await api.get('/locations/get-all-locations',
+    const response = await apiHandler("location", "getAllLocations",
         {
-          params: {
-            include: "business"
-          }
+          include: "business"
         }
     )
 
@@ -236,7 +232,11 @@ async function updateLocation() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/locations/update-location/${selected.value.location_code}`, editForm)
+    // await api.put(`/locations/update-location/${selected.value.location_code}`, editForm)
+    await apiHandler("location", "updateLocation", {
+      code: selected.value.location_code,
+      ...editForm,
+    })
     showEditModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -249,7 +249,9 @@ async function updateLocation() {
 async function deleteLocation() {
   saving.value = true
   try {
-    await api.delete(`/locations/delete-location/${selected.value.location_code}`)
+    await apiHandler("location", "deleteLocation", {
+      code: selected.value.location_code
+    })
     showDeleteModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -260,7 +262,7 @@ async function deleteLocation() {
 }
 
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchLocations(), api.get('/businesses/get-business')])
+  const [_, bizRes] = await Promise.allSettled([fetchLocations(), apiHandler("business", "getAllBusinesses")])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>

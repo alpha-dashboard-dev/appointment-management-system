@@ -85,7 +85,7 @@ class LocationServiceRepository {
             return dbHelper.update(
                 this.tables,
                 {
-                  id: id,
+                  "id": id,
                 },
                 data
             );

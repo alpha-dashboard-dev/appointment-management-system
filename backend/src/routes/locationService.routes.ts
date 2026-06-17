@@ -14,7 +14,7 @@ router.post(
 );
 
 router.get(
-    "/get-location-service",
+    "/get-all-location-services",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF),
     controller.getAll
@@ -27,7 +27,7 @@ router.get(
     controller.getById
 );
 
-router.put(
+router.patch(
     "/update-location-service/:id",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),

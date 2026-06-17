@@ -232,7 +232,10 @@ async function updateClient() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/clients/update-client/${selected.value.user_code}`, editForm)
+    await apiHandler("client", "updateClient",{
+      code: selected.value.user_code,
+      ...editForm
+    })
     showEditModal.value = false
     await fetchClients()
   } catch (err) {
@@ -245,7 +248,7 @@ async function updateClient() {
 async function deactivateClient() {
   saving.value = true
   try {
-    await apiHandler("clients" ,"deactivateClient",
+    await apiHandler("client" ,"deactivateClient",
         {
           code: selected.value.user_code,
           is_active: 'inactive'

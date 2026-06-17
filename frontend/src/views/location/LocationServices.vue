@@ -185,6 +185,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.role === 'admin')
@@ -237,10 +238,12 @@ async function fetchMappings() {
     if (locFilter.value)
       params.location_code = locFilter.value
 
-    const response = await api.get(
-        '/location-services/get-location-service',
-        { params }
-    )
+    const response = await apiHandler("locationService", "getAllLocationServices", params)
+
+    // const response = await api.get(
+    //     '/location-services/get-location-service',
+    //     { params }
+    // )
 
     mappings.value = (response.data.data || []).map(
         (mapping) => ({
@@ -300,7 +303,7 @@ async function createMapping() {
   saving.value = true
   formError.value = ''
   try {
-    await api.post('/location-services/create-location-service', createForm)
+    await apiHandler("locationService", "createLocationService", createForm)
     showCreateModal.value = false
     await fetchMappings()
   } catch (err) {
@@ -314,7 +317,12 @@ async function updateMapping() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/location-services/update-location-service/${selected.value.id}`, editForm)
+    await apiHandler("locationService", "updateLocationService",
+        {
+          id: selected.value.id,
+          ...editForm,
+        })
+
     showEditModal.value = false
     await fetchMappings()
   } catch (err) {
@@ -327,7 +335,10 @@ async function updateMapping() {
 async function deleteMapping() {
   saving.value = true
   try {
-    await api.delete(`/location-services/delete-location-service/${selected.value.id}`)
+    await apiHandler("locationService", "deleteLocationService",
+    {
+            id: selected.value.id
+    })
     showDeleteModal.value = false
     await fetchMappings()
   } catch (err) {
@@ -343,8 +354,8 @@ onMounted(async () => {
   const svcParams = isAdmin.value ? {} : { business_code: bizCode }
   const [_, bizRes, locRes, svcRes] = await Promise.allSettled([
     fetchMappings(),
-    isAdmin.value ? api.get('/businesses/get-business') : Promise.resolve({ data: { data: [] } }),
-    api.get('/locations/get-all-locations', { params: locParams }),
+    isAdmin.value ? apiHandler("business", "getAllBusinesses") : Promise.resolve({ data: { data: [] } }),
+    apiHandler("location", "getAllLocations",{ params: locParams }),
     api.get('/services/get-all-services', { params: svcParams }),
   ])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []

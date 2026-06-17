@@ -156,7 +156,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const services = ref([])
 const businesses = ref([])
@@ -185,19 +185,16 @@ async function fetchServices() {
   error.value = ''
 
   try {
-    const response = await api.get('/services/get-all-services',
+    const response = await apiHandler("service", "getAllServices",
         {
-          params: {
-            include: "business"
-          }
+          include: "business"
         }
     )
 
     services.value = (response.data.data || []).map(
-        (services) => ({
-          ...services,
-          business_name:
-              services.business?.name || '',
+        (service) => ({
+          ...service,
+          business_name: service.business?.name || '',
         })
     )
   } catch (err) {
@@ -231,7 +228,12 @@ async function updateService() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/services/update-service/${selected.value.service_code}`, editForm)
+    await apiHandler("service", "updateService",
+        {
+          code: selected.value.service_code,
+          ...editForm
+        }
+    )
     showEditModal.value = false
     await fetchServices()
   } catch (err) {
@@ -244,7 +246,9 @@ async function updateService() {
 async function deleteService() {
   saving.value = true
   try {
-    await api.delete(`/services/delete-service/${selected.value.service_code}`)
+    await apiHandler("service", "deleteService",{
+      code: selected.value.service_code,
+    })
     showDeleteModal.value = false
     await fetchServices()
   } catch (err) {
@@ -255,7 +259,7 @@ async function deleteService() {
 }
 
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchServices(), api.get('/businesses/get-business')])
+  const [_, bizRes] = await Promise.allSettled([fetchServices(), apiHandler("business", "getAllBusinesses")])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>

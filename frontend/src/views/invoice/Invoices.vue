@@ -115,6 +115,7 @@
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
 import formatDate from "../../utils/formatDate.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const invoices = ref([])
 const businesses = ref([])
@@ -136,7 +137,7 @@ async function fetchInvoices() {
     }
     if (bizFilter.value) params.business_code = bizFilter.value
     if (statusFilter.value) params.status = statusFilter.value
-    const res = await api.get('/invoices/get-invoice', { params })
+    const res = await apiHandler("invoice", "getAllInvoices", params)
     // invoices.value = res.data.data || []
     console.log(res)
     invoices.value = (res.data.data || []).map(
@@ -162,7 +163,11 @@ function openDetails(inv) {
 async function updateStatus(inv, status) {
   saving.value = true
   try {
-    await api.patch(`/invoices/update-invoice-status/${inv.id}`, { invoice_status: status })
+    await apiHandler("invoice", "deactivateInvoice",
+        {
+          id: inv.id,
+          invoice_status: status
+        })
     showDetails.value = false
     await fetchInvoices()
   } catch (err) {

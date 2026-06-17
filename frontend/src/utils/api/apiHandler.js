@@ -3,7 +3,7 @@ import { API_CONFIG } from './apiConfig.js'
 
 export async function apiHandler(section, action, data = {}) {
 
-    // console.log('apiHandler', section, action, data)
+    console.log('apiHandler', section, action, data)
 
     const config = API_CONFIG?.[section]?.[action]
 

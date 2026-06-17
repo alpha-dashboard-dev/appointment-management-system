@@ -274,6 +274,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.role === 'admin')
@@ -319,7 +320,11 @@ async function updateSchedule() {
     payload.start_time = (payload.start_time || '').slice(0, 5)
     payload.end_time = (payload.end_time || '').slice(0, 5)
     if (!payload.location_code) delete payload.location_code
-    await api.put(`/schedules/update-schedule/${selected.value.id}`, payload)
+    // await api.put(`/schedules/update-schedule/${selected.value.id}`, payload)
+    await apiHandler("staffSchedule", "updateSchedule",{
+      id: selected.value.id,
+      ...payload
+    })
     showEditModal.value = false
     await refreshSchedules()
   } catch (err) {
@@ -332,7 +337,7 @@ async function updateSchedule() {
 async function refreshSchedules() {
   try {
     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/schedules/get-schedule', { params })
+    const res = await apiHandler("staffSchedule", "getAllSchedules", { params })
     schedules.value = res.data.data || []
   } catch (_) {}
 }
@@ -390,6 +395,7 @@ async function fetchLocations(business_code) {
   locationsList.value = []
   if (!business_code) return
   try {
+    // const res = await api.get('/locations/get-all-locations', { params: { business_code } })
     const res = await api.get('/locations/get-all-locations', { params: { business_code } })
     locationsList.value = res.data.data || []
   } catch (_) {}
@@ -406,13 +412,11 @@ async function fetchSchedules() {
   error.value = ''
 
   try {
-    const response = await api.get('/schedules/get-schedule', {
-      params: {
-        ...(bizFilter.value && {
-          business_code: bizFilter.value
-        }),
-        include: 'user,business,location'
-      }
+    const response = await apiHandler("staffSchedule", "getAllSchedules", {
+      ...(bizFilter.value && {
+        business_code: bizFilter.value
+      }),
+      include: 'user,business,location'
     })
 
     schedules.value = (response.data.data || []).map(
@@ -497,7 +501,7 @@ onMounted(async () => {
     await Promise.all([fetchSchedules(), fetchStaff(bizCode), fetchLocations(bizCode)])
     return
   }
-  const [_, bizRes] = await Promise.allSettled([fetchSchedules(), api.get('/businesses/get-business')])
+  const [_, bizRes] = await Promise.allSettled([fetchSchedules(), apiHandler("business", "getAllBusinesses")])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>

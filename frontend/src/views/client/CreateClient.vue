@@ -82,6 +82,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import { validateClientForm } from '@/utils/validator'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -134,7 +135,9 @@ async function submit() {
     const payload = { ...form, user_type: 'client' }
     if (!payload.business_code) delete payload.business_code
     if (!payload.phone) delete payload.phone
-    await api.post('/clients/create-client', payload)
+    await apiHandler("client", "createClient", {
+      ...payload
+    })
     router.push(backLink.value)
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create client'

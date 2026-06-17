@@ -117,6 +117,10 @@ export const API_CONFIG = {
     },
 
     client: {
+        createClient: {
+            endpoint: '/clients/create-client',
+            method: 'POST',
+        },
         getAllClients: {
             endpoint: '/clients/get-client',
             method: 'GET'
@@ -144,6 +148,43 @@ export const API_CONFIG = {
         deactivateClient: {
             endpoint: '/users/update-user-status/:code',
             method: 'PATCH'
+        },
+    },
+
+    service: {
+        createService: {
+            endpoint: '/services/create-service',
+            method: 'POST',
+
+            requestMapping: {
+                title: 'service_title'
+            },
+
+            responseMapping: {
+                service_title: 'title'
+            },
+
+            onSuccess(response) {
+                console.log('Service created', response)
+            },
+
+            onError(error) {
+                console.error('Failed', error)
+            }
+        },
+        getAllServices: {
+            endpoint: '/services/get-all-services',
+            method: 'GET'
+        },
+
+        updateService: {
+            endpoint: '/services/update-service/:code',
+            method: 'PUT'
+        },
+
+        deleteService: {
+            endpoint: '/services/delete-service/:code',
+            method: 'DELETE'
         },
     },
 
@@ -175,6 +216,92 @@ export const API_CONFIG = {
             method: 'DELETE',
         }
 
+    },
+
+    staffSchedule: {
+        getAllSchedules: {
+            endpoint: '/schedules/get-schedule',
+            method: 'GET'
+        },
+        updateSchedule: {
+            endpoint: '/schedules/update-schedule/:id',
+            method: 'PUT',
+        }
+
+    },
+
+    location: {
+        createLocation: {
+            endpoint: '/locations/create-location',
+            method: 'POST',
+
+            requestMapping: {
+                title: 'location_title'
+            },
+
+            responseMapping: {
+                location_title: 'title'
+            },
+
+            onSuccess(response) {
+                console.log('Location created', response)
+            },
+
+            onError(error) {
+                console.error('Failed', error)
+            }
+        },
+        getAllLocations: {
+            endpoint: '/locations/get-all-locations',
+            method: 'GET'
+        },
+
+        updateLocation: {
+            endpoint: '/locations/update-location/:code',
+            method: 'PUT'
+        },
+
+        deleteLocation: {
+            endpoint: '/locations/delete-location/:code',
+            method: 'DELETE'
+        },
+    },
+
+    locationService: {
+        createLocationService: {
+            endpoint: '/location-services/create-location-service',
+            method: 'POST',
+
+            requestMapping: {
+                title: 'loc_svc_title'
+            },
+
+            responseMapping: {
+                loc_svc_title: 'title'
+            },
+
+            onSuccess(response) {
+                console.log('Location Service created', response)
+            },
+
+            onError(error) {
+                console.error('Failed', error)
+            }
+        },
+        getAllLocationServices: {
+            endpoint: '/location-services/get-all-location-services',
+            method: 'GET'
+        },
+
+        updateLocationService: {
+            endpoint: '/location-services/update-location-service/:id',
+            method: 'PATCH'
+        },
+
+        deleteLocationService: {
+            endpoint: '/location-services/delete-location-service/:id',
+            method: 'DELETE'
+        },
     },
 
     appointment: {
@@ -225,7 +352,80 @@ export const API_CONFIG = {
             endpoint: '/appointments/delete-appointment-recurrence/:id',
             method: 'DELETE'
         }
+    },
 
+    user: {
+        createUser: {
+            endpoint: '/users/create-user',
+            method: 'POST',
+
+            requestMapping: {
+                title: 'user_title'
+            },
+
+            responseMapping: {
+                user_title: 'title'
+            },
+
+            onSuccess(response) {
+                console.log('User created', response)
+            },
+
+            onError(error) {
+                console.error('Failed', error)
+            }
+        },
+        getAllUsers: {
+            endpoint: '/users/get-all-users',
+            method: 'GET'
+        },
+
+        updateUser: {
+            endpoint: '/users/update-user/:code',
+            method: 'PUT'
+        },
+
+        deactivateUser: {
+            endpoint: '/users/update-user-status/:code',
+            method: 'PATCH'
+        },
+    },
+
+    invoice: {
+        createInvoice: {
+            endpoint: '/invoices',
+            method: 'POST',
+
+            requestMapping: {
+                title: 'invoice_title'
+            },
+
+            responseMapping: {
+                invoice_title: 'title'
+            },
+
+            onSuccess(response) {
+                console.log('Invoice created', response)
+            },
+
+            onError(error) {
+                console.error('Failed', error)
+            }
+        },
+        getAllInvoices: {
+            endpoint: '/invoices/get-invoice',
+            method: 'GET'
+        },
+
+        updateInvoice: {
+            endpoint: '/invoices/:code',
+            method: 'PUT'
+        },
+
+        deactivateInvoice: {
+            endpoint: '/invoices/update-invoice-status/:id',
+            method: 'PATCH'
+        },
     },
 
 
