@@ -202,7 +202,11 @@ async function updateUser() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/users/update-user/${selected.value.user_code}`, editForm)
+    await apiHandler("user", "updateUser",
+        {
+          code: selected.value.user_code,
+          ...editForm
+        })
     showEditModal.value = false
     await fetchUsers()
   } catch (err) {
@@ -215,7 +219,11 @@ async function updateUser() {
 async function deactivateUser() {
   saving.value = true
   try {
-    await api.patch(`/users/update-user-status/${selected.value.user_code}`, { is_active: 'inactive' })
+    await apiHandler("user", "deactivateUser",
+        {
+          code: selected.value.user_code,
+          is_active: 'inactive'
+        })
     showDeleteModal.value = false
     await fetchUsers()
   } catch (err) {
