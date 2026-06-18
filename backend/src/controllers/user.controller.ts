@@ -146,18 +146,13 @@ class UserController {
 
         try {
 
-            const userCode =
-                String(req.params.userCode);
+            const userCode = String(req.params.userCode);
 
-            await service.delete(
-                userCode,
-                req.user
-            );
+            await service.delete(userCode, req.user);
 
             return res.status(200).json({
                 success: true,
-                message:
-                    "User deactivated successfully",
+                message: "User deactivated successfully",
             });
 
         } catch (err: any) {

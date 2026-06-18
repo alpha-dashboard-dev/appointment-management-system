@@ -154,16 +154,14 @@ async function fetchBusinesses() {
   error.value = ''
 
   try {
-    const res = await apiHandler("business", "getAllBusinesses" ,{
+
+    const res = await apiHandler("business", "getAllBusinesses", {
       include: "organization",
     })
-
-    businesses.value = (res.data.data || []).map(
-        (business) => ({
-          ...business,
-          organization_name: business.organization?.name || '',
-        })
-    )
+    businesses.value = (res.data.data || []).map((business) => ({
+      ...business,
+      organization_name: business.organization?.name || '',
+    }))
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load Businesses'
   } finally {
