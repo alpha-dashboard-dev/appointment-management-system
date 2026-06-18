@@ -87,7 +87,7 @@ class ScheduleRepository {
                     model: db.User,
                     as: "user",
                     required: true,
-                    attributes: ["user_code", "name", "user_type", "is_active"],
+                    attributes: ["user_code", "name", "user_type", "is_active", "employee_type"],
                     where: {
                         user_type: ROLES.SERVICE_STAFF,
                         is_active: "active",
@@ -100,6 +100,7 @@ class ScheduleRepository {
         return rows.map((row: any) => ({
             user_code: row["user.user_code"] ?? row.user_code,
             staff_name: row["user.name"] || null,
+            employee_type: row["user.employee_type"] || null,
             user_type: row["user.user_type"] || ROLES.SERVICE_STAFF,
             location_code: row.location_code,
             working_days: row.working_days,

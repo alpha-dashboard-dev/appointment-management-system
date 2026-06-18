@@ -33,7 +33,7 @@
               <td>{{ user.email }}</td>
               <td>{{user.phone}}</td>
               <td>{{user.business_name}}</td>
-              <td>{{ user.user_type }}</td>
+              <td>{{ toTitleCase(user.user_type) }}</td>
               <td>
                 <span :class="['ams-badge', user.is_active === 'active' ? 'active' : 'inactive']">
                   {{ user.is_active === 'active' ? 'Active' : 'Inactive' }}
@@ -142,6 +142,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toTitleCase} from "../../utils/upperCase.js";
 
 const users = ref([])
 const loading = ref(true)

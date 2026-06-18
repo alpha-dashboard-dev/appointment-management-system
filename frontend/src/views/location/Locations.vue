@@ -44,7 +44,7 @@
               <td>{{ loc.city || '—' }}</td>
               <td>{{loc.province || '—'}}</td>
               <td>{{ loc.country || '—' }}</td>
-              <td>{{ loc.location_type }}</td>
+              <td>{{ toTitleCase(loc.location_type) }}</td>
               <td><span :class="['ams-badge', loc.status]">{{ loc.status }}</span></td>
               <td class="pe-3">
                 <div class="dropdown">
@@ -167,6 +167,7 @@
 <script setup>
 import {ref, reactive, onMounted, computed} from 'vue'
 import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toTitleCase} from "../../utils/upperCase.js";
 
 const locations = ref([])
 const businesses = ref([])

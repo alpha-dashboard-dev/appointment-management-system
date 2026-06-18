@@ -229,7 +229,12 @@
                     </div>
 
                     <div v-for="charge in autoCharges" :key="charge.charge_code" class="form-check mb-2">
-                      <input checked disabled type="checkbox" class="form-check-input">
+                      <input
+                          :id="`charge-${charge.charge_code}`"
+                          v-model="selectedChargeCodes"
+                          :value="charge.charge_code"
+                          type="checkbox"
+                          class="form-check-input">
                       <label class="form-check-label">
                         {{ charge.name }}
                         <span class="text-muted">
@@ -504,7 +509,6 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
 import formatDate from "../../utils/formatDate.js";
 import {apiHandler} from "../../utils/api/apiHandler.js";
@@ -523,14 +527,7 @@ const showReschedule = ref(false)
 const selected = ref(null)
 const historyLoading = ref(false)
 const appointmentHistory = ref([])
-
-const showAssign = ref(false)
-const assignAppt = ref(null)
-const staffList = ref([])
-const staffLoading = ref(false)
 const selectedStaff = ref('')
-const assigning = ref(false)
-const assignError = ref('')
 
 // Approval dialog state
 const showApproval = ref(false)
@@ -729,7 +726,10 @@ function openReschedule(appt) {
 
 async function changeStatus(appt, status) {
   try {
-    await api.patch(`/appointments/update-appointment-status/${appt.appointment_code}`, { status })
+    await apiHandler("appointment", "updateAppointmentStatus", {
+      code: appt.appointment_code,
+      status
+    })
     appt.status = status
   } catch (err) {
     error.value = err.response?.data?.message || 'Status update failed'
@@ -740,7 +740,10 @@ async function submitReschedule() {
   saving.value = true
   rescheduleError.value = ''
   try {
-    await api.post(`/appointments/reschedule-appointment/${selected.value.appointment_code}`, rescheduleForm)
+    await apiHandler("appointment", "rescheduleAppointment",{
+      code: selected.value.appointment_code,
+      ...rescheduleForm
+    })
     showReschedule.value = false
     await fetchAppointments()
   } catch (err) {
@@ -786,7 +789,10 @@ async function loadApprovalAvailability(appt) {
   approvalRescheduleForm.notes = ''
   availabilityLoading.value = true
   try {
-    const res = await api.get(`/appointments/check-availability/${appt.appointment_code}`)
+    // const res = await api.get(`/appointments/check-availability/${appt.appointment_code}`)
+    const res = await apiHandler("appointment", "checkStaffAvailability", {
+      code: appt.appointment_code
+    })
     const payload = res.data.data || {}
     availableStaff.value = payload.available_staff || []
     engagedStaff.value = payload.engaged_staff || []
@@ -821,10 +827,12 @@ async function submitApproveWithStaff() {
   approvalSaving.value = true
   approvalError.value = ''
   try {
-    await api.post(`/appointments/approve-appointment/${selected.value.appointment_code}`, {
-      staff_code: approvalSelectedStaff.value,
-      selected_charge_codes: selectedChargeCodes.value
-    })
+    await apiHandler("appointment", "approveAppointment",
+        {
+          code: selected.value.appointment_code,
+          staff_code: selectedStaff.value,
+          selected_charge_codes: selectedChargeCodes.value
+        })
     showApproval.value = false
     await fetchAppointments()
   } catch (err) {
@@ -845,7 +853,10 @@ async function submitApprovalReschedule() {
   approvalSaving.value = true
   approvalError.value = ''
   try {
-    await api.post(`/appointments/reschedule-appointment/${selected.value.appointment_code}`, approvalRescheduleForm)
+    await apiHandler("appointment", "rescheduleAppointment", {
+      code: selected.value.appointment_code,
+      ...approvalRescheduleForm
+    })
     showApproval.value = false
     await fetchAppointments()
   } catch (err) {

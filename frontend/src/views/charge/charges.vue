@@ -37,7 +37,7 @@
               <td class="ps-3">{{ charge.business_name }}</td>
               <td>{{ charge.name }}</td>
               <td>{{ charge.charge_value }}</td>
-              <td>{{ charge.charge_uom }}</td>
+              <td>{{ toUpperLabel(charge.charge_uom) }}</td>
               <td><span :class="['ams-badge', charge.status]">{{ charge.status }}</span></td>
               <td><span :class="['ams-badge', charge.auto_apply]">{{ charge.auto_apply }}</span></td>
               <td class="pe-3">
@@ -220,6 +220,7 @@ import {ref, computed, onMounted, reactive} from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { validateChargeForm } from '@/utils/validator'
 import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toUpperLabel} from "../../utils/upperCase.js";
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.role === 'admin')

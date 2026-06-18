@@ -13,7 +13,7 @@
 
     <!-- TABLE CARD -->
     <div class="card shadow-sm border-0">
-      <div class="card-body p-0 overflow-auto">
+      <div class="card-body p-0 overflow-visible">
         <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0 align-middle">

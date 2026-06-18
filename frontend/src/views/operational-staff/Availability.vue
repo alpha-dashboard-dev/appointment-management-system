@@ -25,7 +25,7 @@
       <table v-else class="table">
         <thead>
         <tr>
-          <th>Staff Code</th>
+          <th>Staff Name</th>
           <th>Employee Type</th>
           <th>Working Days</th>
           <th>Start Time</th>
@@ -34,7 +34,7 @@
         </thead>
         <tbody>
           <tr v-for="s in available" :key="s.id">
-            <td><code>{{ s.user_code }}</code></td>
+            <td>{{ s.staff_name }}</td>
             <td>{{ s.employee_type || '—' }}</td>
             <td>{{ s.working_days }}</td>
             <td>{{ formatTime(s.start_time) }}</td>
@@ -51,6 +51,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import formatTime from "@/utils/formatTime.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const form = reactive({ locationCode: '', date: '', startTime: '', endTime: '' })
@@ -77,7 +78,7 @@ async function fetchLocations() {
     const biz = authStore.user?.business_code
     if (!biz) return
 
-    const res = await api.get('/locations/get-all-locations', {
+    const res = await apiHandler("location", "getAllLocations", {
       params: { business_code: biz },
     })
 
