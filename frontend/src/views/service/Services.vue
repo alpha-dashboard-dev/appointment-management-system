@@ -10,7 +10,7 @@
     </div>
 
     <div class="d-flex gap-2 flex-wrap">
-      <select v-model="bizFilter" @change="fetchServices" class="form-select" style="max-width:220px">
+      <select v-model="bizFilter" class="form-select" style="max-width:220px">
         <option value="">All Businesses</option>
         <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
       </select>
@@ -174,9 +174,19 @@ const editForm = reactive({ name: '', description: '', duration_value: '', durat
 const durationUnits = ['hour', 'minutes', 'day', 'week']
 
 const filteredServices = computed(() => {
-  const s = search.value.toLowerCase()
-  if (!s) return services.value
-  return services.value.filter(svc => (svc.name || '').toLowerCase().includes(s))
+  return services.value.filter((svc) => {
+    const matchesSearch =
+        !search.value ||
+        (svc.name || '')
+            .toLowerCase()
+            .includes(search.value.toLowerCase())
+
+    const matchesBusiness =
+        !bizFilter.value ||
+        svc.business_code === bizFilter.value
+
+    return matchesSearch && matchesBusiness
+  })
 })
 
 // fetch all services with business details
@@ -190,13 +200,14 @@ async function fetchServices() {
           include: "business"
         }
     )
-
     services.value = (response.data.data || []).map(
         (service) => ({
           ...service,
           business_name: service.business?.name || '',
         })
     )
+
+    console.log(services.value[0])
   } catch (err) {
     error.value =
         err.response?.data?.message ||

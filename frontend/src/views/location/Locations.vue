@@ -10,7 +10,7 @@
     </div>
 
     <div class="d-flex gap-2">
-      <select v-model="bizFilter" @change="fetchLocations" class="form-select" style="max-width:240px">
+      <select v-model="bizFilter" class="form-select" style="max-width:240px">
         <option value="">All Businesses</option>
         <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
       </select>
@@ -165,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import {ref, reactive, onMounted, computed} from 'vue'
 import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const locations = ref([])

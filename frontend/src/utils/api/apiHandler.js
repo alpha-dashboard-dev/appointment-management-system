@@ -3,7 +3,7 @@ import { API_CONFIG } from './apiConfig.js'
 
 export async function apiHandler(section, action, data = {}) {
 
-    console.log('apiHandler', section, action, data)
+    // console.log('apiHandler', section, action, data)
 
     const config = API_CONFIG?.[section]?.[action]
 
@@ -12,8 +12,9 @@ export async function apiHandler(section, action, data = {}) {
     }
 
     let endpoint = config.endpoint
-    const payload = { ...data }
+    // const payload = { ...data }
 
+    const payload = Array.isArray(data) ? data : { ...data }
     Object.keys(data).forEach(key => {
         if (endpoint.includes(`:${key}`)) {
             endpoint = endpoint.replace(`:${key}`, data[key])

@@ -152,7 +152,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const locations = ref([])
@@ -172,11 +172,9 @@ async function fetchLocations() {
   error.value = ''
 
   try {
-    const response = await api.get('/locations/get-all-locations',
+    const response = await apiHandler("location", "getAllLocations",
         {
-          params: {
-            include: "business"
-          }
+          include: "business"
         }
     )
 
@@ -216,7 +214,10 @@ async function updateLocation() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/locations/update-location/${selected.value.location_code}`, editForm)
+    await apiHandler("location", "updateLocation", {
+      code: selected.value.location_code,
+      ...editForm,
+    })
     showEditModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -229,7 +230,9 @@ async function updateLocation() {
 async function deleteLocation() {
   saving.value = true
   try {
-    await api.delete(`/locations/delete-location/${selected.value.location_code}`)
+    await apiHandler("location", "deleteLocation", {
+      code: selected.value.location_code
+    })
     showDeleteModal.value = false
     await fetchLocations()
   } catch (err) {

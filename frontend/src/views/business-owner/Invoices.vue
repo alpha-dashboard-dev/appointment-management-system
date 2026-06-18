@@ -9,6 +9,7 @@
         <option value="draft">Draft</option>
         <option value="issued">Issued</option>
         <option value="paid">Paid</option>
+        <option value="unpaid">Unpaid</option>
         <option value="canceled">Canceled</option>
       </select>
     </div>
@@ -89,8 +90,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
 import formatDate from "../../utils/formatDate.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const invoices = ref([])
@@ -113,7 +114,7 @@ async function fetchInvoices() {
     const params = {}
     if (biz) params.business_code = biz
     if (statusFilter.value) params.status = statusFilter.value
-    const res = await api.get('/invoices/get-invoice', { params })
+    const res = await apiHandler("invoice", "getAllInvoices", params)
     invoices.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load invoices'
@@ -133,7 +134,11 @@ async function updateStatus() {
   saving.value = true
   formError.value = ''
   try {
-    await api.patch(`/invoices/update-invoice-status/${selected.value.id}`, { invoice_status: newStatus.value })
+    await apiHandler("invoice", "updateInvoice",
+        {
+          id: selected.value.id,
+          invoice_status: newStatus.value
+        })
     showViewModal.value = false
     await fetchInvoices()
   } catch (err) {

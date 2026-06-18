@@ -163,6 +163,9 @@ class AppointmentService {
             return repo.findByParticipantCodes(participantCodes, filters, options);
         }
 
+        // console.log('ACTOR:', actor);
+        // console.log('USER TYPE:', actor?.userType);
+
         // Clients see only their own appointments
         if (actor && actor.userType === ROLES.CLIENT) {
             filters.created_by = actor.userCode;

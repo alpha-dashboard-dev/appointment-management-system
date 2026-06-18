@@ -161,8 +161,7 @@ async function fetchBusinesses() {
     businesses.value = (res.data.data || []).map(
         (business) => ({
           ...business,
-          organization_name:
-              business.organization?.name || '',
+          organization_name: business.organization?.name || '',
         })
     )
   } catch (err) {

@@ -184,7 +184,6 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
 import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
@@ -239,11 +238,6 @@ async function fetchMappings() {
       params.location_code = locFilter.value
 
     const response = await apiHandler("locationService", "getAllLocationServices", params)
-
-    // const response = await api.get(
-    //     '/location-services/get-location-service',
-    //     { params }
-    // )
 
     mappings.value = (response.data.data || []).map(
         (mapping) => ({
@@ -356,7 +350,7 @@ onMounted(async () => {
     fetchMappings(),
     isAdmin.value ? apiHandler("business", "getAllBusinesses") : Promise.resolve({ data: { data: [] } }),
     apiHandler("location", "getAllLocations",{ params: locParams }),
-    api.get('/services/get-all-services', { params: svcParams }),
+    apiHandler("service", "getAllServices", { params: svcParams }),
   ])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
   if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []

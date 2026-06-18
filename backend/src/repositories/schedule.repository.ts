@@ -143,7 +143,7 @@ class ScheduleRepository {
     }
 
     async delete(id: number) {
-        return dbHelper.delete(this.tables, id);
+        return dbHelper.delete(this.tables, {"id": id});
     }
 
     async isStaffScheduledAtLocation(

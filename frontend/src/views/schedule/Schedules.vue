@@ -385,7 +385,8 @@ async function fetchStaff(business_code) {
   staffList.value = []
   if (!business_code) return
   try {
-    const res = await api.get('/users/get-all-users', { params: { business_code } })
+    const res = await apiHandler("user", "getAllUsers", { business_code })
+    console.log(res)
     const all = res.data.data || []
     staffList.value = all.filter(u => u.user_type === 'operational_staff' || u.user_type === 'service_staff')
   } catch (_) {}
@@ -396,7 +397,7 @@ async function fetchLocations(business_code) {
   if (!business_code) return
   try {
     // const res = await api.get('/locations/get-all-locations', { params: { business_code } })
-    const res = await api.get('/locations/get-all-locations', { params: { business_code } })
+    const res = await apiHandler("location", "getAllLocations", { business_code })
     locationsList.value = res.data.data || []
   } catch (_) {}
 }
@@ -445,7 +446,9 @@ function openDelete(schedule) {
 async function deleteSchedule() {
   saving.value = true
   try {
-    await api.delete(`/schedules/delete-schedule/${selected.value.id}`)
+    await apiHandler("staffSchedule", "deleteSchedule", {
+      id: selected.value.id
+    })
     showDeleteModal.value = false
     await fetchSchedules()
   } catch (err) {
@@ -477,9 +480,10 @@ async function createSchedule() {
 
   saving.value = true
   try {
-    await api.post('/schedules/bulk-create-schedule', entries)
+    const res = await apiHandler("staffSchedule", "createSchedule", entries)
+    console.log(res)
     showCreateModal.value = false
-    createForm.value = { business_code: '', user_code: '', employee_type: '', location_code: '' }
+    createForm.value = { business_code: '', user_code: '', location_code: '' }
     weekDays.value = freshWeekDays()
     scheduleMode.value = 'whole_week'
     sameTimeForAllDays.value = false

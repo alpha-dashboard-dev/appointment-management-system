@@ -73,7 +73,6 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/utils/api'
 import { validateBusinessForm } from '@/utils/validator'
 import {apiHandler} from "../../utils/api/apiHandler.js";
 
@@ -99,7 +98,7 @@ function validateField(field) {
 
 onMounted(async () => {
   try {
-    const res = await api.get('/organizations/get-all-organizations')
+    const res = await apiHandler("organization", "getAllOrganizations")
     organizations.value = res.data.data || []
   } catch (_) {}
 })
@@ -122,26 +121,6 @@ async function submit() {
   }
 }
 </script>
-
-<!--</script>-->
-
-<!--<script setup>-->
-<!--import { useBusiness } from '@/composables/business/useBusiness'-->
-<!--import { useCreateBusiness } from '@/composables/business/useCreateBusiness'-->
-
-<!--const {createBusiness} = useBusiness()-->
-
-<!--const {-->
-<!--  form,-->
-<!--  organizations,-->
-<!--  timezones,-->
-<!--  loading,-->
-<!--  error,-->
-<!--  errors,-->
-<!--  validateField,-->
-<!--  submit-->
-<!--} = useCreateBusiness(createBusiness)-->
-<!--</script>-->
 
 <style scoped>
 .page { display: flex; flex-direction: column; gap: 16px; }

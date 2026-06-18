@@ -80,7 +80,6 @@
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
 import { validateClientForm } from '@/utils/validator'
 import {apiHandler} from "../../utils/api/apiHandler.js";
 
@@ -118,7 +117,7 @@ onMounted(async () => {
     return
   }
   try {
-    const res = await api.get('/businesses/get-business')
+    const res = await apiHandler("business", "getAllBusinesses")
     businesses.value = res.data.data || []
   } catch (_) {}
 })

@@ -160,7 +160,6 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import api from '@/utils/api'
 import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const clients = ref([])

@@ -54,10 +54,12 @@ async function submit() {
   Object.assign(errors, validationErrors)
   if (Object.keys(errors).length > 0) return
 
+  const payload = {...form}
+
   loading.value = true
   error.value = ''
   try {
-    const res = await apiHandler("organization", "createOrganization", form)
+    const res = await apiHandler("organization", "createOrganization", payload)
     // console.log(res.message)
     router.push('/organizations')
   } catch (err) {

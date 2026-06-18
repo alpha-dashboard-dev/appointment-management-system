@@ -163,7 +163,7 @@ function openDetails(inv) {
 async function updateStatus(inv, status) {
   saving.value = true
   try {
-    await apiHandler("invoice", "deactivateInvoice",
+    await apiHandler("invoice", "updateInvoice",
         {
           id: inv.id,
           invoice_status: status

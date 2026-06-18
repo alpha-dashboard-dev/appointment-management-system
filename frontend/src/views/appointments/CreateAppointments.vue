@@ -151,8 +151,8 @@ onMounted(async () => {
     form.business_code = authStore.user?.business_code || ''
     if (form.business_code) {
       const [svcRes, locRes] = await Promise.allSettled([
-        api.get('/services/get-all-services', { params: { business_code: form.business_code } }),
-        api.get('/locations/get-all-locations', { params: { business_code: form.business_code } }),
+        apiHandler("service", "getAllServices", { params: { business_code: form.business_code } }),
+        apiHandler("location", "getAllLocations", { params: { business_code: form.business_code } }),
       ])
       if (svcRes.status === 'fulfilled') services.value = svcRes.value.data.data || []
       if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []
@@ -166,8 +166,8 @@ async function onBusinessChange() {
   form.location_code = ''
   if (!form.business_code) { services.value = []; locations.value = []; return }
   const [svcRes, locRes] = await Promise.allSettled([
-    api.get('/services/get-all-services', { params: { business_code: form.business_code } }),
-    api.get('/locations/get-all-locations', { params: { business_code: form.business_code } }),
+    apiHandler("service", "getAllServices", { params: { business_code: form.business_code } }),
+    apiHandler("location", "getAllLocations", { params: { business_code: form.business_code } }),
   ])
   if (svcRes.status === 'fulfilled') services.value = svcRes.value.data.data || []
   if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []
@@ -179,9 +179,9 @@ async function onLocationChange() {
   try {
     const params = { business_code: form.business_code }
     if (form.location_code) params.location_code = form.location_code
-    const svcRes = await api.get('/services/client-view', { params })
+    // const svcRes = await api.get('/services/client-view', { params })
+    const svcRes = await apiHandler("service", "clientView", params)
     services.value = svcRes.data.data.services || []
-    // charges.value = svcRes.data.data.charges || []
   } catch (_) {}
 }
 
@@ -210,7 +210,7 @@ async function submit() {
     if (!payload.location_code) delete payload.location_code
     if (!payload.notes) delete payload.notes
     if (!payload.client_code) delete payload.client_code
-    await api.post('/appointments/create-appointment', payload)
+    await apiHandler('appointment', "createAppointment", payload)
     router.push('/appointments')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create appointment'

@@ -140,7 +140,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const services = ref([])
@@ -154,7 +154,6 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
 
-// const createForm = reactive({ name: '', duration_va: '', price: '', description: '' })
 const editForm = reactive({ name: '', description: '', duration_value: '', duration_uom: '', price: '', cost: '', status: 'active' })
 const durationUnits = ['hour', 'minutes', 'day', 'week']
 
@@ -163,11 +162,9 @@ async function fetchServices() {
   error.value = ''
 
   try {
-    const response = await api.get('/services/get-all-services',
+    const response = await apiHandler("service", "getAllServices",
         {
-          params: {
-            include: "business"
-          }
+          include: "business"
         }
     )
 
@@ -202,30 +199,17 @@ function openEdit(svc) {
 
 function openDelete(svc) { selected.value = svc; showDeleteModal.value = true }
 
-async function createService() {
-  saving.value = true
-  formError.value = ''
-  try {
-    const biz = authStore.user?.business_code
-    const payload = { ...createForm, business_code: biz }
-    if (!payload.price) delete payload.price
-    if (!payload.description) delete payload.description
-    await api.post('/services/create-service', payload)
-    showCreateModal.value = false
-    Object.assign(createForm, { name: '', duration_minutes: '', price: '', description: '' })
-    await fetchServices()
-  } catch (err) {
-    formError.value = err.response?.data?.message || 'Create failed'
-  } finally {
-    saving.value = false
-  }
-}
-
 async function updateService() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/services/update-service/${selected.value.service_code}`, editForm)
+    // await api.put(`/services/update-service/${selected.value.service_code}`, editForm)
+    await apiHandler("service", "updateService",
+        {
+          code: selected.value.service_code,
+          ...editForm
+        }
+    )
     showEditModal.value = false
     await fetchServices()
   } catch (err) {
@@ -238,7 +222,10 @@ async function updateService() {
 async function deleteService() {
   saving.value = true
   try {
-    await api.delete(`/services/delete-service/${selected.value.service_code}`)
+    // await api.delete(`/services/delete-service/${selected.value.service_code}`)
+    await apiHandler("service", "deleteService",{
+      code: selected.value.service_code,
+    })
     showDeleteModal.value = false
     await fetchServices()
   } catch (err) {

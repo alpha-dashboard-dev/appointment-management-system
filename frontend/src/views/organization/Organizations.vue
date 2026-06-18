@@ -143,9 +143,6 @@ async function fetchOrganizations() {
 
   try {
     const res = await apiHandler('organization', 'getAllOrganizations')
-
-    console.log(res)
-
     organizations.value = res.data.data || []
 
   } catch (err) {

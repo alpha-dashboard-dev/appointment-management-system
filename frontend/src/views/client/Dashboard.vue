@@ -75,7 +75,7 @@ async function fetchAppointments() {
   try {
     const userCode = authStore.user?.user_code
     const params = userCode ? { user_code: userCode } : {}
-    // console.log(params, userCode)
+    console.log(params, userCode)
     const res = await api.get('/appointments/get-all-appointments', { params })
     // console.log(res.data.data)
     appointments.value = res.data.data || []

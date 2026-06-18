@@ -31,7 +31,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const clients = ref([])
@@ -64,7 +64,7 @@ async function fetchClients() {
   error.value = ''
   try {
     const biz = authStore.user?.business_code
-    const res = await api.get('/clients/get-client', { params: biz ? { business_code: biz } : {} })
+    const res = await apiHandler("client", "getAllClients", { params: biz ? { business_code: biz } : {} })
     clients.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load clients'

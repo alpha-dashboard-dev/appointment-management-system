@@ -23,7 +23,7 @@
     </div>
 
     <div class="card shadow-sm border-0">
-      <div class="card-body p-0 overflow-auto">
+      <div class="card-body p-0 overflow-visible">
         <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0 align-middle">
@@ -507,6 +507,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
 import formatDate from "../../utils/formatDate.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const appointments = ref([])
@@ -677,11 +678,10 @@ async function fetchAppointments() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get('/appointments/get-all-appointments', {
-      params: {
-        include: "business,creator,approver,services,services.service,location"
-      }
-    })
+    const res = await apiHandler("appointment", "getAllAppointments",
+        {
+          include: "business,creator,approver,services,services.service,location"
+        })
 
     appointments.value = (res.data.data || []).map((appt) => ({
       ...appt,
@@ -705,7 +705,10 @@ async function openDetails(appt) {
   showDetails.value = true
   historyLoading.value = true
   try {
-    const res = await api.get(`/appointments/get-appointment-history/${appt.appointment_code}`)
+    const res = await apiHandler("appointment", "getAppointmentHistory", {
+      code: appt.appointment_code,
+      include : "changedByUser"
+    })
     appointmentHistory.value = res.data.data || []
   } catch (_) {
   } finally {

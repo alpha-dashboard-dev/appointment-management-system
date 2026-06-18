@@ -83,7 +83,6 @@
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
 import { validateLocationForm } from '@/utils/validator'
 import {apiHandler} from "../../utils/api/apiHandler.js";
 

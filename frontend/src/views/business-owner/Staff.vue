@@ -125,7 +125,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const staff = ref([])
@@ -138,7 +138,7 @@ const typeFilter = ref('')
 const showEditModal = ref(false)
 const showDeactivateModal = ref(false)
 const selected = ref(null)
-const editForm = reactive({ name: '', phone: '', employee_type: "", is_active: 'active'})
+const editForm = reactive({ name: '', phone: '', employee_type: '', is_active: 'active'})
 
 async function fetchStaff() {
   loading.value = true
@@ -148,7 +148,7 @@ async function fetchStaff() {
     const params = {}
     if (biz) params.business_code = biz
     if (typeFilter.value) params.user_type = typeFilter.value
-    const res = await api.get('/users/get-all-users', { params })
+    const res = await apiHandler("user", "getAllUsers", params)
     staff.value = (res.data.data || []).filter(u => ['operational_staff','service_staff'].includes(u.user_type))
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load staff'
@@ -161,6 +161,7 @@ function openEdit(user) {
   selected.value = user
   editForm.name = user.name
   editForm.phone = user.phone || ''
+  editForm.employee_type = user.employee_type || ''
   editForm.is_active = user.is_active
   formError.value = ''
   showEditModal.value = true
@@ -172,7 +173,12 @@ async function updateStaff() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/users/update-user${selected.value.user_code}`, editForm)
+    await apiHandler("user", "updateUser",
+        {
+          code: selected.value.user_code,
+          ...editForm
+        }
+    )
     showEditModal.value = false
     await fetchStaff()
   } catch (err) {
@@ -185,7 +191,12 @@ async function updateStaff() {
 async function deactivateStaff() {
   saving.value = true
   try {
-    await api.delete(`/users/delete-user${selected.value.user_code}`)
+    await apiHandler("user", "deactivateUser",
+        {
+          code: selected.value.user_code,
+          is_active: "inactive"
+        }
+    )
     showDeactivateModal.value = false
     await fetchStaff()
   } catch (err) {
@@ -194,6 +205,19 @@ async function deactivateStaff() {
     saving.value = false
   }
 }
+
+// async function deactivateStaff() {
+//   saving.value = true
+//   try {
+//     await api.delete(`/users/delete-user${selected.value.user_code}`)
+//     showDeactivateModal.value = false
+//     await fetchStaff()
+//   } catch (err) {
+//     error.value = err.response?.data?.message || 'Deactivate failed'
+//   } finally {
+//     saving.value = false
+//   }
+// }
 
 onMounted(fetchStaff)
 </script>

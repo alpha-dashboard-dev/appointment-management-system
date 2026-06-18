@@ -186,6 +186,10 @@ export const API_CONFIG = {
             endpoint: '/services/delete-service/:code',
             method: 'DELETE'
         },
+        clientView: {
+            endpoint: '/services/client-view',
+            method: 'GET'
+        }
     },
 
     charge: {
@@ -219,6 +223,10 @@ export const API_CONFIG = {
     },
 
     staffSchedule: {
+        createSchedule: {
+            endpoint: '/schedules/bulk-create-schedule',
+            method: 'POST',
+        },
         getAllSchedules: {
             endpoint: '/schedules/get-schedule',
             method: 'GET'
@@ -226,6 +234,10 @@ export const API_CONFIG = {
         updateSchedule: {
             endpoint: '/schedules/update-schedule/:id',
             method: 'PUT',
+        },
+        deleteSchedule: {
+            endpoint: '/schedules/delete-schedule/:id',
+            method: 'DELETE',
         }
 
     },
@@ -305,6 +317,10 @@ export const API_CONFIG = {
     },
 
     appointment: {
+        createAppointment: {
+            endpoint: '/appointments/create-appointment',
+            method: 'POST',
+        },
         getAllAppointments: {
             endpoint: '/appointments/get-all-appointments',
             method: 'GET'
@@ -351,7 +367,7 @@ export const API_CONFIG = {
         deleteAppointmentRecurrence: {
             endpoint: '/appointments/delete-appointment-recurrence/:id',
             method: 'DELETE'
-        }
+        },
     },
 
     user: {
@@ -389,6 +405,7 @@ export const API_CONFIG = {
             endpoint: '/users/update-user-status/:code',
             method: 'PATCH'
         },
+
     },
 
     invoice: {
@@ -417,16 +434,26 @@ export const API_CONFIG = {
             method: 'GET'
         },
 
-        updateInvoice: {
-            endpoint: '/invoices/:code',
-            method: 'PUT'
-        },
+        // updateInvoice: {
+        //     endpoint: '/invoices/:id',
+        //     method: 'PUT'
+        // },
 
-        deactivateInvoice: {
+        updateInvoice: {
             endpoint: '/invoices/update-invoice-status/:id',
             method: 'PATCH'
         },
     },
 
+    authentication: {
+        login: {
+            endpoint: "/auth/login",
+            method: "POST",
+        },
+        logout: {
+            endpoint: "/auth/logout",
+            method: "POST",
+        }
 
+    }
 }

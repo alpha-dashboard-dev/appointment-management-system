@@ -141,7 +141,6 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
 import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const users = ref([])
@@ -169,8 +168,7 @@ async function fetchUsers() {
     users.value = (response.data.data || []).map(
         (user) => ({
           ...user,
-          business_name:
-              user.business?.name || '',
+          business_name: user.business?.name || '',
         })
     )
   } catch (err) {
