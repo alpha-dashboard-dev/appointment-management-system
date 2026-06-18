@@ -8,11 +8,7 @@ import { generateCode } from "../utils/codeGenerator";
 
 import { ROLES } from "../utils/roles";
 
-const STAFF_USER_TYPES = [
-    ROLES.OPERATIONAL_STAFF,
-    ROLES.SERVICE_STAFF,
-    ROLES.CLIENT,
-];
+const STAFF_USER_TYPES = [ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT,];
 
 class UserService {
 

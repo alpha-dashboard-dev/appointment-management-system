@@ -104,7 +104,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
 import formatDate from "../../utils/formatDate.js";
 import {apiHandler} from "../../utils/api/apiHandler.js";
@@ -119,7 +118,6 @@ const pendingAppointments = computed(() => appointments.value.filter(a => a.stat
 
 async function changeStatus(appt, status) {
   try {
-    // await api.patch(`/appointments/${appt.appointment_code}/status`, { status })
     await apiHandler("appointment", "updateAppointmentStatus", {status: status})
     appt.status = status
   } catch (err) {

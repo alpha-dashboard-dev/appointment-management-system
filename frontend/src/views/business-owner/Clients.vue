@@ -12,16 +12,15 @@
       <div v-if="loading" class="loading">Loading...</div>
       <div v-else-if="error" class="error-msg">{{ error }}</div>
       <table v-else class="table">
-        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Code</th><th>Status</th></tr></thead>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th></tr></thead>
         <tbody>
           <tr v-for="client in filtered" :key="client.user_code">
             <td>{{ client.name }}</td>
             <td>{{ client.email }}</td>
             <td>{{ client.phone || '—' }}</td>
-            <td><code>{{ client.user_code }}</code></td>
             <td><span :class="['badge', client.is_active === 'active' ? 'active' : 'inactive']">{{ client.is_active === 'active' ? 'Active' : 'Inactive' }}</span></td>
           </tr>
-          <tr v-if="filtered.length === 0"><td colspan="5" class="empty">No clients found</td></tr>
+          <tr v-if="filtered.length === 0"><td colspan="4" class="empty">No clients found</td></tr>
         </tbody>
       </table>
     </div>
@@ -52,12 +51,6 @@ const filtered = computed(() => {
     return isClient && (!q || matchesSearch)
   })
 })
-
-// const filtered = computed(() => {
-//   if (!searchQuery.value.trim()) return clients.value
-//   const q = searchQuery.value.toLowerCase()
-//   return clients.value.filter(c => (c.name?.toLowerCase().includes(q)) || (c.email?.toLowerCase().includes(q)))
-// })
 
 async function fetchClients() {
   loading.value = true

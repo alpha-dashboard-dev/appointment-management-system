@@ -42,7 +42,17 @@ class UserController {
     async getAll(req: Request, res: Response) {
 
         try {
-
+        //     let query=req.query.include??"";
+        //
+        //
+        //
+        //     [{
+        //
+        //         "alias":"business",
+        //
+        //         "attributes":[]
+        //
+        //     }]
             const data =
                 await service.getAll(
                     {

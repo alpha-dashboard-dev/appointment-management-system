@@ -31,8 +31,8 @@
               <td class="ps-3">{{ user.name }}</td>
               <td>{{ user.email }}</td>
               <td>{{ user.phone }}</td>
-              <td>{{ user.user_type }}</td>
-              <td>{{ user.employee_type }}</td>
+              <td>{{ toTitleCase(user.user_type) }}</td>
+              <td>{{ toTitleCase(user.employee_type) }}</td>
               <td><span :class="['ams-badge', user.is_active === 'active' ? 'active' : 'inactive']">{{ user.is_active === 'active' ? 'Active' : 'Inactive' }}</span></td>
               <td class="pe-3">
                 <div class="dropdown">
@@ -126,6 +126,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toTitleCase} from "../../utils/upperCase.js";
 
 const authStore = useAuthStore()
 const staff = ref([])
