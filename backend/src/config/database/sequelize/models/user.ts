@@ -102,7 +102,6 @@ class User extends Model {
             targetKey: "business_code",
             as: "business",
             constraints: false,
-            attributes:["name"],
         });
 
         User.hasMany(models.UserShiftSchedule, {
@@ -117,7 +116,6 @@ class User extends Model {
             sourceKey: "user_code",
             as: "abilities",
             constraints: false,
-            attributes:[]
         });
 
         User.hasMany(models.Session, {

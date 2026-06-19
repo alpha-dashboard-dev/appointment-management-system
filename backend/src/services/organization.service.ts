@@ -22,44 +22,62 @@ class OrganizationService {
         return await repo.create(payload);
     }
 
+    // async getAll(query: any = {}) {
+    //
+    //     const filters = {
+    //         status: query.status,
+    //         search: query.search,
+    //     };
+    //
+    //     const options = {
+    //
+    //         include:
+    //             query.include
+    //                 ? String(query.include)
+    //                     .split(",")
+    //                 : [],
+    //
+    //         limit:
+    //             query.limit
+    //                 ? Number(query.limit)
+    //                 : undefined,
+    //
+    //         offset:
+    //             query.offset
+    //                 ? Number(query.offset)
+    //                 : undefined,
+    //
+    //         order: [
+    //             [
+    //                 query.sort_by || "created_at",
+    //
+    //                 query.sort_order || "DESC",
+    //             ]
+    //         ],
+    //     };
+    //
+    //     return await repo.findAll(
+    //         filters,
+    //         options
+    //     );
+    // }
+
     async getAll(query: any = {}) {
+        // console.log(query, actor)
 
-        const filters = {
-            status: query.status,
-            search: query.search,
-        };
-
-        const options = {
-
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
-            order: [
-                [
-                    query.sort_by || "created_at",
-
-                    query.sort_order || "DESC",
-                ]
-            ],
-        };
-
-        return await repo.findAll(
-            filters,
-            options
-        );
+        return repo.findAll(query, {
+            include: Array.isArray(query.include)
+                ? query.include
+                : [],
+            limit: query.limit,
+            // offset: query.offset,
+            // order: [
+            //     [
+            //         query.sort_by || "created_at",
+            //         query.sort_order || "DESC"
+            //     ]
+            // ]
+        });
     }
 
     async findOrganizationOrFail(

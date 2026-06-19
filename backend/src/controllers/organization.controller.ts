@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import service from "../services/organization.service";
+import {parseInclude} from "../utils/parseInclude";
 
 class OrganizationController {
 
@@ -23,14 +24,45 @@ class OrganizationController {
         }
     }
 
+    // async getAll(req: Request, res: Response) {
+    //
+    //     try {
+    //
+    //         const data =
+    //             await service.getAll(
+    //                 req.query
+    //             );
+    //
+    //         return res.status(200).json({
+    //             success: true,
+    //             data,
+    //         });
+    //
+    //     } catch (err: any) {
+    //         return res.status(500).json({
+    //             success: false,
+    //             message: err.message,
+    //         });
+    //     }
+    // }
+
     async getAll(req: Request, res: Response) {
 
         try {
 
-            const data =
-                await service.getAll(
-                    req.query
-                );
+            const includeRaw = req.query.include ?? "";
+            // console.log(includeRaw)
+
+            const includes = parseInclude(includeRaw);
+            // console.log(includes)
+
+
+            const data = await service.getAll(
+                {
+                    ...req.query,
+                    include: includes
+                },
+            );
 
             return res.status(200).json({
                 success: true,
@@ -38,6 +70,7 @@ class OrganizationController {
             });
 
         } catch (err: any) {
+
             return res.status(500).json({
                 success: false,
                 message: err.message,

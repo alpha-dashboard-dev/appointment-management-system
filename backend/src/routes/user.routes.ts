@@ -24,8 +24,18 @@ router.get(
     "/get-one-user/:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.getByCode
+    controller.getByUserCode
 );
+
+// get by any field
+
+router.get(
+    "/get-one-user",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.getByAnyField
+);
+
 
 
 router.put(

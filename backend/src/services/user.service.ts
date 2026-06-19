@@ -7,6 +7,7 @@ import { hashPassword } from "../utils/hashPassword";
 import { generateCode } from "../utils/codeGenerator";
 
 import { ROLES } from "../utils/roles";
+import {buildWhere} from "../utils/buildWhere";
 
 const STAFF_USER_TYPES = [ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT,];
 
@@ -130,83 +131,156 @@ class UserService {
     // GET ALL USERS
     // ========================
 
+    // async getAll(query: any = {}, actor: any) {
+    //
+    //     const filters: any = {
+    //         business_code:
+    //             query.business_code,
+    //
+    //         user_type: query.user_type,
+    //
+    //         is_active: query.is_active,
+    //
+    //         search: query.search,
+    //     };
+    //
+    //     const options = {
+    //         include:
+    //             query.include
+    //                 ? String(query.include)
+    //                     .split(",")
+    //                 : [],
+    //
+    //         limit:
+    //             query.limit
+    //                 ? Number(query.limit)
+    //                 : undefined,
+    //
+    //         offset:
+    //             query.offset
+    //                 ? Number(query.offset)
+    //                 : undefined,
+    //
+    //         order: [
+    //             [
+    //                 query.sort_by || "created_at",
+    //
+    //                 query.sort_order || "DESC",
+    //             ],
+    //         ],
+    //     };
+    //
+    //     const a = this.normalizeActor(actor);
+    //
+    //     if (!this.isAdmin(a)) {
+    //         filters.business_code =
+    //             a.businessCode;
+    //     }
+    //
+    //     return await repo.findAll(
+    //         filters,
+    //         options
+    //     );
+    // }
+
     async getAll(query: any = {}, actor: any) {
-
-        const filters: any = {
-            business_code:
-                query.business_code,
-
-            user_type: query.user_type,
-
-            is_active: query.is_active,
-
-            search: query.search,
-        };
-
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
-            order: [
-                [
-                    query.sort_by || "created_at",
-
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
+        // console.log(query.where)
 
         const a = this.normalizeActor(actor);
 
         if (!this.isAdmin(a)) {
-            filters.business_code =
-                a.businessCode;
+            query.business_code = a.businessCode;
         }
-
-        return await repo.findAll(
-            filters,
-            options
+        const where = buildWhere(query);
+        console.log(
+            JSON.stringify(where, null, 2)
         );
+
+        return repo.findAll({
+            where,
+            include: Array.isArray(query.include)
+                ? query.include
+                : [],
+            limit: query.limit ? Number(query.limit) : 5,
+            offset: query.offset ? Number(query.offset) : undefined,
+            order: [
+                [
+                    query.sort_by || "created_at",
+                    query.sort_order || "DESC"
+                ]
+            ]
+        });
     }
 
     // ========================
     // GET BY CODE
     // ========================
 
-    async getByCode(
-        userCode: string,
-        actor: any,
-        query: any = {}
-    ) {
+    // async getByCode(
+    //     userCode: string,
+    //     actor: any,
+    //     query: any = {}
+    // ) {
+    //
+    //     const options = {
+    //         include:
+    //             query.include
+    //                 ? String(query.include)
+    //                     .split(",")
+    //                 : [],
+    //     };
+    //
+    //     const user =
+    //         await repo.findByCode(
+    //             userCode,
+    //             options
+    //         );
+    //
+    //     if (!user) throw new Error("User not found");
+    //
+    //     this.assertBusinessAccess(
+    //         actor,
+    //         user.business_code
+    //     );
+    //
+    //     return user;
+    // }
 
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-        };
+    async getByCode(userCode: string, actor: any, query: any = {}) {
 
-        const user =
-            await repo.findByCode(
-                userCode,
-                options
-            );
+        const user = await repo.findOne(
+            {
+                user_code: userCode
+            },
+            {
+                include: query.include || []
+            }
+        );
 
-        if (!user) throw new Error("User not found");
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        this.assertBusinessAccess(
+            actor,
+            user.business_code
+        );
+
+        return user;
+    }
+
+    async getOne(where: any, actor: any, query: any = {})
+    {
+        const user = await repo.findOne(
+            where,
+            {
+                include: query.include || []
+            }
+        );
+
+        if (!user) {
+            throw new Error("User not found");
+        }
 
         this.assertBusinessAccess(
             actor,
@@ -222,8 +296,7 @@ class UserService {
 
     async update(userCode: string, data: any, actor: any) {
 
-        const user =
-            await repo.findByCode(userCode);
+        const user = await repo.findByCode(userCode);
 
         if (!user) throw new Error("User not found");
 
@@ -293,8 +366,7 @@ class UserService {
             throw new Error("Invalid status");
         }
 
-        const user =
-            await repo.findByCode(userCode);
+        const user = await repo.findByCode(userCode);
 
         if (!user) throw new Error("User not found");
 

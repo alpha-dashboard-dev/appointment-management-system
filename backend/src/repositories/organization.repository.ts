@@ -1,6 +1,8 @@
 import initModels from "../config/database/sequelize/models/index";
 
 import dbHelper from "../helpers/newDBHelper";
+import {buildWhere} from "../utils/buildWhere";
+import {buildIncludes} from "../utils/includeBuilder";
 
 const db = initModels();
 
@@ -10,25 +12,26 @@ class OrganizationRepository {
 
     constructor() {
 
-        this.tables = {
-            sequelize: db.Organization,
-            // drizzle: organizations
-        };
+        // this.tables = {
+        //     sequelize: db.Organization,
+        //     // drizzle: organizations
+        // };
+        this.tables = db.Organization
     }
 
-    buildIncludes(
-        include: string[] = []
-    ) {
-
-        const associations =
-            db.Organization.associations || {};
-
-        return [...new Set(include)]
-            .filter((alias) => associations[alias])
-            .map((alias) => ({
-                association: alias,
-            }));
-    }
+    // buildIncludes(
+    //     include: string[] = []
+    // ) {
+    //
+    //     const associations =
+    //         db.Organization.associations || {};
+    //
+    //     return [...new Set(include)]
+    //         .filter((alias) => associations[alias])
+    //         .map((alias) => ({
+    //             association: alias,
+    //         }));
+    // }
 
     async create(data: any) {
 
@@ -38,58 +41,83 @@ class OrganizationRepository {
         );
     }
 
-    async findAll(
-        filters: any = {},
-        options: any = {}
-    ) {
+    async findAll(options: any = {}) {
+        // console.log(options);
 
-        const where: any = {};
-
-        // STATUS
-        if (filters.status) {
-            where.status = filters.status;
-        }
-
-        // SEARCH
-        if (filters.search) {
-
-            const { Op } = require("sequelize");
-
-            where[Op.or] = [
-                {
-                    name: {
-                        [Op.like]:
-                            `%${filters.search}%`
-                    }
-                },
-                {
-                    organization_code: {
-                        [Op.like]:
-                            `%${filters.search}%`
-                    }
-                }
-            ];
-        }
+        const where = buildWhere(options);
+        // console.log(options);
 
         return dbHelper.findAll(
             this.tables,
             {
                 where,
-
-                include: this.buildIncludes(
-                    options.include
+                include: buildIncludes(
+                    this.tables,
+                    options.include || []
                 ),
 
-                limit: options.limit,
-
-                offset: options.offset,
-
-                order: options.order || [
-                    ["created_at", "DESC"]
-                ],
+                limit: options.limit || 2,
+                // offset: options.offset,
+                //
+                // order: options.order || [
+                //     ["created_at", "DESC"]
+                // ]
             }
         );
     }
+
+    // async findAll(
+    //     filters: any = {},
+    //     options: any = {}
+    // ) {
+    //
+    //     const where: any = {};
+    //
+    //     // STATUS
+    //     if (filters.status) {
+    //         where.status = filters.status;
+    //     }
+    //
+    //     // SEARCH
+    //     if (filters.search) {
+    //
+    //         const { Op } = require("sequelize");
+    //
+    //         where[Op.or] = [
+    //             {
+    //                 name: {
+    //                     [Op.like]:
+    //                         `%${filters.search}%`
+    //                 }
+    //             },
+    //             {
+    //                 organization_code: {
+    //                     [Op.like]:
+    //                         `%${filters.search}%`
+    //                 }
+    //             }
+    //         ];
+    //     }
+    //
+    //     return dbHelper.findAll(
+    //         this.tables,
+    //         {
+    //             where,
+    //
+    //             include: this.buildIncludes(
+    //                 options.include
+    //             ),
+    //
+    //             limit: options.limit,
+    //
+    //             offset: options.offset,
+    //
+    //             order: options.order || [
+    //                 ["created_at", "DESC"]
+    //             ],
+    //         }
+    //     );
+    // }
 
     async findByCode(
         organizationCode: string,

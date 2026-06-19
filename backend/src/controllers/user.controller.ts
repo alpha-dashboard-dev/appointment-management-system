@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
 import service from "../services/user.service";
+import {parseInclude} from "../utils/parseInclude";
 
 class UserController {
 
@@ -39,24 +40,52 @@ class UserController {
     // GET ALL USERS (UNIFIED)
     // ======================
 
+    // async getAll(req: Request, res: Response) {
+    //
+    //     try {
+    //         let query=req.query.include??"";
+    //
+    //
+    //
+    //         [{
+    //
+    //             "alias":"business",
+    //
+    //             "attributes":[]
+    //
+    //         }]
+    //         const data =
+    //             await service.getAll(
+    //                 {
+    //                     ...req.query
+    //                 },
+    //                 req.user
+    //             );
+    //
+    //         return res.status(200).json({
+    //             success: true,
+    //             data,
+    //         });
+    //
+    //     } catch (err: any) {
+    //
+    //         return res.status(500).json({
+    //             success: false,
+    //             message: err.message,
+    //         });
+    //     }
+    // }
+
     async getAll(req: Request, res: Response) {
 
         try {
-        //     let query=req.query.include??"";
-        //
-        //
-        //
-        //     [{
-        //
-        //         "alias":"business",
-        //
-        //         "attributes":[]
-        //
-        //     }]
+
+            let include = req.query.include;
             const data =
                 await service.getAll(
                     {
-                        ...req.query
+                        ...req.query,
+                        include: parseInclude(include),
                     },
                     req.user
                 );
@@ -79,16 +108,42 @@ class UserController {
     // GET SINGLE USER
     // ======================
 
-    async getByCode(req: Request, res: Response) {
+    async getByUserCode(req: Request, res: Response) {
 
         try {
-
+            const userCode = String(req.params.userCode)
             const data =
                 await service.getByCode(
-                    String(req.params.userCode),
+                    userCode,
                     req.user,
                     req.query
                 );
+
+            return res.status(200).json({
+                success: true,
+                data,
+            });
+
+        } catch (err: any) {
+
+            return res.status(404).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+
+    async getByAnyField(req: Request, res: Response) {
+
+        try {
+            const { field, value } = req.query;
+            const user = req.user;
+            console.log(field, value);
+            const data = await service.getOne(
+                {[field as string]: value},
+                user,
+                // req.query
+            )
 
             return res.status(200).json({
                 success: true,

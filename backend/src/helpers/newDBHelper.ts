@@ -59,7 +59,7 @@ class DbHelper {
 
         if (this.orm === "sequelize") {
 
-            return await table.sequelize.findOne(options);
+            return await table.findOne(options);
         }
 
         if (this.orm === "drizzle") {
@@ -84,14 +84,15 @@ class DbHelper {
         }
     }
 
-    async findAll(
-        table: any,
-        options: any = {}
-    ) {
-
+    async findAll(table: any, options: any = {})
+    {
         if (this.orm === "sequelize") {
 
-            return await table.sequelize.findAll(options);
+            return await table.findAll(
+                {
+                    ...options
+                }
+            );
         }
 
         if (this.orm === "drizzle") {
@@ -137,6 +138,60 @@ class DbHelper {
             // return await query;
         }
     }
+
+    // async findAll(
+    //     table: any,
+    //     options: any = {}
+    // ) {
+    //
+    //     if (this.orm === "sequelize") {
+    //
+    //         return await table.sequelize.findAll(options);
+    //     }
+    //
+    //     if (this.orm === "drizzle") {
+    //
+    //         // let query = drizzleDb
+    //         //     .select()
+    //         //     .from(table.drizzle);
+    //         //
+    //         // // WHERE
+    //         // const whereClause =
+    //         //     this.buildDrizzleWhere(
+    //         //         table.drizzle,
+    //         //         options.where
+    //         //     );
+    //         //
+    //         // if (whereClause) {
+    //         //     query = query.where(whereClause);
+    //         // }
+    //         //
+    //         // // ORDER
+    //         // if (options.order?.length) {
+    //         //
+    //         //     const [field, direction] =
+    //         //         options.order[0];
+    //         //
+    //         //     query = query.orderBy(
+    //         //         direction === "DESC"
+    //         //             ? desc(table.drizzle[field])
+    //         //             : asc(table.drizzle[field])
+    //         //     );
+    //         // }
+    //         //
+    //         // // LIMIT
+    //         // if (options.limit) {
+    //         //     query = query.limit(options.limit);
+    //         // }
+    //         //
+    //         // // OFFSET
+    //         // if (options.offset) {
+    //         //     query = query.offset(options.offset);
+    //         // }
+    //         //
+    //         // return await query;
+    //     }
+    // }
 
     async update(table: any, where: any, data: any, options?: any) {
         // console.log(table, where, data);
@@ -216,3 +271,48 @@ class DbHelper {
 }
 
 export default new DbHelper();
+
+
+// async findOne(
+//     table: any,
+//     options: any = {}
+// ) {
+//
+//     return table.findOne({
+//         ...options
+//     });
+// }
+//
+// async create(
+//     table: any,
+//     data: any,
+//     options: any = {}
+// ) {
+//
+//     return table.create(
+//         data,
+//         options
+//     );
+// }
+//
+// async update(
+//     table: any,
+//     values: any,
+//     options: any = {}
+// ) {
+//
+//     return table.update(
+//         values,
+//         options
+//     );
+// }
+//
+// async destroy(
+//     table: any,
+//     options: any = {}
+// ) {
+//
+//     return table.destroy(
+//         options
+//     );
+// }
