@@ -69,39 +69,39 @@
       </div>
     </div>
 
-    <nav class="mt-3">
-      <ul class="pagination justify-content-end">
+<!--    <nav class="mt-3">-->
+<!--      <ul class="pagination justify-content-end">-->
 
-        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-          <button class="page-link" @click="changePage(currentPage - 1)">
-            Previous
-          </button>
-        </li>
+<!--        <li class="page-item" :class="{ disabled: currentPage === 1 }">-->
+<!--          <button class="page-link" @click="changePage(currentPage - 1)">-->
+<!--            Previous-->
+<!--          </button>-->
+<!--        </li>-->
 
-        <li
-            v-for="page in lastPage"
-            :key="page"
-            class="page-item"
-            :class="{ active: currentPage === page }">
+<!--        <li-->
+<!--            v-for="page in lastPage"-->
+<!--            :key="page"-->
+<!--            class="page-item"-->
+<!--            :class="{ active: currentPage === page }">-->
 
-          <button
-              class="page-link"
-              @click="changePage(page)">
+<!--          <button-->
+<!--              class="page-link"-->
+<!--              @click="changePage(page)">-->
 
-            {{ page }}
+<!--            {{ page }}-->
 
-          </button>
+<!--          </button>-->
 
-        </li>
+<!--        </li>-->
 
-        <li class="page-item" :class="{ disabled: currentPage === lastPage }">
-          <button class="page-link" @click="changePage(currentPage + 1)">
-            Next
-          </button>
-        </li>
+<!--        <li class="page-item" :class="{ disabled: currentPage === lastPage }">-->
+<!--          <button class="page-link" @click="changePage(currentPage + 1)">-->
+<!--            Next-->
+<!--          </button>-->
+<!--        </li>-->
 
-      </ul>
-    </nav>
+<!--      </ul>-->
+<!--    </nav>-->
 
     <!-- EDIT MODAL -->
     <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
@@ -179,8 +179,8 @@ import {apiHandler} from "../../utils/api/apiHandler.js";
 import {toTitleCase} from "../../utils/upperCase.js";
 
 const users = ref([])
-const currentPage = ref(1)
-const lastPage = ref(1)
+// const currentPage = ref(1)
+// const lastPage = ref(1)
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
@@ -210,8 +210,8 @@ async function fetchUsers() {
         })
     )
 
-    currentPage.value = response.current_page
-    lastPage.value = response.last_page
+    // currentPage.value = response.current_page
+    // lastPage.value = response.last_page
 
     console.log(currentPage.value)
   } catch (err) {
@@ -223,12 +223,12 @@ async function fetchUsers() {
   }
 }
 
-async function changePage(page) {
-  if (page < 1 || page > lastPage.value) return
-
-  currentPage.value = page
-  await fetchUsers()
-}
+// async function changePage(page) {
+//   if (page < 1 || page > lastPage.value) return
+//
+//   currentPage.value = page
+//   await fetchUsers()
+// }
 
 function openEdit(user) {
   selected.value = user
