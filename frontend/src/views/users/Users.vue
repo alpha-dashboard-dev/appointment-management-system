@@ -200,7 +200,7 @@ async function fetchUsers() {
   try {
     const response = await apiHandler("user", "getAllUsers", {
       include: "business",
-      page: currentPage.value
+      // page: currentPage.value
     })
 
     users.value = (response.data.data || []).map(
@@ -213,7 +213,7 @@ async function fetchUsers() {
     // currentPage.value = response.current_page
     // lastPage.value = response.last_page
 
-    console.log(currentPage.value)
+    // console.log(currentPage.value)
   } catch (err) {
     error.value =
         err.response?.data?.message ||
