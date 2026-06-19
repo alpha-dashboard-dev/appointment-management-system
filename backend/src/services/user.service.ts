@@ -198,7 +198,7 @@ class UserService {
             include: Array.isArray(query.include)
                 ? query.include
                 : [],
-            limit: query.limit ? Number(query.limit) : 3,
+            limit: query.limit ? Number(query.limit) : 5,
             offset: query.offset ? Number(query.offset) : undefined,
             order: [
                 [

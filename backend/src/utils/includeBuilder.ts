@@ -7,8 +7,8 @@ export function buildIncludes(model: any, includes: any[] = []) {
 
     const associations = model.associations.business || {};
 
-    console.log("associations");
-    console.log(associations);
+    // console.log("associations");
+    // console.log(associations);
     const modelName = model.name;
     // console.log("includes associations", associations);
 
