@@ -79,8 +79,7 @@ class UserController {
     async getAll(req: Request, res: Response) {
 
         try {
-
-            let include = req.query.include;
+            let include = req.query.include ?? "";
             const data =
                 await service.getAll(
                     {

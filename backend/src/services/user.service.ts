@@ -192,16 +192,13 @@ class UserService {
             query.business_code = a.businessCode;
         }
         const where = buildWhere(query);
-        console.log(
-            JSON.stringify(where, null, 2)
-        );
 
         return repo.findAll({
             where,
             include: Array.isArray(query.include)
                 ? query.include
                 : [],
-            limit: query.limit ? Number(query.limit) : 5,
+            limit: query.limit ? Number(query.limit) : 3,
             offset: query.offset ? Number(query.offset) : undefined,
             order: [
                 [
@@ -211,40 +208,6 @@ class UserService {
             ]
         });
     }
-
-    // ========================
-    // GET BY CODE
-    // ========================
-
-    // async getByCode(
-    //     userCode: string,
-    //     actor: any,
-    //     query: any = {}
-    // ) {
-    //
-    //     const options = {
-    //         include:
-    //             query.include
-    //                 ? String(query.include)
-    //                     .split(",")
-    //                 : [],
-    //     };
-    //
-    //     const user =
-    //         await repo.findByCode(
-    //             userCode,
-    //             options
-    //         );
-    //
-    //     if (!user) throw new Error("User not found");
-    //
-    //     this.assertBusinessAccess(
-    //         actor,
-    //         user.business_code
-    //     );
-    //
-    //     return user;
-    // }
 
     async getByCode(userCode: string, actor: any, query: any = {}) {
 
@@ -300,16 +263,9 @@ class UserService {
 
         if (!user) throw new Error("User not found");
 
-        this.assertBusinessAccess(
-            actor,
-            user.business_code
-        );
+        this.assertBusinessAccess(actor, user.business_code);
 
-        if (
-            actor.userType !== ROLES.ADMIN &&
-            data.user_type &&
-            !STAFF_USER_TYPES.includes(data.user_type)
-        ) {
+        if (actor.userType !== ROLES.ADMIN && data.user_type && !STAFF_USER_TYPES.includes(data.user_type)) {
             throw new Error(
                 "Invalid role assignment"
             );

@@ -69,6 +69,40 @@
       </div>
     </div>
 
+    <nav class="mt-3">
+      <ul class="pagination justify-content-end">
+
+        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+          <button class="page-link" @click="changePage(currentPage - 1)">
+            Previous
+          </button>
+        </li>
+
+        <li
+            v-for="page in lastPage"
+            :key="page"
+            class="page-item"
+            :class="{ active: currentPage === page }">
+
+          <button
+              class="page-link"
+              @click="changePage(page)">
+
+            {{ page }}
+
+          </button>
+
+        </li>
+
+        <li class="page-item" :class="{ disabled: currentPage === lastPage }">
+          <button class="page-link" @click="changePage(currentPage + 1)">
+            Next
+          </button>
+        </li>
+
+      </ul>
+    </nav>
+
     <!-- EDIT MODAL -->
     <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
       <div class="modal-dialog modal-dialog-centered">
@@ -145,6 +179,8 @@ import {apiHandler} from "../../utils/api/apiHandler.js";
 import {toTitleCase} from "../../utils/upperCase.js";
 
 const users = ref([])
+const currentPage = ref(1)
+const lastPage = ref(1)
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
@@ -163,7 +199,8 @@ async function fetchUsers() {
 
   try {
     const response = await apiHandler("user", "getAllUsers", {
-      include: "business"
+      include: "business",
+      page: currentPage.value
     })
 
     users.value = (response.data.data || []).map(
@@ -172,6 +209,11 @@ async function fetchUsers() {
           business_name: user.business?.name || '',
         })
     )
+
+    currentPage.value = response.current_page
+    lastPage.value = response.last_page
+
+    console.log(currentPage.value)
   } catch (err) {
     error.value =
         err.response?.data?.message ||
@@ -179,6 +221,13 @@ async function fetchUsers() {
   } finally {
     loading.value = false
   }
+}
+
+async function changePage(page) {
+  if (page < 1 || page > lastPage.value) return
+
+  currentPage.value = page
+  await fetchUsers()
 }
 
 function openEdit(user) {

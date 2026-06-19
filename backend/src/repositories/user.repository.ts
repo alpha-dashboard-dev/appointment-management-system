@@ -90,7 +90,6 @@ class UserRepository {
         );
 
     }
-
   // async findByCode(userCode: string, options: any = {}) {
   //
   //   return dbHelper.findOne(

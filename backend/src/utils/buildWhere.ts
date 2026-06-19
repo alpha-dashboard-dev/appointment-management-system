@@ -8,7 +8,7 @@ export function buildWhere(filters: any = {}) {
     const where: any = {};
 
     // console.log(filters)
-    console.log(FILTER_CONFIG);
+    // console.log(FILTER_CONFIG);
 
     for (const key in filters) {
 
