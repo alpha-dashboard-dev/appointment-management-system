@@ -9,11 +9,17 @@ class UserRepository {
   private tables: any;
 
   constructor() {
-    // this.tables = { sequelize: db.User };
+    // this.tables = { 
+    //   sequelize: db.User,
+    //   drizzle: users
+    //  };
+
       this.tables = db.User;
   }
 
   async create(data: any, options?: any) {
+    console.log(this.tables);
+    console.log(typeof this.tables.create);
     return dbHelper.create(this.tables, data, options);
   }
 
@@ -95,7 +101,6 @@ class UserRepository {
   }
 
   async delete(where: any) {
-
     return dbHelper.delete(
         this.tables,
         where

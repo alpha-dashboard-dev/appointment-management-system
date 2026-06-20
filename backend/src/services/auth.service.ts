@@ -77,9 +77,9 @@ class AuthService {
         }
 
         const tokenPayload = {
-            user_code: user.user_code,
-            user_type: user.user_type,
-            business_code: user.business_code,
+            userCode: user.user_code,
+            userType: user.user_type,
+            businessCode: user.business_code,
         };
 
         const accessToken = generateAccessToken(tokenPayload);
@@ -101,16 +101,26 @@ class AuthService {
     async refresh(oldToken: string) {
         const decoded: any = verifyRefreshToken(oldToken);
 
-        const session = await sessionRepo.findByToken(oldToken);
+        const session = await sessionRepo.findByToken({
+            refresh_token: oldToken
+        });
         if (!session) throw new Error("Invalid or expired session");
 
-        const user = await repo.findByCode(decoded.user_code);
+        // console.log(decoded.userCode)
+
+
+        const user = await repo.findOne({
+            user_code: decoded.userCode
+        });
+
         if (!user) throw new Error("User not found");
 
+        // console.log(user)
+
         const payload = {
-            user_code: user.user_code,
-            user_type: user.user_type,
-            business_code: user.business_code,
+            userCode: user.user_code,
+            userType: user.user_type,
+            businessCode: user.business_code,
         };
 
         const newAccessToken = generateAccessToken(payload);
@@ -126,7 +136,9 @@ class AuthService {
     }
 
     async logout(userCode: string) {
-        await sessionRepo.deleteByUserCode(userCode);
+        await sessionRepo.delete({
+            user_code: userCode
+        });
         return true;
     }
 }

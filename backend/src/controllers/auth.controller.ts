@@ -75,7 +75,6 @@ class AuthController {
     async logout(req: Request, res: Response) {
         try {
             const userCode = (req.user as any)?.userCode;
-
             if (!userCode) {
                 return res.status(400).json({
                     message: "Not authenticated",

@@ -1,4 +1,4 @@
-import { FILTER_CONFIG } from "../config/filter.config";
+import { FILTER_CONFIG } from "./filter.config";
 import { Op } from "sequelize";
 
 export function buildWhere(filters: any = {}) {

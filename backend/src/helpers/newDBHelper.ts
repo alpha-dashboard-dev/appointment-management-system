@@ -35,18 +35,18 @@ class DbHelper {
 
         if (this.orm === "sequelize") {
 
-            return await table.sequelize.create(data, options);
+            return await table.create(data, options);
         }
 
-        if (this.orm === "drizzle") {
+        // if (this.orm === "drizzle") {
 
-            const result = await drizzleDb
-                .insert(table.drizzle)
-                .values(data)
-                .returning();
+        //     const result = await drizzleDb
+        //         .insert(table.drizzle)
+        //         .values(data)
+        //         .returning();
 
-            return result[0] || null;
-        }
+        //     return result[0] || null;
+        // }
     }
 
     async findOne(table: any, options: any = {}) {
@@ -56,24 +56,24 @@ class DbHelper {
             return await table.findOne(options);
         }
 
-        if (this.orm === "drizzle") {
+        // if (this.orm === "drizzle") {
 
-            const whereClause =
-                this.buildDrizzleWhere(
-                    table.drizzle,
-                    options.where
-                );
+        //     const whereClause =
+        //         this.buildDrizzleWhere(
+        //             table.drizzle,
+        //             options.where
+        //         );
 
-            let query = drizzleDb.select().from(table.drizzle);
+        //     let query = drizzleDb.select().from(table.drizzle);
 
-            if (whereClause) {
-                query = query.where(whereClause);
-            }
+        //     if (whereClause) {
+        //         query = query.where(whereClause);
+        //     }
 
-            const result = await query.limit(1);
+        //     const result = await query.limit(1);
 
-            return result[0] || null;
-        }
+        //     return result[0] || null;
+        // }
     }
 
     async findAll(table: any, options: any = {})
@@ -91,7 +91,7 @@ class DbHelper {
 
         if (this.orm === "drizzle") {
 
-            let query = drizzleDb.select().from(table);
+            let query = drizzleDb.select().from(table.drizzle);
             
             return await query;
         }

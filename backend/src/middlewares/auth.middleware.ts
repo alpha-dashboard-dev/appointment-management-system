@@ -16,10 +16,12 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
 
         const decoded: any = verifyAccessToken(token);
 
+        // console.log(decoded)
+
         req.user = {
-            userCode: decoded.user_code,
-            userType: decoded.user_type,
-            businessCode: decoded.business_code,
+            userCode: decoded.userCode,
+            userType: decoded.userType,
+            businessCode: decoded.businessCode,
         } as any;
 
         next();

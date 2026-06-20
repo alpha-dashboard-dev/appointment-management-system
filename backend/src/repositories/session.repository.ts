@@ -1,5 +1,7 @@
 import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+import { buildIncludes } from "../utils/includeBuilder";
+
 
 const db = initModels();
 
@@ -22,53 +24,65 @@ class SessionRepository {
     private tables: any;
 
     constructor() {
-        this.tables = {
-            sequelize: db.Session,
-        };
+        // this.tables = {
+        //     sequelize: db.Session,
+        // };
+        this.tables = db.Session
     }
 
-    buildIncludes(include: string[] = []) {
-        const associations =
-            db.Session.associations || {};
+    // buildIncludes(include: string[] = []) {
+    //     const associations =
+    //         db.Session.associations || {};
 
-        return [...new Set(include)]
-            .filter((alias) => associations[alias])
-            .map((alias) => ({
-                association: alias,
-            }));
-    }
+    //     return [...new Set(include)]
+    //         .filter((alias) => associations[alias])
+    //         .map((alias) => ({
+    //             association: alias,
+    //         }));
+    // }
 
     async create(userCode: string, refreshToken: string): Promise<any> {
         const expiresAt = parseExpiry(
             process.env.JWT_REFRESH_TOKEN_EXPIRES ?? "7d"
         );
-
-        return dbHelper.create(this.tables, {
+        return dbHelper.create(
+            this.tables, {
             user_code: userCode,
             refresh_token: refreshToken,
             expires_at: expiresAt,
         });
     }
 
-    async findByToken(
-        refreshToken: string,
-        options: any = {}
-    ): Promise<any> {
-        return dbHelper.findOne(
-            this.tables,
-            {
-                where: {
-                    refresh_token:
-                    refreshToken,
-                },
-                include: this.buildIncludes(
-                    options.include || []
-                ),
-            }
-        );
-    }
+    // async findByToken(refreshToken: string,options: any = {}) {
+    //     return dbHelper.findOne(
+    //         this.tables,
+    //         {
+    //             where: {
+    //                 refresh_token:
+    //                 refreshToken,
+    //             },
+    //             include: this.buildIncludes(
+    //                 options.include || []
+    //             ),
+    //         }
+    //     );
+    // }
 
-    async updateToken(id: number, newToken: string): Promise<any> {
+    async findByToken(where: any = {}, options: any = {})
+        {
+            return dbHelper.findOne(
+                this.tables,
+                {
+                    where,
+                    // include: buildIncludes(
+                    //     this.tables,
+                    //     options.include || []
+                    // ),
+                }
+            );
+        }
+
+    async updateToken(id: number, newToken: string){
         const expiresAt = parseExpiry(
             process.env.JWT_REFRESH_TOKEN_EXPIRES ?? "7d"
         );
@@ -79,11 +93,10 @@ class SessionRepository {
         });
     }
 
-    async deleteByUserCode(userCode: string): Promise<void> {
-        return dbHelper.deleteByField(
+    async delete(where: any){
+        return dbHelper.delete(
             this.tables,
-            "user_code",
-            userCode
+            where
         );
     }
 }
