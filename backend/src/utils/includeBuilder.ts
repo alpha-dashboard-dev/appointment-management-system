@@ -5,7 +5,7 @@ export function buildIncludes(model: any, includes: any[] = []) {
     // console.log(model, includes);
 
 
-    const associations = model.associations.business || {};
+    const associations = model.associations || {};
 
     // console.log("associations");
     // console.log(associations);

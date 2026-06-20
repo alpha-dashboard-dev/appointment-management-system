@@ -28,15 +28,12 @@ router.get(
 );
 
 // get by any field
-
 router.get(
     "/get-one-user",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.getByAnyField
 );
-
-
 
 router.put(
     "/update-user/:userCode",
@@ -46,16 +43,16 @@ router.put(
 );
 
 router.patch(
-    "/update-user-status/:userCode",
+    "/deactivate-user/:userCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.changeStatus
+    controller.deactivate
 );
 
 router.delete(
     "/delete-user/:userCode",
     authenticate,
-    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    authorizeRoles(ROLES.ADMIN),
     controller.delete
 );
 

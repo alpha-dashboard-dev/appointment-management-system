@@ -16,11 +16,8 @@ class DbHelper {
         return active;
     }
 
-    buildDrizzleWhere(
-        drizzleTable: any,
-        where: any = {}
-    ) {
-
+    buildDrizzleWhere(drizzleTable: any, where: any = {}) 
+    {
         const conditions = Object.entries(where)
             .filter(([_, value]) => value !== undefined)
             .map(([key, value]) =>
@@ -52,10 +49,7 @@ class DbHelper {
         }
     }
 
-    async findOne(
-        table: any,
-        options: any = {}
-    ) {
+    async findOne(table: any, options: any = {}) {
 
         if (this.orm === "sequelize") {
 
@@ -70,9 +64,7 @@ class DbHelper {
                     options.where
                 );
 
-            let query = drizzleDb
-                .select()
-                .from(table.drizzle);
+            let query = drizzleDb.select().from(table.drizzle);
 
             if (whereClause) {
                 query = query.where(whereClause);
@@ -86,6 +78,8 @@ class DbHelper {
 
     async findAll(table: any, options: any = {})
     {
+
+        console.log(table)
         if (this.orm === "sequelize") {
 
             return await table.findAll(
@@ -97,108 +91,22 @@ class DbHelper {
 
         if (this.orm === "drizzle") {
 
-            // let query = drizzleDb
-            //     .select()
-            //     .from(table.drizzle);
-            //
-            // // WHERE
-            // const whereClause =
-            //     this.buildDrizzleWhere(
-            //         table.drizzle,
-            //         options.where
-            //     );
-            //
-            // if (whereClause) {
-            //     query = query.where(whereClause);
-            // }
-            //
-            // // ORDER
-            // if (options.order?.length) {
-            //
-            //     const [field, direction] =
-            //         options.order[0];
-            //
-            //     query = query.orderBy(
-            //         direction === "DESC"
-            //             ? desc(table.drizzle[field])
-            //             : asc(table.drizzle[field])
-            //     );
-            // }
-            //
-            // // LIMIT
-            // if (options.limit) {
-            //     query = query.limit(options.limit);
-            // }
-            //
-            // // OFFSET
-            // if (options.offset) {
-            //     query = query.offset(options.offset);
-            // }
-            //
-            // return await query;
+            table = users;
+            console.log(table)
+
+            let query = drizzleDb.select().from(table);
+            
+            return await query;
         }
     }
 
-    // async findAll(
-    //     table: any,
-    //     options: any = {}
-    // ) {
-    //
-    //     if (this.orm === "sequelize") {
-    //
-    //         return await table.sequelize.findAll(options);
-    //     }
-    //
-    //     if (this.orm === "drizzle") {
-    //
-    //         // let query = drizzleDb
-    //         //     .select()
-    //         //     .from(table.drizzle);
-    //         //
-    //         // // WHERE
-    //         // const whereClause =
-    //         //     this.buildDrizzleWhere(
-    //         //         table.drizzle,
-    //         //         options.where
-    //         //     );
-    //         //
-    //         // if (whereClause) {
-    //         //     query = query.where(whereClause);
-    //         // }
-    //         //
-    //         // // ORDER
-    //         // if (options.order?.length) {
-    //         //
-    //         //     const [field, direction] =
-    //         //         options.order[0];
-    //         //
-    //         //     query = query.orderBy(
-    //         //         direction === "DESC"
-    //         //             ? desc(table.drizzle[field])
-    //         //             : asc(table.drizzle[field])
-    //         //     );
-    //         // }
-    //         //
-    //         // // LIMIT
-    //         // if (options.limit) {
-    //         //     query = query.limit(options.limit);
-    //         // }
-    //         //
-    //         // // OFFSET
-    //         // if (options.offset) {
-    //         //     query = query.offset(options.offset);
-    //         // }
-    //         //
-    //         // return await query;
-    //     }
-    // }
 
     async update(table: any, where: any, data: any, options?: any) {
         // console.log(table, where, data);
 
         if (this.orm === "sequelize") {
 
-            await table.sequelize.update(
+            await table.update(
                 data,
                 { 
                     where,
@@ -206,7 +114,7 @@ class DbHelper {
                 }
             );
 
-            return await table.sequelize.findOne({
+            return await table.findOne({
                 where,
             });
         }
@@ -229,14 +137,11 @@ class DbHelper {
         }
     }
 
-    async delete(
-        table: any,
-        where: any
-    ) {
+    async delete(table: any, where: any) {
 
         if (this.orm === "sequelize") {
 
-            return await table.sequelize.destroy({
+            return await table.destroy({
                 where,
             });
         }
@@ -255,64 +160,19 @@ class DbHelper {
         }
     }
 
-    async deleteByField(table: any, field: string, value: any) {
-        if (this.orm === "sequelize") {
-            return await table.sequelize.destroy({
-                where: { [field]: value },
-            });
-        }
+    // async deleteByField(table: any, field: string, value: any) {
+    //     if (this.orm === "sequelize") {
+    //         return await table.sequelize.destroy({
+    //             where: { [field]: value },
+    //         });
+    //     }
 
-        if (this.orm === "drizzle") {
-            return await drizzleDb
-                .delete(table.drizzle)
-                .where(eq((table.drizzle as any)[field], value));
-        }
-    }
+    //     if (this.orm === "drizzle") {
+    //         return await drizzleDb
+    //             .delete(table.drizzle)
+    //             .where(eq((table.drizzle as any)[field], value));
+    //     }
+    // }
 }
 
 export default new DbHelper();
-
-
-// async findOne(
-//     table: any,
-//     options: any = {}
-// ) {
-//
-//     return table.findOne({
-//         ...options
-//     });
-// }
-//
-// async create(
-//     table: any,
-//     data: any,
-//     options: any = {}
-// ) {
-//
-//     return table.create(
-//         data,
-//         options
-//     );
-// }
-//
-// async update(
-//     table: any,
-//     values: any,
-//     options: any = {}
-// ) {
-//
-//     return table.update(
-//         values,
-//         options
-//     );
-// }
-//
-// async destroy(
-//     table: any,
-//     options: any = {}
-// ) {
-//
-//     return table.destroy(
-//         options
-//     );
-// }

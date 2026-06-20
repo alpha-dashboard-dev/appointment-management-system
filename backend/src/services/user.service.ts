@@ -186,6 +186,8 @@ class UserService {
     async getAll(query: any = {}, actor: any) {
         // console.log(query.where)
 
+        // console.log(query)
+
         const a = this.normalizeActor(actor);
 
         if (!this.isAdmin(a)) {
@@ -198,7 +200,7 @@ class UserService {
             include: Array.isArray(query.include)
                 ? query.include
                 : [],
-            limit: query.limit ? Number(query.limit) : 5,
+            limit: query.limit ? Number(query.limit) : undefined,
             offset: query.offset ? Number(query.offset) : undefined,
             order: [
                 [
@@ -259,7 +261,9 @@ class UserService {
 
     async update(userCode: string, data: any, actor: any) {
 
-        const user = await repo.findByCode(userCode);
+        const user = await repo.findOne({
+            user_code: userCode
+        });
 
         if (!user) throw new Error("User not found");
 
@@ -279,63 +283,118 @@ class UserService {
         }
 
         return await repo.update(
-            userCode,
+            {user_code: userCode},
             data
         );
     }
 
     // ========================
-    // DELETE (SOFT DELETE)
+    // DELETE (Hard DELETE)
     // ========================
 
-    async delete(userCode: string, actor: any) {
+    async delete(
+    userCode: string,
+    actor: any
+) {
 
-        const user =
-            await repo.findByCode(userCode);
+    const user =
+        await repo.findOne({
+            user_code: userCode
+        });
 
-        if (!user) throw new Error("User not found");
-
-        this.assertBusinessAccess(
-            actor,
-            user.business_code
-        );
-
-        return await repo.update(
-            userCode,
-            {
-                is_active: "inactive",
-            }
+    if (!user) {
+        throw new Error(
+            "User not found"
         );
     }
+
+    this.assertBusinessAccess(
+        actor,
+        user.business_code
+    );
+
+    if (actor.userType !== ROLES.ADMIN) {
+        throw new Error(
+            "Only admin can permanently delete users"
+        );
+    }
+
+    return await repo.delete({
+        user_code: userCode
+    });
+}
+
+    // async delete(userCode: string, actor: any) {
+
+    //     const user =
+    //         await repo.findOne({
+    //             user_code: userCode
+    //         });
+
+    //     if (!user) throw new Error("User not found");
+
+    //     this.assertBusinessAccess(
+    //         actor,
+    //         user.business_code
+    //     );
+
+    //     return await repo.update(
+    //         userCode,
+    //         {
+    //             is_active: "inactive",
+    //         }
+    //     );
+    // }
 
     // ========================
     // STATUS CHANGE
     // ========================
 
-    async changeStatus(
-        userCode: string,
-        status: string,
-        actor: any
-    ) {
+    async deactivate(userCode: string, data: any, actor: any) {
 
-        if (!["active", "inactive"].includes(status)) {
-            throw new Error("Invalid status");
-        }
+    const user = await repo.findOne({
+            user_code: userCode
+        });
 
-        const user = await repo.findByCode(userCode);
-
-        if (!user) throw new Error("User not found");
-
-        this.assertBusinessAccess(
-            actor,
-            user.business_code
-        );
-
-        return await repo.update(
-            userCode,
-            { is_active: status }
-        );
+    if (!user) {
+        throw new Error("User not found");
     }
+
+    this.assertBusinessAccess(
+        actor,
+        user.business_code
+    );
+
+    return await repo.deactivate({
+        user_code: userCode
+    },
+    data
+);
+}
+    // async changeStatus(
+    //     userCode: string,
+    //     status: string,
+    //     actor: any
+    // ) {
+
+    //     if (!["active", "inactive"].includes(status)) {
+    //         throw new Error("Invalid status");
+    //     }
+
+    //     const user = await repo.findByCode(userCode);
+
+    //     if (!user) throw new Error("User not found");
+
+    //     this.assertBusinessAccess(
+    //         actor,
+    //         user.business_code
+    //     );
+
+    //     return await repo.update(
+    //         userCode,
+    //         { is_active: status }
+    //     );
+    // }
 
     async getByUserCode(userCode: string, actor: any) {
 

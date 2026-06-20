@@ -102,7 +102,7 @@ class User extends Model {
             targetKey: "business_code",
             as: "business",
             constraints: false,
-            attributes:["name","email","business_code"],
+            // attributes:["name","email","business_code"],
         });
 
         User.hasMany(models.UserShiftSchedule, {

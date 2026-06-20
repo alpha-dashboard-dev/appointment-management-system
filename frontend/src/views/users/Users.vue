@@ -199,9 +199,11 @@ async function fetchUsers() {
 
   try {
     const response = await apiHandler("user", "getAllUsers", {
-      include: "business",
+      // include: "business",
       // page: currentPage.value
     })
+
+    console.log(response)
 
     users.value = (response.data.data || []).map(
         (user) => ({

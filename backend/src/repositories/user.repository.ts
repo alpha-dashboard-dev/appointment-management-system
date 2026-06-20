@@ -19,60 +19,6 @@ class UserRepository {
     return dbHelper.create(this.tables, data, options);
   }
 
-  // async findAll(filters: any = {}, options: any = {}) {
-  //
-  //   const where: any = {};
-  //
-  //   if (filters.business_code) {
-  //     where.business_code = filters.business_code;
-  //   }
-  //
-  //   if (filters.user_type) {
-  //     where.user_type = filters.user_type;
-  //   }
-  //
-  //   if (filters.is_active) {
-  //     where.is_active = filters.is_active;
-  //   }
-  //
-  //   if (filters.search) {
-  //
-  //     const { Op } = require("sequelize");
-  //
-  //     where[Op.or] = [
-  //       {
-  //         name: {
-  //           [Op.like]: `%${filters.search}%`
-  //         }
-  //       },
-  //       {
-  //         email: {
-  //           [Op.like]: `%${filters.search}%`
-  //         }
-  //       },
-  //       {
-  //         phone: {
-  //           [Op.like]: `%${filters.search}%`
-  //         }
-  //       },
-  //     ];
-  //   }
-  //
-  //   return dbHelper.findAll(
-  //       this.tables,
-  //       {
-  //         where,
-  //         include: this.buildIncludes(options.include || []),
-  //         limit: options.limit,
-  //         offset: options.offset,
-  //         order: options.order || [
-  //           ["created_at", "DESC"]
-  //         ],
-  //       }
-  //   );
-  // }
-
-
     async findAll(options: any = {}) {
       // console.log(options);
 
@@ -132,27 +78,29 @@ class UserRepository {
     );
   }
 
-  async update(userCode: string, data: any) {
+   async update(where: any, data: any, options: any = {}) {
 
     return dbHelper.update(
         this.tables,
-        {
-          user_code: userCode,
-        },
-        data
+        where,
+        data,
+        options
     );
   }
 
-  async delete(userCode: string) {
-
+  async deactivate(where: any, data:any){
     return dbHelper.update(
+      this.tables,
+      where,
+      data
+    )
+  }
+
+  async delete(where: any) {
+
+    return dbHelper.delete(
         this.tables,
-        {
-          user_code: userCode,
-        },
-        {
-          is_active: "inactive",
-        }
+        where
     );
   }
 }

@@ -21,8 +21,7 @@ class UserController {
 
             return res.status(201).json({
                 success: true,
-                message:
-                    "User created successfully",
+                message: "User created successfully",
                 data,
             });
 
@@ -40,51 +39,23 @@ class UserController {
     // GET ALL USERS (UNIFIED)
     // ======================
 
-    // async getAll(req: Request, res: Response) {
-    //
-    //     try {
-    //         let query=req.query.include??"";
-    //
-    //
-    //
-    //         [{
-    //
-    //             "alias":"business",
-    //
-    //             "attributes":[]
-    //
-    //         }]
-    //         const data =
-    //             await service.getAll(
-    //                 {
-    //                     ...req.query
-    //                 },
-    //                 req.user
-    //             );
-    //
-    //         return res.status(200).json({
-    //             success: true,
-    //             data,
-    //         });
-    //
-    //     } catch (err: any) {
-    //
-    //         return res.status(500).json({
-    //             success: false,
-    //             message: err.message,
-    //         });
-    //     }
-    // }
 
     async getAll(req: Request, res: Response) {
 
         try {
             let include = req.query.include ?? "";
+            include = [
+                {
+                    alias: "business",
+                    attributes: [],
+                },
+            ]
+            // console.log(include)
             const data =
                 await service.getAll(
                     {
                         ...req.query,
-                        include: parseInclude(include),
+                        include
                     },
                     req.user
                 );
@@ -137,7 +108,6 @@ class UserController {
         try {
             const { field, value } = req.query;
             const user = req.user;
-            console.log(field, value);
             const data = await service.getOne(
                 {[field as string]: value},
                 user,
@@ -166,8 +136,7 @@ class UserController {
 
         try {
 
-            const userCode =
-                String(req.params.userCode);
+            const userCode = String(req.params.userCode);
 
             const data =
                 await service.update(
@@ -193,27 +162,28 @@ class UserController {
     }
 
     // ======================
-    // DELETE USER (SOFT)
+    // DELETE USER 
     // ======================
 
     async delete(req: Request, res: Response) {
 
         try {
 
-            const userCode = String(req.params.userCode);
-
-            await service.delete(userCode, req.user);
+            await service.delete(
+                String(req.params.userCode),
+                req.user
+            );
 
             return res.status(200).json({
                 success: true,
-                message: "User deactivated successfully",
+                message: "User permanently deleted"
             });
 
         } catch (err: any) {
 
             return res.status(400).json({
                 success: false,
-                message: err.message,
+                message: err.message
             });
         }
     }
@@ -222,37 +192,60 @@ class UserController {
     // STATUS UPDATE
     // ======================
 
-    async changeStatus(req: Request, res: Response) {
+    async deactivate(req: Request, res: Response) {
 
-        try {
+    try {
+        const userCode = String(req.params.userCode);
+        const {data} = req.body
+        
+        await service.deactivate(
+            userCode,
+            data,
+            req.user
+        );
 
-            const userCode =
-                String(req.params.userCode);
+        return res.status(200).json({
+            success: true,
+            message: "User deactivated successfully"
+        });
 
-            const { is_active } = req.body;
+    } catch (err: any) {
 
-            const data =
-                await service.changeStatus(
-                    userCode,
-                    is_active,
-                    req.user
-                );
-
-            return res.status(200).json({
-                success: true,
-                message:
-                    "User status updated",
-                data,
-            });
-
-        } catch (err: any) {
-
-            return res.status(400).json({
-                success: false,
-                message: err.message,
-            });
-        }
+        return res.status(400).json({
+            success: false,
+            message: err.message
+        });
     }
+}
+    // async changeStatus(req: Request, res: Response) {
+
+    //     try {
+
+    //         const userCode = String(req.params.userCode);
+
+    //         const { is_active } = req.body;
+
+    //         const data =
+    //             await service.changeStatus(
+    //                 userCode,
+    //                 is_active,
+    //                 req.user
+    //             );
+
+    //         return res.status(200).json({
+    //             success: true,
+    //             message: "User status updated",
+    //             data,
+    //         });
+
+    //     } catch (err: any) {
+
+    //         return res.status(400).json({
+    //             success: false,
+    //             message: err.message,
+    //         });
+    //     }
+    // }
 }
 
 export default new UserController();
