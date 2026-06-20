@@ -166,7 +166,8 @@ class UserService {
                 user_code: userCode
             },
             {
-                include: query.include || []
+                include: Array.isArray(query.include) ? query.include : [],
+                
             }
         );
 

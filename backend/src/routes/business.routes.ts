@@ -27,6 +27,14 @@ router.get(
     controller.getByCode
 );
 
+// get by any filed
+router.get(
+    "/get-one-business",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.getByAnyField
+);
+
 router.put(
     "/update-business/:businessCode",
     authenticate,
@@ -35,10 +43,10 @@ router.put(
 );
 
 router.patch(
-    "/update-business-status/:businessCode",
+    "/deactivate-business/:businessCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
-    controller.changeStatus
+    controller.deactivate
 )
 
 router.delete(

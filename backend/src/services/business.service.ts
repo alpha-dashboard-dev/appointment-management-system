@@ -9,12 +9,17 @@ import { validateBusiness } from "../utils/validator";
 import { hashPassword } from "../utils/hashPassword";
 
 import initModels from "../config/database/sequelize/models/index";
+import { buildWhere } from "../utils/buildWhere";
+import { ROLES } from "../utils/roles";
+
 
 const db = initModels();
 
 class BusinessService {
 
     async create(data: any, actor?: any) {
+
+        // console.log(data)
 
         validateBusiness(data);
 
@@ -75,7 +80,9 @@ class BusinessService {
             );
 
             await repo.update(
-                businessCode,
+                {
+                    business_code: businessCode
+                },
                 {
                     user_code: ownerCode,
                 },
@@ -97,121 +104,73 @@ class BusinessService {
         }
     }
 
-    async findBusinessOrFail(
-        businessCode: string,
-        options: any = {}
-    ) {
+    async getAll(query: any = {}, actor: any) {
 
-        const business =
-            await repo.findByCode(
-                businessCode,
-                options
-            );
+        const where = buildWhere(query);
+
+        return repo.findAll({
+            where,
+            include: Array.isArray(query.include)
+                ? query.include
+                : [],
+            limit: query.limit ? Number(query.limit) : undefined,
+            offset: query.offset ? Number(query.offset) : undefined,
+            order: [
+                [
+                    query.sort_by || "created_at",
+                    query.sort_order || "DESC"
+                ]
+            ]
+        });
+    }
+
+    async getByCode(businessCode: string, query: any = {}, actor: any) {
+
+        const business = await repo.findOne(
+            {
+                business_code: businessCode
+            },
+            {
+                include: Array.isArray(query.include) ? query.include : [],
+
+            }
+        );
 
         if (!business) {
-            throw new Error(
-                "Business not found"
-            );
+            throw new Error("Business not found");
         }
 
         return business;
     }
 
-    async getAll(query: any = {}) {
+    async getOne(where: any, query: any = {}, actor: any) {
 
-        const filters = {
-            organization_code:
-                query.organization_code,
-
-            status: query.status,
-        };
-
-        const options = {
-
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
-            order: [
-                [
-                    query.sort_by || "created_at",
-
-                    query.sort_order || "DESC",
-                ]
-            ],
-        };
-
-        return await repo.findAll(
-            filters,
-            options
-        );
-    }
-
-    async getByCode(
-        businessCode: string,
-        query: any = {}
-    ) {
-
-        const options = {
-
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-        };
-
-        return await this.findBusinessOrFail(
-            businessCode,
-            options
-        );
-    }
-
-    async getByCodeWithOrganization(
-        businessCode: string
-    ) {
-
-        return await this.findBusinessOrFail(
-            businessCode,
+        const business = await repo.findOne(
+            where,
             {
-                include: ["organization"],
+                include: Array.isArray(query.include) ? query.include : [],
+
             }
         );
+
+        if (!business) {
+            throw new Error("Business not found");
+        }
+
+        return business;
     }
 
-    async getByBusinessCodeWithUser(
-        businessCode: string
-    ) {
+    async update(businessCode: string, data: any, actor?: any) {
 
-        return await this.findBusinessOrFail(
-            businessCode,
+        const business = await repo.findOne(
             {
-                include: ["users"],
+                business_code: businessCode
             }
-        );
-    }
+        )
 
-    async update(
-        businessCode: string,
-        data: any,
-        actor?: any
-    ) {
-
-        await this.findBusinessOrFail(
-            businessCode
-        );
+        if (!business) {
+            throw new Error("Business not found")
+        }
 
         const allowed: any = {};
 
@@ -233,37 +192,60 @@ class BusinessService {
         }
 
         if (allowed.name) {
-            allowed.name =
-                allowed.name.trim();
+            allowed.name = allowed.name.trim();
         }
 
         return await repo.update(
-            businessCode,
+            { business_code: businessCode },
             allowed
         );
     }
 
-    async changeStatus(businessCode: string, status: string) {
+    // ========================
+    // DELETE (Hard DELETE)
+    // ========================
 
-        if (!["active", "inactive"].includes(status)) {
-            throw new Error("Invalid status");
+    async delete(businessCode: string, actor: any) {
+        const business =
+            await repo.findOne({
+                business_code: businessCode
+            });
+
+        if (!business) {
+            throw new Error(
+                "Business not found"
+            );
         }
-        await this.findBusinessOrFail(businessCode);
 
-        return await repo.update(
-            businessCode,
-            { status }
-        );
+        if (actor.userType !== ROLES.ADMIN) {
+            throw new Error(
+                "Only admin can permanently delete business"
+            );
+        }
+
+        return await repo.delete({
+            business_code: businessCode
+        });
     }
 
-    async delete(businessCode: string, actor?: any) {
+    // ========================
+    // STATUS CHANGE
+    // ========================
 
-        await this.findBusinessOrFail(
-            businessCode
-        );
+    async deactivate(businessCode: string, data: any, actor: any) {
 
-        return await repo.delete(
-            businessCode
+        const business = await repo.findOne({
+            business_code: businessCode
+        });
+
+        if (!business) {
+            throw new Error("Business not found");
+        }
+
+        return await repo.deactivate({
+            business_code: businessCode
+        },
+            data
         );
     }
 }

@@ -9,6 +9,15 @@ export const INCLUDE_CONFIG = {
         businesses: {
             attributes: ["name"]
         }
+    },
+
+    Business: {
+        organization: {
+            attributes: ["name"]
+        },
+        owner: {
+            attributes: ["name"]
+        }
     }
 
 };
