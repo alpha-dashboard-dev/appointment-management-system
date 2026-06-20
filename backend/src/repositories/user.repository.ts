@@ -38,21 +38,6 @@ class UserRepository {
         );
 
     }
-  // async findByCode(userCode: string, options: any = {}) {
-  //
-  //   return dbHelper.findOne(
-  //       this.tables,
-  //       {
-  //         where: {
-  //           user_code: userCode,
-  //         },
-  //
-  //         include: buildIncludes(
-  //             options.include || []
-  //         ),
-  //       }
-  //   );
-  // }
 
     async findOne(where: any = {}, options: any = {})
     {
@@ -78,7 +63,7 @@ class UserRepository {
     );
   }
 
-  async deactivate(where: any, data:any){
+  async deactivate(where: any, data: any){
     return dbHelper.update(
       this.tables,
       where,

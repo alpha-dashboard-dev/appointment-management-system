@@ -8,7 +8,10 @@ class OrganizationController {
     async create(req: Request, res: Response) {
 
         try {
-            const data = await service.create(req.body);
+            const data = await service.create(
+                req.body,
+                req.user
+            );
 
             return res.status(201).json({
                 success: true,
@@ -49,20 +52,24 @@ class OrganizationController {
     async getAll(req: Request, res: Response) {
 
         try {
-
-            const includeRaw = req.query.include ?? "";
-            // console.log(includeRaw)
-
-            const includes = parseInclude(includeRaw);
+            let include = req.query.include ?? "";
+            include = [
+                {
+                    alias: "businesses",
+                    attributes: []
+                }
+            ]
             // console.log(includes)
 
-
-            const data = await service.getAll(
+            const data = await service.getAllOrganizations(
                 {
                     ...req.query,
-                    include: includes
+                    include
                 },
+                req.user
             );
+
+            // console.log(data)
 
             return res.status(200).json({
                 success: true,
@@ -78,14 +85,14 @@ class OrganizationController {
         }
     }
 
-    async getByCode(req: Request, res: Response) {
+    async getByOrganizationCode(req: Request, res: Response) {
 
         try {
-
+            const organizationCode = String(req.params.organizationCode)
             const data =
                 await service.getByCode(
-                    String(req.params.organizationCode),
-                    req.query
+                    organizationCode,
+                    // req.user
                 );
 
             return res.status(200).json({

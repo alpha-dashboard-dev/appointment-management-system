@@ -24,7 +24,7 @@ router.get(
     "/get-organization-by-code/:organizationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
-    controller.getByCode
+    controller.getByOrganizationCode
 );
 
 router.put(

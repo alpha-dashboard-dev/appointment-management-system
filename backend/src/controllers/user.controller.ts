@@ -86,7 +86,7 @@ class UserController {
                 await service.getByCode(
                     userCode,
                     req.user,
-                    req.query
+                    // req.query
                 );
 
             return res.status(200).json({
@@ -106,12 +106,16 @@ class UserController {
     async getByAnyField(req: Request, res: Response) {
 
         try {
-            const { field, value } = req.query;
+            // console.log(req.query)
+            const { include, ...where } = req.query;
+            // console.log(field, value)
             const user = req.user;
             const data = await service.getOne(
-                {[field as string]: value},
+                where,
                 user,
-                // req.query
+                {
+                    include
+                }
             )
 
             return res.status(200).json({
@@ -147,8 +151,7 @@ class UserController {
 
             return res.status(200).json({
                 success: true,
-                message:
-                    "User updated successfully",
+                message: "User updated successfully",
                 data,
             });
 

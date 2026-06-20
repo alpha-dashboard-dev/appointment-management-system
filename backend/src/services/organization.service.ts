@@ -1,4 +1,5 @@
 import repo from "../repositories/organization.repository";
+import { buildWhere } from "../utils/buildWhere";
 
 import { generateCode } from "../utils/codeGenerator";
 
@@ -6,7 +7,9 @@ import { validateOrganization } from "../utils/validator";
 
 class OrganizationService {
 
-    async create(data: any) {
+    async create(data: any, actor: any) {
+
+        //  if (!actor && actor.userType !== "admin") throw new Error("Unauthorized");
 
         validateOrganization(data);
 
@@ -15,11 +18,29 @@ class OrganizationService {
 
             name: data.name.trim(),
 
-            status:
-                data.status || "active",
+            status: data.status || "",
         };
 
         return await repo.create(payload);
+    }
+
+    async getAllOrganizations(query: any = {}, actor: any){
+
+        const where = buildWhere(query);
+
+        return repo.findAllOrganizations({
+            where,
+            include: Array.isArray(query.include) ? query.include : [],
+            limit: query.limit ? Number(query.limit) : undefined,
+            offset: query.offset ? Number(query.offset) : undefined,
+            order: [
+                [
+                    query.sort_by || "created_at",
+                    query.sort_order || "DESC",
+                ]
+            ]
+        })
+
     }
 
     // async getAll(query: any = {}) {
@@ -62,23 +83,23 @@ class OrganizationService {
     //     );
     // }
 
-    async getAll(query: any = {}) {
-        // console.log(query, actor)
+    // async getAll(query: any = {}) {
+    //     // console.log(query, actor)
 
-        return repo.findAll(query, {
-            include: Array.isArray(query.include)
-                ? query.include
-                : [],
-            limit: query.limit,
-            // offset: query.offset,
-            // order: [
-            //     [
-            //         query.sort_by || "created_at",
-            //         query.sort_order || "DESC"
-            //     ]
-            // ]
-        });
-    }
+    //     return repo.findAll(query, {
+    //         include: Array.isArray(query.include)
+    //             ? query.include
+    //             : [],
+    //         limit: query.limit,
+    //         // offset: query.offset,
+    //         // order: [
+    //         //     [
+    //         //         query.sort_by || "created_at",
+    //         //         query.sort_order || "DESC"
+    //         //     ]
+    //         // ]
+    //     });
+    // }
 
     async findOrganizationOrFail(
         organizationCode: string,
