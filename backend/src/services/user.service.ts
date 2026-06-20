@@ -7,7 +7,7 @@ import { hashPassword } from "../utils/hashPassword";
 import { generateCode } from "../utils/codeGenerator";
 
 import { ROLES } from "../utils/roles";
-import {buildWhere} from "../utils/buildWhere";
+import { buildWhere } from "../utils/buildWhere";
 
 const STAFF_USER_TYPES = [ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT,];
 
@@ -106,7 +106,7 @@ class UserService {
         return await repo.create({
             user_code,
             business_code:
-            data.business_code,
+                data.business_code,
 
             user_type: data.user_type,
 
@@ -130,58 +130,6 @@ class UserService {
     // ========================
     // GET ALL USERS
     // ========================
-
-    // async getAll(query: any = {}, actor: any) {
-    //
-    //     const filters: any = {
-    //         business_code:
-    //             query.business_code,
-    //
-    //         user_type: query.user_type,
-    //
-    //         is_active: query.is_active,
-    //
-    //         search: query.search,
-    //     };
-    //
-    //     const options = {
-    //         include:
-    //             query.include
-    //                 ? String(query.include)
-    //                     .split(",")
-    //                 : [],
-    //
-    //         limit:
-    //             query.limit
-    //                 ? Number(query.limit)
-    //                 : undefined,
-    //
-    //         offset:
-    //             query.offset
-    //                 ? Number(query.offset)
-    //                 : undefined,
-    //
-    //         order: [
-    //             [
-    //                 query.sort_by || "created_at",
-    //
-    //                 query.sort_order || "DESC",
-    //             ],
-    //         ],
-    //     };
-    //
-    //     const a = this.normalizeActor(actor);
-    //
-    //     if (!this.isAdmin(a)) {
-    //         filters.business_code =
-    //             a.businessCode;
-    //     }
-    //
-    //     return await repo.findAll(
-    //         filters,
-    //         options
-    //     );
-    // }
 
     async getAll(query: any = {}, actor: any) {
         // console.log(query.where)
@@ -234,8 +182,7 @@ class UserService {
         return user;
     }
 
-    async getOne(where: any, actor: any, query: any = {})
-    {
+    async getOne(where: any, actor: any, query: any = {}) {
         const user = await repo.findOne(
             where,
             {
@@ -283,7 +230,7 @@ class UserService {
         }
 
         return await repo.update(
-            {user_code: userCode},
+            { user_code: userCode },
             data
         );
     }
@@ -292,59 +239,33 @@ class UserService {
     // DELETE (Hard DELETE)
     // ========================
 
-    async delete(
-    userCode: string,
-    actor: any
-) {
+    async delete(userCode: string, actor: any) {
+        const user =
+            await repo.findOne({
+                user_code: userCode
+            });
 
-    const user =
-        await repo.findOne({
+        if (!user) {
+            throw new Error(
+                "User not found"
+            );
+        }
+
+        this.assertBusinessAccess(
+            actor,
+            user.business_code
+        );
+
+        if (actor.userType !== ROLES.ADMIN) {
+            throw new Error(
+                "Only admin can permanently delete users"
+            );
+        }
+
+        return await repo.delete({
             user_code: userCode
         });
-
-    if (!user) {
-        throw new Error(
-            "User not found"
-        );
     }
-
-    this.assertBusinessAccess(
-        actor,
-        user.business_code
-    );
-
-    if (actor.userType !== ROLES.ADMIN) {
-        throw new Error(
-            "Only admin can permanently delete users"
-        );
-    }
-
-    return await repo.delete({
-        user_code: userCode
-    });
-}
-
-    // async delete(userCode: string, actor: any) {
-
-    //     const user =
-    //         await repo.findOne({
-    //             user_code: userCode
-    //         });
-
-    //     if (!user) throw new Error("User not found");
-
-    //     this.assertBusinessAccess(
-    //         actor,
-    //         user.business_code
-    //     );
-
-    //     return await repo.update(
-    //         userCode,
-    //         {
-    //             is_active: "inactive",
-    //         }
-    //     );
-    // }
 
     // ========================
     // STATUS CHANGE
@@ -352,49 +273,25 @@ class UserService {
 
     async deactivate(userCode: string, data: any, actor: any) {
 
-    const user = await repo.findOne({
+        const user = await repo.findOne({
             user_code: userCode
         });
 
-    if (!user) {
-        throw new Error("User not found");
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        this.assertBusinessAccess(
+            actor,
+            user.business_code
+        );
+
+        return await repo.deactivate({
+            user_code: userCode
+        },
+            data
+        );
     }
-
-    this.assertBusinessAccess(
-        actor,
-        user.business_code
-    );
-
-    return await repo.deactivate({
-        user_code: userCode
-    },
-    data
-);
-}
-    // async changeStatus(
-    //     userCode: string,
-    //     status: string,
-    //     actor: any
-    // ) {
-
-    //     if (!["active", "inactive"].includes(status)) {
-    //         throw new Error("Invalid status");
-    //     }
-
-    //     const user = await repo.findByCode(userCode);
-
-    //     if (!user) throw new Error("User not found");
-
-    //     this.assertBusinessAccess(
-    //         actor,
-    //         user.business_code
-    //     );
-
-    //     return await repo.update(
-    //         userCode,
-    //         { is_active: status }
-    //     );
-    // }
 
     async getByUserCode(userCode: string, actor: any) {
 

@@ -50,7 +50,7 @@ export const API_CONFIG = {
         },
 
         deactivateOrganization: {
-            endpoint: '/organizations/update-organization-status/:code',
+            endpoint: '/organizations/deactivate-organization/:code',
             method: 'PATCH'
         },
     },

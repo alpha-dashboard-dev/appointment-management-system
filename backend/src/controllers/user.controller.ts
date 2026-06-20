@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-
 import service from "../services/user.service";
-import {parseInclude} from "../utils/parseInclude";
 
 class UserController {
 
@@ -13,8 +11,7 @@ class UserController {
 
         try {
 
-            const data =
-                await service.create(
+            const data = await service.create(
                     req.body,
                     req.user
                 );
@@ -197,58 +194,30 @@ class UserController {
 
     async deactivate(req: Request, res: Response) {
 
-    try {
-        const userCode = String(req.params.userCode);
-        const {data} = req.body
-        
-        await service.deactivate(
-            userCode,
-            data,
-            req.user
-        );
+        try {
+            const userCode = String(req.params.userCode);
+            const data = req.body
 
-        return res.status(200).json({
-            success: true,
-            message: "User deactivated successfully"
-        });
+            await service.deactivate(
+                userCode,
+                data,
+                req.user
+            );
 
-    } catch (err: any) {
+            return res.status(200).json({
+                success: true,
+                message: "User deactivated successfully"
+            });
 
-        return res.status(400).json({
-            success: false,
-            message: err.message
-        });
+        } catch (err: any) {
+
+            return res.status(400).json({
+                success: false,
+                message: err.message
+            });
+        }
     }
-}
-    // async changeStatus(req: Request, res: Response) {
 
-    //     try {
-
-    //         const userCode = String(req.params.userCode);
-
-    //         const { is_active } = req.body;
-
-    //         const data =
-    //             await service.changeStatus(
-    //                 userCode,
-    //                 is_active,
-    //                 req.user
-    //             );
-
-    //         return res.status(200).json({
-    //             success: true,
-    //             message: "User status updated",
-    //             data,
-    //         });
-
-    //     } catch (err: any) {
-
-    //         return res.status(400).json({
-    //             success: false,
-    //             message: err.message,
-    //         });
-    //     }
-    // }
 }
 
 export default new UserController();

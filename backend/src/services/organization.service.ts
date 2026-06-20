@@ -4,6 +4,8 @@ import { buildWhere } from "../utils/buildWhere";
 import { generateCode } from "../utils/codeGenerator";
 
 import { validateOrganization } from "../utils/validator";
+import { ROLES } from "../utils/roles";
+
 
 class OrganizationService {
 
@@ -21,7 +23,7 @@ class OrganizationService {
             status: data.status || "",
         };
 
-        return await repo.create(payload);
+        return await repo.createOrganization(payload);
     }
 
     async getAllOrganizations(query: any = {}, actor: any){
@@ -43,170 +45,94 @@ class OrganizationService {
 
     }
 
-    // async getAll(query: any = {}) {
-    //
-    //     const filters = {
-    //         status: query.status,
-    //         search: query.search,
-    //     };
-    //
-    //     const options = {
-    //
-    //         include:
-    //             query.include
-    //                 ? String(query.include)
-    //                     .split(",")
-    //                 : [],
-    //
-    //         limit:
-    //             query.limit
-    //                 ? Number(query.limit)
-    //                 : undefined,
-    //
-    //         offset:
-    //             query.offset
-    //                 ? Number(query.offset)
-    //                 : undefined,
-    //
-    //         order: [
-    //             [
-    //                 query.sort_by || "created_at",
-    //
-    //                 query.sort_order || "DESC",
-    //             ]
-    //         ],
-    //     };
-    //
-    //     return await repo.findAll(
-    //         filters,
-    //         options
-    //     );
-    // }
+    async getByOrganizationCode(organizationCode: string, query: any = {}) {
 
-    // async getAll(query: any = {}) {
-    //     // console.log(query, actor)
 
-    //     return repo.findAll(query, {
-    //         include: Array.isArray(query.include)
-    //             ? query.include
-    //             : [],
-    //         limit: query.limit,
-    //         // offset: query.offset,
-    //         // order: [
-    //         //     [
-    //         //         query.sort_by || "created_at",
-    //         //         query.sort_order || "DESC"
-    //         //     ]
-    //         // ]
-    //     });
-    // }
+        const organization = await repo.findOne(
+            {
+                organization_code: organizationCode
+            },
+            {
+                // inculde: query.include || []
+                include: Array.isArray(query.include) ? query.include : [],
 
-    async findOrganizationOrFail(
-        organizationCode: string,
-        options: any = {}
-    ) {
+            }
+        )
 
-        const organization =
-            await repo.findByCode(
-                organizationCode,
-                options
-            );
-
-        if (!organization) {
-            throw new Error(
-                "Organization not found"
-            );
+        if(!organization){
+            throw new Error("Organization not Found")
         }
 
         return organization;
     }
 
-    async getByCode(
-        organizationCode: string,
-        query: any = {}
-    ) {
-
-        const options = {
-
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-        };
-
-        return await this.findOrganizationOrFail(
-            organizationCode,
-            options
-        );
-    }
-
-    async update(
-        organizationCode: string,
-        data: any
-    ) {
-
-        await this.findOrganizationOrFail(
-            organizationCode
+    async update(organizationCode: string, data: any) 
+    {
+        const organization = await repo.findOne(
+            {
+                organization_code: organizationCode
+            }
         );
 
+        if(!organization){
+            throw new Error("Organization Not found")
+        }
         const payload: any = {};
 
         if (data.name) {
-            payload.name =
-                data.name.trim();
+            payload.name = data.name.trim();
         }
 
         if (data.status) {
-            payload.status =
-                data.status;
+            payload.status = data.status;
         }
 
-        return await repo.update(
-            organizationCode,
+        return await repo.updateOrganization(
+            { organization_code : organizationCode},
             payload
         );
     }
 
-    async changeStatus(
-        organizationCode: string,
-        status: string
-    ) {
+    async deactivateOrganization(organizationCode: any, data: any, actor: any){
 
-        if (
-            !["active", "inactive"]
-                .includes(status)
-        ) {
+        const organization = await repo.findOne({
+            organization_code: organizationCode
+        })
 
-            throw new Error(
-                "Invalid organization status"
-            );
+        if(!organization){
+            throw new Error("Organization Not found")
         }
 
-        await this.findOrganizationOrFail(
-            organizationCode
-        );
-
-        return await repo.update(
-            organizationCode,
+        return await repo.deactivateOrganization(
             {
-                status,
+                organization_code: organizationCode
+            },
+            data
+        )
+    }
+
+    async delete(organizationCode: string, actor: any) {
+            const organization =
+                await repo.findOne({
+                    organization_code: organizationCode
+                });
+    
+            if (!organization) {
+                throw new Error(
+                    "Organization not found"
+                );
             }
-        );
-    }
-
-    async delete(
-        organizationCode: string
-    ) {
-
-        await this.findOrganizationOrFail(
-            organizationCode
-        );
-
-        return await repo.delete(
-            organizationCode
-        );
-    }
+    
+            if (actor.userType !== ROLES.ADMIN) {
+                throw new Error(
+                    "Only admin can permanently delete Organization"
+                );
+            }
+    
+            return await repo.deleteOrganization({
+                organization_code: organizationCode
+            });
+        }
 }
 
 export default new OrganizationService();

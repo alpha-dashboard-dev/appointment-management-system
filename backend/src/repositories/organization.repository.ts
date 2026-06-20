@@ -53,7 +53,7 @@ class OrganizationRepository {
             }
         )
     }
-    
+        
     async updateOrganization(where: any, data: any, options: any = {}){
 
         return dbHelper.update(
