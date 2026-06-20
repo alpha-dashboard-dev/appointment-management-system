@@ -18,8 +18,6 @@ class UserRepository {
   }
 
   async create(data: any, options?: any) {
-    console.log(this.tables);
-    console.log(typeof this.tables.create);
     return dbHelper.create(this.tables, data, options);
   }
 
@@ -69,19 +67,7 @@ class UserRepository {
             }
         );
     }
-
-  async findByEmail(email: string) {
-
-    return dbHelper.findOne(
-        this.tables,
-        {
-          where: {
-            email,
-          },
-        }
-    );
-  }
-
+    
    async update(where: any, data: any, options: any = {}) {
 
     return dbHelper.update(

@@ -40,7 +40,9 @@ class AuthService {
 
     async login(email: string, password: string) {
 
-        const user = await repo.findByEmail(email.trim().toLowerCase());
+        const user = await repo.findOne({
+            email: email.trim().toLowerCase()
+        });
 
         if (!user) {
             throw new Error("Invalid email");
