@@ -21,7 +21,7 @@ router.get(
 );
 
 router.get(
-    "/get-organization-by-code/:organizationCode",
+    "/get-one-organization/:organizationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
     controller.getByOrganizationCode
@@ -35,10 +35,17 @@ router.put(
 );
 
 router.patch(
-    "/update-organization-status/:organizationCode",
+    "/deactivate-organization/:organizationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN),
-    controller.changeStatus
+    controller.deactivate
+);
+
+router.delete(
+    "/delete-organization/:organizationCode",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN),
+    controller.delete
 );
 
 export default router;
