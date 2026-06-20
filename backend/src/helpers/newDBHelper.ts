@@ -79,7 +79,7 @@ class DbHelper {
     async findAll(table: any, options: any = {})
     {
 
-        console.log(table)
+        // console.log(table)
         if (this.orm === "sequelize") {
 
             return await table.findAll(
@@ -90,9 +90,6 @@ class DbHelper {
         }
 
         if (this.orm === "drizzle") {
-
-            table = users;
-            console.log(table)
 
             let query = drizzleDb.select().from(table);
             

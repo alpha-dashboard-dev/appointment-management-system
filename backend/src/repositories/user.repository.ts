@@ -1,8 +1,6 @@
 import initModels from "../config/database/sequelize/models/index";
 import { buildIncludes } from "../utils/includeBuilder";
-
 import dbHelper from "../helpers/newDBHelper";
-import {buildWhere} from "../utils/buildWhere";
 
 const db = initModels();
 
