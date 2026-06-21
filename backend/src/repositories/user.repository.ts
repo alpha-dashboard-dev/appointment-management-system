@@ -14,56 +14,55 @@ class UserRepository {
     //   drizzle: users
     //  };
 
-      this.tables = db.User;
+    this.tables = db.User;
   }
 
   async create(data: any, options?: any) {
     return dbHelper.create(this.tables, data, options);
   }
 
-    async findAll(options: any = {}) {
-      // console.log(options);
+  async findAll(options: any = {}) {
+    // console.log(options);
 
-        const include = buildIncludes(
-            this.tables,
-            options.include || []
-        );
+    const include = buildIncludes(
+      this.tables,
+      options.include || []
+    );
 
-        return dbHelper.findAll(
-            this.tables,
-            {
-                ...options,
-                include
-            }
-        );
+    return dbHelper.findAll(
+      this.tables,
+      {
+        ...options,
+        include
+      }
+    );
 
-    }
+  }
 
-    async findOne(where: any = {}, options: any = {})
-    {
-        return dbHelper.findOne(
-            this.tables,
-            {
-                where,
-                include: buildIncludes(
-                    this.tables,
-                    options.include || []
-                ),
-            }
-        );
-    }
-    
-   async update(where: any, data: any, options: any = {}) {
-
-    return dbHelper.update(
-        this.tables,
+  async findOne(where: any = {}, options: any = {}) {
+    return dbHelper.findOne(
+      this.tables,
+      {
         where,
-        data,
-        options
+        include: buildIncludes(
+          this.tables,
+          options.include || []
+        ),
+      }
     );
   }
 
-  async deactivate(where: any, data: any){
+  async update(where: any, data: any, options: any = {}) {
+
+    return dbHelper.update(
+      this.tables,
+      where,
+      data,
+      options
+    );
+  }
+
+  async deactivate(where: any, data: any) {
     return dbHelper.update(
       this.tables,
       where,
@@ -73,8 +72,8 @@ class UserRepository {
 
   async delete(where: any) {
     return dbHelper.delete(
-        this.tables,
-        where
+      this.tables,
+      where
     );
   }
 }
