@@ -27,6 +27,13 @@ router.get(
     controller.getByCode
 );
 
+router.get(
+    "/get-one-charge",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.getByAnyField
+);
+
 router.put(
     "/update-charge/:chargeCode",
     authenticate,
