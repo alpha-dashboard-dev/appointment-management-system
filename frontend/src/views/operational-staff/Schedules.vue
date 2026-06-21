@@ -5,15 +5,24 @@
       <div v-if="loading" class="loading">Loading...</div>
       <div v-else-if="error" class="error-msg">{{ error }}</div>
       <table v-else class="table">
-        <thead><tr><th>Staff Code</th><th>Working Days</th><th>Start Time</th><th>End Time</th><th>Employee Type</th><th>Location</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Employee Type</th>
+            <th>Working Days</th>
+            <th>Location</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr v-for="s in schedules" :key="s.id">
-            <td><code>{{ s.user_code }}</code></td>
-            <td>{{ s.working_days }}</td>
-            <td>{{ s.start_time }}</td>
-            <td>{{ s.end_time }}</td>
-            <td>{{ s.employee_type || '—' }}</td>
-            <td>{{ s.location_code || '—' }}</td>
+          <tr v-for="s in activeSchedules" :key="s.id">
+            <td>{{ s.name }}</td>
+            <td>{{s.staff_type}}</td>
+            <td>{{ toTitleCase(s.working_days) }}</td>
+            <td>{{s.location_address}}</td>
+            <td>{{ formatTime(s.start_time) }}</td>
+            <td>{{ formatTime(s.end_time) }}</td>
           </tr>
           <tr v-if="schedules.length === 0"><td colspan="6" class="empty">No schedules found</td></tr>
         </tbody>
@@ -23,12 +32,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import {ref, onMounted, computed} from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toTitleCase} from "../../utils/upperCase.js";
 
 const authStore = useAuthStore()
 const schedules = ref([])
+const activeSchedules = computed(() => {
+  return schedules.value.filter(s => s.status === 'active')
+})
 const loading = ref(true)
 const error = ref('')
 
@@ -37,15 +51,25 @@ async function fetchSchedules() {
   error.value = ''
   try {
     const biz = authStore.user?.business_code
-    const res = await api.get('/schedules/get-schedule', { params: biz ? { business_code: biz } : {} })
-    schedules.value = res.data.data || []
+    const res = await apiHandler('staffSchedule', "getAllSchedules", {
+      ...(biz && { business_code: biz }),
+      include: "user,location"
+
+    })
+    schedules.value = (res.data.data || []).map(
+        (schedule) => ({
+          ...schedule,
+          name: schedule.user?.name?.trim() || '',
+          staff_type: toTitleCase(schedule.user?.user_type || ''),
+          location_address: schedule.location?.address?.trim() + " " + schedule.location?.street?.trim() + " " + schedule.location?.city || '',
+        })
+    )
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load schedules'
   } finally {
     loading.value = false
   }
 }
-
 onMounted(fetchSchedules)
 </script>
 

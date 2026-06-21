@@ -1,86 +1,171 @@
 <template>
-  <div class="page">
+  <div class="ams-page">
 
     <!-- HEADER -->
-    <div class="header">
+    <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h2>Users</h2>
-        <p class="sub">Manage system users</p>
+        <h2 class="mb-0">Users</h2>
+        <p class="text-muted small mb-0">Manage system users</p>
       </div>
-      <router-link to="/users/create" class="btn">+ New User</router-link>
+      <router-link to="/users/create" class="btn btn-ams">+ New User</router-link>
     </div>
 
     <!-- TABLE CARD -->
-    <div class="card">
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else-if="error" class="error-msg">{{ error }}</div>
-
-      <table v-else class="table">
-        <thead>
-        <tr>
-          <th>Full Name</th>
-          <th>Email</th>
-          <th>Type</th>
-          <th>Code</th>
-          <th>Status</th>
-          <th width="160">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="user in users" :key="user.user_code">
-          <td>{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.user_type }}</td>
-          <td><code>{{ user.user_code }}</code></td>
-          <td>
-              <span :class="['badge', user.is_active === 'active' ? 'active' : 'inactive']">
-                {{ user.is_active === 'active' ? 'Active' : 'Inactive' }}
-              </span>
-          </td>
-          <td>
-            <button class="edit-btn" @click="openEdit(user)">Edit</button>
-            <button class="delete-btn" @click="openDelete(user)">Deactivate</button>
-          </td>
-        </tr>
-        <tr v-if="users.length === 0">
-          <td colspan="6" class="empty">No users found</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- EDIT MODAL -->
-    <div v-if="showEditModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Edit User</h3>
-          <button class="close" @click="showEditModal = false">✕</button>
-        </div>
-        <form class="form" @submit.prevent="updateUser">
-          <input v-model="editForm.name" placeholder="Full Name" required />
-          <input v-model="editForm.email" type="email" placeholder="Email" required />
-          <select v-model="editForm.is_active">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <p v-if="formError" class="error-msg">{{ formError }}</p>
-          <button type="submit" class="save-btn" :disabled="saving">
-            {{ saving ? 'Saving...' : 'Save Changes' }}
-          </button>
-        </form>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
+        <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
+        <table v-else class="table table-hover ams-table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Full Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Business Name</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th class="pe-3" style="width:160px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in users" :key="user.user_code">
+              <td class="ps-3">{{ user.name }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{user.phone}}</td>
+              <td>{{user.business_name}}</td>
+              <td>{{ toTitleCase(user.user_type) }}</td>
+              <td>
+                <span :class="['ams-badge', user.is_active === 'active' ? 'active' : 'inactive']">
+                  {{ user.is_active === 'active' ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="pe-3">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(user)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(user)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="users.length === 0">
+              <td colspan="7" class="text-center text-muted py-4">No users found</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- DELETE MODAL -->
-    <div v-if="showDeleteModal" class="modal-overlay">
-      <div class="modal delete-modal">
-        <h3>Deactivate User</h3>
-        <p>Are you sure you want to deactivate <strong>{{ selected?.name }}</strong>?</p>
-        <div class="actions">
-          <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
-          <button class="delete-confirm-btn" @click="deactivateUser" :disabled="saving">
-            {{ saving ? 'Processing...' : 'Deactivate' }}
-          </button>
+<!--    <nav class="mt-3">-->
+<!--      <ul class="pagination justify-content-end">-->
+
+<!--        <li class="page-item" :class="{ disabled: currentPage === 1 }">-->
+<!--          <button class="page-link" @click="changePage(currentPage - 1)">-->
+<!--            Previous-->
+<!--          </button>-->
+<!--        </li>-->
+
+<!--        <li-->
+<!--            v-for="page in lastPage"-->
+<!--            :key="page"-->
+<!--            class="page-item"-->
+<!--            :class="{ active: currentPage === page }">-->
+
+<!--          <button-->
+<!--              class="page-link"-->
+<!--              @click="changePage(page)">-->
+
+<!--            {{ page }}-->
+
+<!--          </button>-->
+
+<!--        </li>-->
+
+<!--        <li class="page-item" :class="{ disabled: currentPage === lastPage }">-->
+<!--          <button class="page-link" @click="changePage(currentPage + 1)">-->
+<!--            Next-->
+<!--          </button>-->
+<!--        </li>-->
+
+<!--      </ul>-->
+<!--    </nav>-->
+
+    <!-- EDIT MODAL -->
+    <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit User</h5>
+            <button type="button" class="btn-close" @click="showEditModal = false"></button>
+          </div>
+          <form @submit.prevent="updateUser">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Full Name *</label>
+                <input v-model="editForm.name" class="form-control" placeholder="Full Name" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Email *</label>
+                <input v-model="editForm.email" type="email" class="form-control" placeholder="Email" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Phone *</label>
+                <input v-model="editForm.phone" type="text" class="form-control" placeholder="Phone" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">New Password</label>
+
+                <input v-model="editForm.password" type="password" class="form-control" placeholder="Leave blank to keep current password"/>
+                <small class="text-muted">
+                  Leave empty if you don't want to change the password.
+                </small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Status</label>
+                <select v-model="editForm.is_active" class="form-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <p v-if="formError" class="text-danger small mb-0">{{ formError }}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
+              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEACTIVATE CONFIRM MODAL -->
+    <div v-if="showDeleteModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Deactivate User</h5>
+            <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="mb-0">Deactivate <strong>{{ selected?.name }}</strong>?</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
+            <button class="btn btn-danger btn-sm" @click="deactivateUser" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -90,9 +175,12 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toTitleCase} from "../../utils/upperCase.js";
 
 const users = ref([])
+// const currentPage = ref(1)
+// const lastPage = ref(1)
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
@@ -102,25 +190,54 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
 
-const editForm = reactive({ name: '', email: '', is_active: 'active' })
+const editForm = reactive({ name: '', email: '', phone: '', password: '', is_active: 'active' })
+
 
 async function fetchUsers() {
   loading.value = true
   error.value = ''
+
   try {
-    const res = await api.get('/users/get-users')
-    users.value = res.data.data || []
+    const response = await apiHandler("user", "getAllUsers", {
+      // include: "business",
+      // page: currentPage.value
+    })
+
+    console.log(response)
+
+    users.value = (response.data.data || []).map(
+        (user) => ({
+          ...user,
+          business_name: user.business?.name || '',
+        })
+    )
+
+    // currentPage.value = response.current_page
+    // lastPage.value = response.last_page
+
+    // console.log(currentPage.value)
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load users'
+    error.value =
+        err.response?.data?.message ||
+        'Failed to load Users'
   } finally {
     loading.value = false
   }
 }
 
+// async function changePage(page) {
+//   if (page < 1 || page > lastPage.value) return
+//
+//   currentPage.value = page
+//   await fetchUsers()
+// }
+
 function openEdit(user) {
   selected.value = user
   editForm.name = user.name
   editForm.email = user.email
+  editForm.phone = user.phone
+  editForm.password = user.password
   editForm.is_active = user.is_active
   formError.value = ''
   showEditModal.value = true
@@ -135,7 +252,11 @@ async function updateUser() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/users/update-user${selected.value.user_code}`, editForm)
+    await apiHandler("user", "updateUser",
+        {
+          code: selected.value.user_code,
+          ...editForm
+        })
     showEditModal.value = false
     await fetchUsers()
   } catch (err) {
@@ -148,7 +269,11 @@ async function updateUser() {
 async function deactivateUser() {
   saving.value = true
   try {
-    await api.patch(`/users/update-user-status${selected.value.user_code}`, { is_active: 'inactive' })
+    await apiHandler("user", "deactivateUser",
+        {
+          code: selected.value.user_code,
+          is_active: 'inactive'
+        })
     showDeleteModal.value = false
     await fetchUsers()
   } catch (err) {
@@ -174,113 +299,4 @@ async function deactivateUser() {
 onMounted(fetchUsers)
 </script>
 
-<style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
 
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.header h2 { margin: 0; color: #1e293b; }
-.sub { margin: 2px 0 0; font-size: 13px; color: #64748b; }
-
-.btn {
-  background: #6366f1;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.card {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-
-.table { width: 100%; border-collapse: collapse; }
-.table th, .table td {
-  text-align: left;
-  padding: 10px 12px;
-  font-size: 13px;
-  border-bottom: 1px solid #f1f5f9;
-}
-.table th { color: #64748b; font-weight: 600; }
-
-.badge {
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-}
-.badge.active   { background: #dcfce7; color: #16a34a; }
-.badge.inactive { background: #fee2e2; color: #dc2626; }
-
-.edit-btn, .delete-btn {
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 12px;
-  margin-right: 4px;
-}
-.edit-btn   { background: #ede9fe; color: #6366f1; }
-.delete-btn { background: #fee2e2; color: #dc2626; }
-
-.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
-.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
-
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100;
-}
-.modal {
-  background: white;
-  border-radius: 10px;
-  padding: 24px;
-  width: 420px;
-  max-width: 90%;
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.modal-header h3 { margin: 0; }
-.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
-
-.form { display: flex; flex-direction: column; gap: 12px; }
-.form input, .form select {
-  padding: 9px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-}
-.save-btn {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.delete-modal { text-align: center; }
-.delete-modal h3 { margin: 0 0 12px; }
-.delete-modal p { color: #64748b; margin-bottom: 16px; }
-
-.actions { display: flex; gap: 10px; justify-content: center; }
-.cancel-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-.delete-confirm-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-
-code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-</style>

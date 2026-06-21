@@ -2,6 +2,8 @@
   <div class="page">
     <div class="header">
       <div><h2>Clients</h2><p class="sub">Clients for your business</p></div>
+      <router-link to="/business/clients/create" class="btn btn-ams">+ New Client</router-link>
+
     </div>
     <div class="search-bar">
       <input v-model="searchQuery" placeholder="Search by name or email..." @input="filterClients" />
@@ -10,16 +12,15 @@
       <div v-if="loading" class="loading">Loading...</div>
       <div v-else-if="error" class="error-msg">{{ error }}</div>
       <table v-else class="table">
-        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Code</th><th>Status</th></tr></thead>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Status</th></tr></thead>
         <tbody>
           <tr v-for="client in filtered" :key="client.user_code">
             <td>{{ client.name }}</td>
             <td>{{ client.email }}</td>
             <td>{{ client.phone || '—' }}</td>
-            <td><code>{{ client.user_code }}</code></td>
             <td><span :class="['badge', client.is_active === 'active' ? 'active' : 'inactive']">{{ client.is_active === 'active' ? 'Active' : 'Inactive' }}</span></td>
           </tr>
-          <tr v-if="filtered.length === 0"><td colspan="5" class="empty">No clients found</td></tr>
+          <tr v-if="filtered.length === 0"><td colspan="4" class="empty">No clients found</td></tr>
         </tbody>
       </table>
     </div>
@@ -29,7 +30,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const clients = ref([])
@@ -51,18 +52,12 @@ const filtered = computed(() => {
   })
 })
 
-// const filtered = computed(() => {
-//   if (!searchQuery.value.trim()) return clients.value
-//   const q = searchQuery.value.toLowerCase()
-//   return clients.value.filter(c => (c.name?.toLowerCase().includes(q)) || (c.email?.toLowerCase().includes(q)))
-// })
-
 async function fetchClients() {
   loading.value = true
   error.value = ''
   try {
     const biz = authStore.user?.business_code
-    const res = await api.get('/clients/get-client', { params: biz ? { business_code: biz } : {} })
+    const res = await apiHandler("client", "getAllClients", { params: biz ? { business_code: biz } : {} })
     clients.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load clients'

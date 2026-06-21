@@ -82,19 +82,21 @@
       <table v-else class="table">
         <thead>
         <tr>
-          <th>Code</th>
-          <th>Client</th>
-          <th>Service</th>
-          <th>Date</th>
+          <th>Appointment Code</th>
+          <th>Business Name</th>
+          <th>Appointment Notes</th>
+          <th>Start Date</th>
+          <th>Start Time</th>
           <th>Status</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="appt in recentAppointments" :key="appt.appointment_code">
           <td>{{ appt.appointment_code }}</td>
-          <td>{{ appt.client_name || '—' }}</td>
-          <td>{{ appt.service_name || '—' }}</td>
-          <td>{{ appt.appointment_start_date }}</td>
+          <td>{{ appt.business_name}}</td>
+          <td>{{ appt.notes || '—' }}</td>
+          <td>{{ formatDate(appt.appointment_start_date) }}</td>
+          <td>{{ formatTime(appt.start_time) }}</td>
           <td>
             <span :class="['badge', appt.status]">{{ appt.status }}</span>
           </td>
@@ -112,6 +114,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
+import formatTime from "../utils/formatTime.js";
+import formatDate from "../utils/formatDate.js";
+import {apiHandler} from "../utils/api/apiHandler.js";
 
 const loading = ref(true)
 const recentAppointments = ref([])
@@ -127,17 +132,18 @@ const stats = ref({
   locations: 0,
 })
 
+
 onMounted(async () => {
   try {
     const [orgs, bizs, clients, appts, users, svcs, invs, locs] = await Promise.allSettled([
-      api.get('/organizations/get-organization'),
-      api.get('/businesses/get-business'),
-      api.get('/clients/get-client'),
-      api.get('/appointments'),
-      api.get('/users/get-users'),
-      api.get('/services/get-service'),
-      api.get('/invoices/get-invoice'),
-      api.get('/locations/get-location'),
+      apiHandler("organization", "getAllOrganizations"),
+      apiHandler("business", "getAllBusinesses"),
+      apiHandler("client", "getAllClients"),
+      apiHandler("appointment", "getAllAppointments"),
+      apiHandler("user", "getAllUsers"),
+      apiHandler("service", "getAllServices"),
+      apiHandler("invoice", "getAllInvoices"),
+      apiHandler("location", "getAllLocations"),
     ])
 
     stats.value.organizations = orgs.status === 'fulfilled' ? (orgs.value.data.data?.length ?? 0) : 0
@@ -149,13 +155,31 @@ onMounted(async () => {
     stats.value.invoices = invs.status === 'fulfilled' ? (invs.value.data.data?.length ?? 0) : 0
     stats.value.locations = locs.status === 'fulfilled' ? (locs.value.data.data?.length ?? 0) : 0
 
+    const business =
+        bizs.status === 'fulfilled'
+            ? bizs.value.data.data || []
+            : []
+
+    const businessNameByCode = new Map(
+        business.map((bus) => [bus.business_code, bus.name])
+    )
+
     if (appts.status === 'fulfilled') {
-      recentAppointments.value = (appts.value.data.data || []).slice(0, 5)
+      recentAppointments.value = (appts.value.data.data || [])
+          .slice(0, 5)
+          .map((appt) => ({
+            ...appt,
+            business_name:
+                businessNameByCode.get(appt.business_code) ||
+                appt.business_name ||
+                '',
+          }))
     }
   } finally {
     loading.value = false
   }
 })
+
 </script>
 
 <style scoped>
@@ -263,18 +287,21 @@ onMounted(async () => {
 }
 
 .badge {
-  padding: 3px 8px;
+  display: inline-block;
+  padding: 3px 10px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 500;
   text-transform: capitalize;
 }
 
-.badge.pending    { background: #fef3c7; color: #d97706; }
-.badge.approved   { background: #dcfce7; color: #16a34a; }
-.badge.rejected   { background: #fee2e2; color: #dc2626; }
+.badge.pending     { background: #fef3c7; color: #d97706; }
+.badge.approved    { background: #dcfce7; color: #16a34a; }
+.badge.rejected    { background: #fee2e2; color: #dc2626; }
+.badge.canceled    { background: #fee2e2; color: #dc2626; }
 .badge.rescheduled { background: #dbeafe; color: #2563eb; }
-.badge.completed  { background: #f0fdf4; color: #15803d; }
+.badge.completed   { background: #f0fdf4; color: #15803d; }
+.badge.in_progress { background: #e0f2fe; color: #0369a1; }
 
 .loading, .empty {
   text-align: center;

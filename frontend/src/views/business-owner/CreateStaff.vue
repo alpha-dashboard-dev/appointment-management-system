@@ -18,6 +18,15 @@
             <option value="service_staff">Service Staff</option>
           </select>
         </div>
+        <div class="field">
+          <label>Employee Type *</label>
+          <select v-model="form.employee_type" required>
+            <option value="">Select Employee Type</option>
+            <option value="permanent">Permanent</option>
+            <option value="visiting">Visiting</option>
+            <option value="remote">Remote</option>
+          </select>
+        </div>
         <div class="field"><label>Status *</label>
           <select v-model="form.is_active" required>
             <option value="">Select status</option>
@@ -40,11 +49,12 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const form = reactive({ name: '', email: '', phone: '', password: '', user_type: '', is_active: '' })
+const form = reactive({ name: '', email: '', phone: '', password: '', user_type: '', employee_type: '', is_active: '' })
 const loading = ref(false)
 const error = ref('')
 
@@ -52,7 +62,7 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    await api.post('/users/create-user', { ...form, business_code: authStore.user?.business_code })
+    await apiHandler("user", "createUser", { ...form, business_code: authStore.user?.business_code })
     router.push('/business/staff')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create staff'

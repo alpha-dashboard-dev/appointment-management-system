@@ -3,19 +3,30 @@
 
     <div class="page-header">
       <h2>New Location</h2>
-      <router-link to="/locations" class="back-link">← Back</router-link>
+      <router-link :to="backLink" class="back-link">← Back</router-link>
     </div>
 
     <div class="card">
       <form class="form" @submit.prevent="submit">
 
+        <div v-if="isAdmin" class="field">
+          <label>Business *</label>
+          <select v-model="form.business_code" :class="{ 'field-input-error': errors.business_code }" @change="validateField('business_code')">
+            <option value="">Select business</option>
+            <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
+              {{ biz.name }}
+            </option>
+          </select>
+          <p v-if="errors.business_code" class="field-error">{{ errors.business_code }}</p>
+        </div>
 
         <div class="field">
           <label>Type *</label>
-          <select v-model="form.location_type" required>
+          <select v-model="form.location_type" :class="{ 'field-input-error': errors.location_type }" @change="validateField('location_type')">
             <option value="business">Business</option>
             <option value="client">Client</option>
           </select>
+          <p v-if="errors.location_type" class="field-error">{{ errors.location_type }}</p>
         </div>
 
         <div class="field">
@@ -53,20 +64,10 @@
           <input v-model="form.country" placeholder="Country" />
         </div>
 
-        <div class="field">
-          <label>Status *</label>
-          <select v-model="form.status" required>
-            <option value="">Select Status</option>
-            <option v-for="status in statuses" :key="status" :value="status">
-              {{ status }}
-            </option>
-          </select>
-        </div>
-
         <p v-if="error" class="error-msg">{{ error }}</p>
 
         <div class="form-actions">
-          <router-link to="/locations" class="cancel-btn">Cancel</router-link>
+          <router-link :to="backLink" class="cancel-btn">Cancel</router-link>
           <button type="submit" class="submit-btn" :disabled="loading">
             {{ loading ? 'Creating...' : 'Create Location' }}
           </button>
@@ -79,34 +80,54 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/utils/api'
+import { useAuthStore } from '@/stores/auth.store'
+import { validateLocationForm } from '@/utils/validator'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
-const statuses = ['active', 'inactive']
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.role === 'admin')
+const backLink = computed(() => isAdmin.value ? '/locations' : '/business/locations')
+
 const form = reactive({ business_code: '', location_type: 'business', street: '', address: '', apartment: '', city: '',
-  province: '', postal_code: '', country: '', status: '' })
+  province: '', postal_code: '', country: '', status: 'active' })
 const businesses = ref([])
 const loading = ref(false)
 const error = ref('')
+const errors = reactive({})
+
+function validateField(field) {
+  const result = validateLocationForm(form)
+  if (result[field]) { errors[field] = result[field] } else { delete errors[field] }
+}
 
 onMounted(async () => {
+  if (!isAdmin.value) {
+    form.business_code = authStore.user?.business_code || ''
+    return
+  }
   try {
-    const res = await api.get('/businesses/get-business')
+    const res = await apiHandler("business", "getAllBusinesses")
     businesses.value = res.data.data || []
   } catch (_) {}
 })
 
 async function submit() {
+  const validationErrors = validateLocationForm(form)
+  Object.keys(errors).forEach(k => delete errors[k])
+  Object.assign(errors, validationErrors)
+  if (Object.keys(errors).length > 0) return
+
   loading.value = true
   error.value = ''
   try {
     const payload = { ...form }
     Object.keys(payload).forEach(k => { if (!payload[k]) delete payload[k] })
     payload.business_code = form.business_code
-    await api.post('/locations/create-location', payload)
-    router.push('/locations')
+    await apiHandler("location", "createLocation", payload)
+    router.push(backLink.value)
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create location'
   } finally {
@@ -126,6 +147,8 @@ async function submit() {
 .field label { font-size: 13px; font-weight: 600; color: #374151; }
 .field input, .field select { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; }
 .field input:focus, .field select:focus { border-color: #6366f1; }
+.field-input-error { border-color: #ef4444 !important; }
+.field-error { color: #ef4444; font-size: 12px; margin: 2px 0 0; }
 .error-msg { color: #ef4444; font-size: 13px; margin: 0; }
 .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
 .cancel-btn { padding: 9px 16px; border-radius: 6px; background: #f1f5f9; color: #64748b; text-decoration: none; font-size: 14px; }

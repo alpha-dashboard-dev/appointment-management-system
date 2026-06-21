@@ -6,15 +6,27 @@
       <div v-else-if="error" class="error-msg">{{ error }}</div>
       <div v-else-if="schedules.length === 0" class="empty">No schedule assigned yet</div>
       <table v-else class="table">
-        <thead><tr><th>Working Days</th><th>Start Time</th><th>End Time</th><th>Location</th><th>Employee Type</th></tr></thead>
-        <tbody>
-          <tr v-for="s in schedules" :key="s.id">
-            <td>{{ s.working_days }}</td>
-            <td>{{ s.start_time }}</td>
-            <td>{{ s.end_time }}</td>
-            <td>{{ s.location_code || '—' }}</td>
-            <td>{{ s.employee_type || '—' }}</td>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Working Days</th>
+            <th>Location</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+<!--            <th>Location</th>-->
+<!--            <th>Status</th>-->
           </tr>
+        </thead>
+        <tbody>
+        <tr v-for="s in activeSchedules" :key="s.id">
+          <td>{{ s.name }}</td>
+          <td>{{ s.working_days }}</td>
+          <td>{{s.location_address}}</td>
+          <td>{{ formatTime(s.start_time) }}</td>
+          <td>{{ formatTime(s.end_time) }}</td>
+<!--          <td>{{ s.location_code || '—' }}</td>-->
+<!--          <td>{{ s.status }}</td>-->
+        </tr>
         </tbody>
       </table>
     </div>
@@ -22,12 +34,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import {ref, onMounted, computed} from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
+import formatTime from "../../utils/formatTime.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const schedules = ref([])
+const activeSchedules = computed(() => {
+  return schedules.value.filter(s => s.status === 'active')
+})
+
+
 const loading = ref(true)
 const error = ref('')
 
@@ -36,8 +54,19 @@ async function fetchSchedule() {
   error.value = ''
   try {
     const userCode = authStore.user?.user_code
-    const res = await api.get('/schedules/get-schedule', { params: userCode ? { user_code: userCode } : {} })
-    schedules.value = res.data.data || []
+    const res = await apiHandler("staffSchedule", "getAllSchedules",
+        {
+          include: 'location,user',
+          user_code: userCode,
+        })
+    schedules.value = (res.data.data || []).map(
+        (schedule) => ({
+          ...schedule,
+          name: schedule.user?.name?.trim() || '',
+          location_address: schedule.location?.address?.trim() + " " + schedule.location?.street?.trim() + " " + schedule.location?.city || '',
+        })
+    )
+
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load schedule'
   } finally {

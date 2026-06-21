@@ -8,106 +8,81 @@
 
       <nav class="menu">
         <router-link to="/business/dashboard" class="item">
-          <i class="icon">📊</i>
+          <i class="bi bi-speedometer2 icon"></i>
           <span v-if="!collapsed">Dashboard</span>
         </router-link>
 
-        <div class="group">
-          <div class="group-title" @click="toggle('app')">
-            <i class="icon">📅</i>
-            <span v-if="!collapsed">Appointments</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.app }">›</i>
-          </div>
-          <div v-show="open.app && !collapsed" class="submenu">
-            <router-link to="/business/appointments" class="sub-item">All Requests</router-link>
-            <router-link to="/business/appointments/create" class="sub-item">New Request</router-link>
-          </div>
-        </div>
-
-
+        <!-- SERVICES -->
         <div class="group">
           <div class="group-title" @click="toggle('svc')">
-            <i class="icon">⚕️</i>
+            <i class="bi bi-clipboard-pulse icon"></i>
             <span v-if="!collapsed">Services</span>
             <i v-if="!collapsed" class="arrow" :class="{ rotated: open.svc }">›</i>
           </div>
           <div v-show="open.svc && !collapsed" class="submenu">
             <router-link to="/business/services" class="sub-item">All Services</router-link>
-            <router-link to="/business/services/create" class="sub-item">New Service</router-link>
-          </div>
-        </div>
-
-
-        <div class="group">
-          <div class="group-title" @click="toggle('loc')">
-            <i class="icon">📍</i>
-            <span v-if="!collapsed">Locations</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.loc }">›</i>
-          </div>
-          <div v-show="open.loc && !collapsed" class="submenu">
-            <router-link to="/business/locations" class="sub-item">All Locations</router-link>
-            <router-link to="/business/locations/create" class="sub-item">New Location</router-link>
             <router-link to="/business/location-services" class="sub-item">Location Services</router-link>
           </div>
         </div>
 
-        <div class="group">
-          <div class="group-title" @click="toggle('staff')">
-            <i class="icon">👤</i>
-            <span v-if="!collapsed">Staff</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.staff }">›</i>
-          </div>
-          <div v-show="open.staff && !collapsed" class="submenu">
-            <router-link to="/business/staff" class="sub-item">All Staff</router-link>
-            <router-link to="/business/staff/create" class="sub-item">Add Staff</router-link>
-          </div>
+        <!-- LOCATIONS -->
+         <div class="group">
+          <router-link to="/business/locations" class="group-title">
+            <i class="bi bi-geo-alt icon"></i>
+
+            <span v-if="!collapsed">Locations</span>
+          </router-link>
         </div>
 
-        <div class="group">
-          <div class="group-title" @click="toggle('client')">
-            <i class="icon">👥</i>
+        <!-- STAFF (USERS) -->
+         <div class="group">
+          <router-link to="/business/staff" class="group-title">
+            <i class="bi bi-person icon"></i>
+
+            <span v-if="!collapsed">Staff</span>
+          </router-link>
+        </div>
+
+        <!-- CLIENTS -->
+         <div class="group">
+          <router-link to="/business/clients" class="group-title">
+            <i class="bi bi-people icon"></i>
+
             <span v-if="!collapsed">Clients</span>
-            <i v-if="!collapsed" class="arrow" :class="{ rotated: open.client }">›</i>
-          </div>
-          <div v-show="open.client && !collapsed" class="submenu">
-            <router-link to="/business/clients" class="sub-item">All Clients</router-link>
-            <router-link to="/business/clients/create" class="sub-item">Add Client</router-link>
-          </div>
+          </router-link>
         </div>
 
         <router-link to="/business/schedules" class="item">
-          <i class="icon">🗓️</i>
+          <i class="bi bi-calendar3 icon"></i>
           <span v-if="!collapsed">Schedules</span>
         </router-link>
 
 
         <router-link to="/business/charges" class="item">
-          <i class="icon">💰</i>
+          <i class="bi bi-cash-coin icon"></i>
           <span v-if="!collapsed">Charges</span>
         </router-link>
 
+        <!-- APPOINTMENTS -->
+         <div class="group">
+          <router-link to="/business/appointments" class="group-title">
+            <i class="bi bi-calendar-check icon"></i>
+
+            <span v-if="!collapsed">Appointments</span>
+          </router-link>
+        </div>
+
+        <!-- INVOICES -->
         <router-link to="/business/invoices" class="item">
-          <i class="icon">🧾</i>
+          <i class="bi bi-receipt icon"></i>
           <span v-if="!collapsed">Invoices</span>
         </router-link>
       </nav>
 
-      <div class="logout-section">
-        <div v-if="!collapsed" class="user-info">
-          <span class="user-name">{{ authStore.user?.name || authStore.user?.email }}</span>
-          <span class="user-role">Business Owner</span>
-        </div>
-        <button class="logout-btn" @click="handleLogout">
-          <i class="icon">🚪</i>
-          <span v-if="!collapsed">Logout</span>
-        </button>
-      </div>
     </aside>
 
     <div class="main">
-      <header class="topbar">
-        <h3 class="page-title">{{ pageTitle }}</h3>
-      </header>
+      <Topbar />
       <div class="content">
         <router-view />
       </div>
@@ -119,6 +94,7 @@
 import { reactive, ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import Topbar from "./Topbar.vue"
 
 const router = useRouter()
 const route = useRoute()
@@ -131,7 +107,7 @@ function toggle(key) { open[key] = !open[key] }
 const titleMap = {
   '/business/dashboard': 'Dashboard',
   '/business/appointments': 'Appointments',
-  '/business/appointments/create': 'New Appointment',
+  '/business/appointments/create': 'New appointment',
   '/business/services': 'Services',
   '/business/services/create': 'New Service',
   '/business/locations': 'Locations',
@@ -147,10 +123,6 @@ const titleMap = {
 }
 const pageTitle = computed(() => titleMap[route.path] || 'Business Portal')
 
-async function handleLogout() {
-  await authStore.logout()
-  router.push('/login')
-}
 </script>
 
 <style scoped>
@@ -164,7 +136,7 @@ async function handleLogout() {
 .item:hover, .item.router-link-active { background: #1e293b; color: white; }
 .icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
 .group { margin-bottom: 2px; }
-.group-title { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: #94a3b8; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.group-title { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; cursor: pointer; color: #94a3b8; font-size: 13px; font-weight: 500; transition: all 0.15s; text-decoration: none; }
 .group-title:hover { background: #1e293b; color: white; }
 .arrow { font-size: 16px; margin-left: auto; transition: transform 0.2s; }
 .arrow.rotated { transform: rotate(90deg); }
@@ -177,8 +149,8 @@ async function handleLogout() {
 .user-role { display: block; font-size: 11px; color: #64748b; margin-top: 2px; }
 .logout-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border-radius: 6px; background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 13px; transition: all 0.15s; }
 .logout-btn:hover { background: #1e293b; color: #f87171; }
-.main { flex: 1; background: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-.topbar { height: 60px; background: white; display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
-.page-title { margin: 0; font-size: 18px; font-weight: 600; color: #1e293b; }
-.content { padding: 20px; flex: 1; }
+.main { flex: 1; background: var(--color-bg); min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { height: 60px; background: var(--color-nav, white); display: flex; align-items: center; padding: 0 24px; border-bottom: 1px solid var(--color-border); flex-shrink: 0; }
+.page-title { margin: 0; font-size: 18px; font-weight: 600; color: var(--color-text); }
+.content { padding: 20px; flex: 1; background: var(--color-bg); }
 </style>

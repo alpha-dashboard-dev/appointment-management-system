@@ -1,97 +1,162 @@
 <template>
-  <div class="page">
+  <div class="ams-page">
 
-    <div class="header">
+    <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h2>Locations</h2>
-        <p class="sub">Manage all locations</p>
+        <h2 class="mb-0">Locations</h2>
+        <p class="text-muted small mb-0">Manage all locations</p>
       </div>
-      <router-link to="/locations/create" class="btn">+ New Location</router-link>
+      <router-link to="/locations/create" class="btn btn-ams">+ New Location</router-link>
     </div>
 
-    <div class="filters">
-      <select v-model="bizFilter" @change="fetchLocations">
+    <div class="d-flex gap-2">
+      <select v-model="bizFilter" class="form-select" style="max-width:240px">
         <option value="">All Businesses</option>
-        <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
-          {{ biz.name }}
-        </option>
+        <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
       </select>
     </div>
 
-    <div class="card">
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else-if="error" class="error-msg">{{ error }}</div>
-
-      <table v-else class="table">
-        <thead>
-        <tr>
-          <th>Code</th>
-          <th>Type</th>
-          <th>City</th>
-          <th>Address</th>
-          <th>Status</th>
-          <th width="140">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="loc in locations" :key="loc.location_code">
-          <td><code>{{ loc.location_code }}</code></td>
-          <td>{{ loc.location_type }}</td>
-          <td>{{ loc.city || '—' }}</td>
-          <td>{{ loc.address || loc.street || '—' }}</td>
-          <td><span :class="['badge', loc.status]">{{ loc.status }}</span></td>
-          <td>
-            <button class="edit-btn" @click="openEdit(loc)">Edit</button>
-            <button class="delete-btn" @click="openDelete(loc)">Delete</button>
-          </td>
-        </tr>
-        <tr v-if="locations.length === 0">
-          <td colspan="6" class="empty">No locations found</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- EDIT MODAL -->
-    <div v-if="showEditModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Edit Location</h3>
-          <button class="close" @click="showEditModal = false">✕</button>
-        </div>
-        <form class="form" @submit.prevent="updateLocation">
-          <select v-model="editForm.location_type">
-            <option value="business">Business</option>
-            <option value="client">Client</option>
-          </select>
-          <input v-model="editForm.street" placeholder="Street" />
-          <input v-model="editForm.address" placeholder="Address" />
-          <input v-model="editForm.city" placeholder="City" />
-          <input v-model="editForm.province" placeholder="Province" />
-          <input v-model="editForm.postal_code" placeholder="Postal Code" />
-          <input v-model="editForm.country" placeholder="Country" />
-          <select v-model="editForm.status">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <p v-if="formError" class="error-msg">{{ formError }}</p>
-          <button type="submit" class="save-btn" :disabled="saving">
-            {{ saving ? 'Saving...' : 'Save Changes' }}
-          </button>
-        </form>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
+        <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
+        <table v-else class="table table-hover ams-table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Business Name</th>
+              <th>Address</th>
+              <th>Street</th>
+              <th>Apartment</th>
+              <th>City</th>
+              <th>State</th>
+              <th>Country</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th class="pe-3" style="width:140px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="loc in locations" :key="loc.location_code">
+              <td class="ps-3">{{ loc.business_name ||  '—'}}</td>
+              <td>{{ loc.address || '—' }}</td>
+              <td>{{loc.street || '—'}}</td>
+              <td>{{loc.apartment || '—'}}</td>
+              <td>{{ loc.city || '—' }}</td>
+              <td>{{loc.province || '—'}}</td>
+              <td>{{ loc.country || '—' }}</td>
+              <td>{{ toTitleCase(loc.location_type) }}</td>
+              <td><span :class="['ams-badge', loc.status]">{{ loc.status }}</span></td>
+              <td class="pe-3">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(loc)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(loc)">
+                        <i class="bi bi-trash me-2"></i>
+                        Delete
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="locations.length === 0">
+              <td colspan="10" class="text-center text-muted py-4">No locations found</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- DELETE MODAL -->
-    <div v-if="showDeleteModal" class="modal-overlay">
-      <div class="modal delete-modal">
-        <h3>Delete Location</h3>
-        <p>Are you sure you want to delete location <strong>{{ selected?.location_code }}</strong>?</p>
-        <div class="actions">
-          <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
-          <button class="delete-confirm-btn" @click="deleteLocation" :disabled="saving">
-            {{ saving ? 'Deleting...' : 'Delete' }}
-          </button>
+    <!-- EDIT MODAL -->
+    <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-height:90vh; max-width:760px; width:auto">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Location</h5>
+            <button type="button" class="btn-close" @click="showEditModal = false"></button>
+          </div>
+          <form @submit.prevent="updateLocation">
+            <div class="modal-body" style="overflow-y:auto; max-height:calc(90vh - 190px);">
+<!--              <div class="mb-3">-->
+<!--                <label class="form-label fw-semibold">Location Type</label>-->
+<!--                <select v-model="editForm.location_type" class="form-select">-->
+<!--                  <option value="business">Business</option>-->
+<!--                  <option value="client">Client</option>-->
+<!--                </select>-->
+<!--              </div>-->
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Address</label>
+                  <input v-model="editForm.address" class="form-control" placeholder="Address" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Street</label>
+                  <input v-model="editForm.street" class="form-control" placeholder="Street" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Apartment</label>
+                  <input v-model="editForm.apartment" class="form-control" placeholder="Apartment" />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">City</label>
+                  <input v-model="editForm.city" class="form-control" placeholder="City" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Province</label>
+                  <input v-model="editForm.province" class="form-control" placeholder="Province" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Postal Code</label>
+                  <input v-model="editForm.postal_code" class="form-control" placeholder="Postal Code" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Country</label>
+                  <input v-model="editForm.country" class="form-control" placeholder="Country" />
+                </div>
+              </div>
+              <div class="mt-3">
+                <label class="form-label fw-semibold">Status</label>
+                <select v-model="editForm.status" class="form-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <p v-if="formError" class="text-danger small mt-2 mb-0">{{ formError }}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
+              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- DELETE CONFIRM MODAL -->
+    <div v-if="showDeleteModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Delete Location</h5>
+            <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="mb-0">Delete location <strong>{{ selected?.address + " " + selected?.city }}</strong>?</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
+            <button class="btn btn-danger btn-sm" @click="deleteLocation" :disabled="saving">{{ saving ? '...' : 'Delete' }}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -100,8 +165,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import {ref, reactive, onMounted, computed} from 'vue'
+import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toTitleCase} from "../../utils/upperCase.js";
 
 const locations = ref([])
 const businesses = ref([])
@@ -114,17 +180,30 @@ const bizFilter = ref('')
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
-const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active' })
+const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active', apartment: '' })
 
 async function fetchLocations() {
   loading.value = true
   error.value = ''
+
   try {
-    const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/locations/get-location', { params })
-    locations.value = res.data.data || []
+
+    const response = await apiHandler("location", "getAllLocations",
+        {
+          include: "business"
+        }
+    )
+
+    locations.value = (response.data.data || []).map(
+        (location) => ({
+          ...location,
+          business_name: location.business?.name || '',
+        })
+    )
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load locations'
+    error.value =
+        err.response?.data?.message ||
+        'Failed to load Locations'
   } finally {
     loading.value = false
   }
@@ -140,6 +219,7 @@ function openEdit(loc) {
   editForm.postal_code = loc.postal_code || ''
   editForm.country = loc.country || ''
   editForm.status = loc.status || 'active'
+  editForm.apartment = loc.apartment || ''
   formError.value = ''
   showEditModal.value = true
 }
@@ -153,7 +233,11 @@ async function updateLocation() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/locations/update-location${selected.value.location_code}`, editForm)
+    // await api.put(`/locations/update-location/${selected.value.location_code}`, editForm)
+    await apiHandler("location", "updateLocation", {
+      code: selected.value.location_code,
+      ...editForm,
+    })
     showEditModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -166,7 +250,9 @@ async function updateLocation() {
 async function deleteLocation() {
   saving.value = true
   try {
-    await api.delete(`/locations/delete-location${selected.value.location_code}`)
+    await apiHandler("location", "deleteLocation", {
+      code: selected.value.location_code
+    })
     showDeleteModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -177,41 +263,7 @@ async function deleteLocation() {
 }
 
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchLocations(), api.get('/businesses/get-business')])
+  const [_, bizRes] = await Promise.allSettled([fetchLocations(), apiHandler("business", "getAllBusinesses")])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>
-
-<style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
-.header { display: flex; align-items: center; justify-content: space-between; }
-.header h2 { margin: 0; color: #1e293b; }
-.sub { margin: 2px 0 0; font-size: 13px; color: #64748b; }
-.btn { background: #6366f1; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; font-weight: 500; }
-.filters { display: flex; gap: 12px; }
-.filters select { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; outline: none; min-width: 200px; }
-.card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.table { width: 100%; border-collapse: collapse; }
-.table th, .table td { text-align: left; padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-.table th { color: #64748b; font-weight: 600; }
-.edit-btn, .delete-btn { border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 4px; }
-.edit-btn   { background: #ede9fe; color: #6366f1; }
-.delete-btn { background: #fee2e2; color: #dc2626; }
-.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
-.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: white; border-radius: 10px; padding: 24px; width: 420px; max-width: 90%; }
-.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.modal-header h3 { margin: 0; }
-.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
-.form { display: flex; flex-direction: column; gap: 12px; }
-.form input, .form select { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; }
-.save-btn { background: #6366f1; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-.delete-modal { text-align: center; }
-.delete-modal h3 { margin: 0 0 12px; }
-.delete-modal p { color: #64748b; margin-bottom: 16px; }
-.actions { display: flex; gap: 10px; justify-content: center; }
-.cancel-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-.delete-confirm-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-</style>

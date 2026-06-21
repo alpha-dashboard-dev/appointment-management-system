@@ -1,141 +1,290 @@
 <template>
-  <div class="page">
+  <div class="ams-page">
 
-    <div class="header">
+    <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h2>Charges</h2>
-        <p class="sub">Manage all charges</p>
+        <h2 class="mb-0">Charges</h2>
+        <p class="text-muted small mb-0">Manage all charges</p>
       </div>
-      <button class="btn" @click="showCreateModal = true">+ New Charge</button>
+      <button class="btn btn-ams" @click="showCreateModal = true">+ New Charge</button>
     </div>
 
-    <div class="filters">
-      <select v-model="bizFilter" @change="fetchCharges">
+    <div v-if="isAdmin" class="d-flex gap-2">
+      <select v-model="bizFilter" @change="fetchCharges" class="form-select" style="max-width:240px">
         <option value="">All Businesses</option>
-        <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
-          {{ biz.name }}
-        </option>
+        <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
       </select>
     </div>
 
-    <div class="card">
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else-if="error" class="error-msg">{{ error }}</div>
-
-      <table v-else class="table">
-        <thead>
-        <tr>
-          <th>Charge Code</th>
-          <th>Name</th>
-          <th>Amount</th>
-          <th>Type</th>
-          <th width="100">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="charge in charges" :key="charge.charge_code">
-          <td><code>{{ charge.charge_code }}</code></td>
-          <td>{{ charge.name }}</td>
-          <td>{{ charge.charge_value }}</td>
-          <td>{{ charge.charge_uom }}</td>
-          <td>
-            <button class="delete-btn" @click="openDelete(charge)">Delete</button>
-          </td>
-        </tr>
-        <tr v-if="charges.length === 0">
-          <td colspan="5" class="empty">No charges found</td>
-        </tr>
-        </tbody>
-      </table>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
+        <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
+        <table v-else class="table table-hover ams-table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Business Name</th>
+              <th>Name</th>
+              <th>Value</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Auto Applied Status</th>
+              <th class="pe-3" style="width:100px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="charge in charges" :key="charge.charge_code">
+              <td class="ps-3">{{ charge.business_name }}</td>
+              <td>{{ charge.name }}</td>
+              <td>{{ charge.charge_value }}</td>
+              <td>{{ toUpperLabel(charge.charge_uom) }}</td>
+              <td><span :class="['ams-badge', charge.status]">{{ charge.status }}</span></td>
+              <td><span :class="['ams-badge', charge.auto_apply]">{{ charge.auto_apply }}</span></td>
+              <td class="pe-3">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(charge)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDeactivate(charge)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(charge)">
+                        <i class="bi bi-trash me-2"></i>
+                        Delete
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="charges.length === 0">
+              <td colspan="7" class="text-center text-muted py-4">No charges found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-    <!-- DELETE MODAL -->
-    <div v-if="showDeleteModal" class="modal-overlay">
-      <div class="modal delete-modal">
-        <h3>Delete Charge</h3>
-        <p>Are you sure you want to delete <strong>{{ selected?.name }}</strong>?</p>
-        <div class="actions">
-          <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
-          <button class="delete-confirm-btn" @click="deleteCharge" :disabled="saving">
-            {{ saving ? 'Deleting...' : 'Delete' }}
-          </button>
+<!--    Deactivate charge-->
+    <div v-if="showDeactivateModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Deactivate Charge</h5>
+            <button type="button" class="btn-close" @click="showDeactivateModal = false"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="mb-0">Deactivate <strong>{{ selected?.name }}</strong>?</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button class="btn btn-secondary btn-sm" @click="showDeactivateModal = false">Cancel</button>
+            <button class="btn btn-danger btn-sm" @click="deactivateCharge" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DELETE CONFIRM MODAL -->
+    <div v-if="showDeleteModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Delete Charge</h5>
+            <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="mb-0">Delete <strong>{{ selected?.name }}</strong>?</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
+            <button class="btn btn-danger btn-sm" @click="deleteCharge" :disabled="saving">{{ saving ? '...' : 'Delete' }}</button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- CREATE MODAL -->
-    <div v-if="showCreateModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>New Charge</h3>
-          <button class="close" @click="showCreateModal = false">✕</button>
+    <div v-if="showCreateModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">New Charge</h5>
+            <button type="button" class="btn-close" @click="showCreateModal = false"></button>
+          </div>
+          <form @submit.prevent="createCharge">
+            <div class="modal-body">
+              <div v-if="isAdmin" class="mb-3">
+                <label class="form-label fw-semibold">Business *</label>
+                <select v-model="createForm.business_code" :class="['form-select', createErrors.business_code ? 'is-invalid' : '']">
+                  <option value="">Select business</option>
+                  <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
+                </select>
+                <div v-if="createErrors.business_code" class="invalid-feedback">{{ createErrors.business_code }}</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Name *</label>
+                <input v-model="createForm.name" :class="['form-control', createErrors.name ? 'is-invalid' : '']" placeholder="Charge name" />
+                <div v-if="createErrors.name" class="invalid-feedback">{{ createErrors.name }}</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Charge UOM *</label>
+                <select v-model="createForm.charge_uom" :class="['form-select', createErrors.charge_uom ? 'is-invalid' : '']">
+                  <option value="">Select UOM</option>
+                  <option value="fixed">Fixed</option>
+                  <option value="percentage">Percentage</option>
+                </select>
+                <div v-if="createErrors.charge_uom" class="invalid-feedback">{{ createErrors.charge_uom }}</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Charge Value *</label>
+                <input v-model.number="createForm.charge_value" type="number" step="0.01" min="0" :class="['form-control', createErrors.charge_value ? 'is-invalid' : '']" placeholder="Value" />
+                <div v-if="createErrors.charge_value" class="invalid-feedback">{{ createErrors.charge_value }}</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Description</label>
+                <textarea v-model="createForm.description" class="form-control" rows="2" placeholder="Optional description"></textarea>
+              </div>
+              <p v-if="createError" class="text-danger small mb-0">{{ createError }}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showCreateModal = false">Cancel</button>
+              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Creating...' : 'Create' }}</button>
+            </div>
+          </form>
         </div>
-        <form class="form" @submit.prevent="createCharge">
-          <div class="field">
-            <label>Business *</label>
-            <select v-model="createForm.business_code" required>
-              <option value="">Select business</option>
-              <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
-            </select>
+      </div>
+    </div>
+  </div>
+
+<!--  Edit Modal-->
+  <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Charge</h5>
+          <button type="button" class="btn-close" @click="showEditModal = false"></button>
+        </div>
+        <form @submit.prevent="updateCharge">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Charge Name *</label>
+              <input v-model="editForm.name" class="form-control" placeholder="Charge Name" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Description</label>
+              <input v-model="editForm.description" class="form-control" placeholder="Description" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Charge Value *</label>
+              <input v-model="editForm.charge_value" class="form-control" placeholder="Charge Value" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Status</label>
+              <select v-model="editForm.status" class="form-select">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Auto Apply</label>
+              <select v-model="editForm.auto_apply" class="form-select">
+                <option value=true>Auto Apply</option>
+                <option value=false>Manual / Off</option>
+              </select>
+            </div>
+            <p v-if="formError" class="text-danger small mb-0">{{ formError }}</p>
           </div>
-          <div class="field">
-            <label>Name *</label>
-            <input v-model="createForm.name" placeholder="Charge name" required />
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
+            <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
           </div>
-          <div class="field">
-            <label>Charge UOM *</label>
-            <select v-model="createForm.charge_uom" required>
-              <option value="">Select UOM</option>
-              <option value="fixed">Fixed</option>
-              <option value="percentage">Percentage</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Charge Value *</label>
-            <input v-model.number="createForm.charge_value" type="number" step="0.01" min="0" placeholder="Value" required />
-          </div>
-          <div class="field">
-            <label>Description</label>
-            <textarea v-model="createForm.description" rows="2" placeholder="Optional description"></textarea>
-          </div>
-          <p v-if="createError" class="error-msg">{{ createError }}</p>
-          <button type="submit" class="save-btn" :disabled="saving">{{ saving ? 'Creating...' : 'Create' }}</button>
         </form>
       </div>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import api from '@/utils/api'
+import {ref, computed, onMounted, reactive} from 'vue'
+import { useAuthStore } from '@/stores/auth.store'
+import { validateChargeForm } from '@/utils/validator'
+import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toUpperLabel} from "../../utils/upperCase.js";
 
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.role === 'admin')
 const charges = ref([])
 const businesses = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
+const formError = ref('')
 const bizFilter = ref('')
 
+const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+const showDeactivateModal = ref(false)
 const showCreateModal = ref(false)
 const selected = ref(null)
 const createError = ref('')
+const createErrors = ref({})
 const createForm = ref({ business_code: '', name: '', charge_uom: '', charge_value: '', description: '' })
+const editForm = reactive({ name: '', status: 'active', charge_value: '', description: '', auto_apply: true })
 
 async function fetchCharges() {
   loading.value = true
   error.value = ''
+
   try {
-    const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/charges/get-charge', { params })
-    charges.value = res.data.data || []
+    const params = bizFilter.value
+        ? { business_code: bizFilter.value }
+        : {}
+
+    const [chargeRes, businessRes] = await Promise.all([
+      apiHandler("charge", "getAllCharges",{ params }),
+      apiHandler("business", "getAllBusinesses"),
+    ])
+
+    const businesses = businessRes.data.data || []
+
+    const businessNameByCode = new Map(
+        businesses.map((bus) => [bus.business_code, bus.name])
+    )
+
+    charges.value = (chargeRes.data.data || []).map((charge) => ({
+      ...charge,
+      business_name:
+          businessNameByCode.get(charge.business_code) ||
+          charge.business_name ||
+          '',
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load charges'
+    error.value =
+        err.response?.data?.message || 'Failed to load charges'
   } finally {
     loading.value = false
   }
+}
+
+function openEdit(charge) {
+  selected.value = charge
+  editForm.name = charge.name
+  editForm.charge_value = charge.charge_value
+  editForm.description = charge.description
+
+  formError.value = ''
+  showEditModal.value = true
 }
 
 function openDelete(charge) {
@@ -143,10 +292,18 @@ function openDelete(charge) {
   showDeleteModal.value = true
 }
 
+function openDeactivate(charge) {
+  selected.value = charge
+  showDeactivateModal.value = true
+}
+
 async function deleteCharge() {
   saving.value = true
   try {
-    await api.delete(`/charges/delete-charge${selected.value.charge_code}`)
+    await apiHandler("charge", "deleteCharge",
+        {
+          code: selected.value.charge_code
+        })
     showDeleteModal.value = false
     await fetchCharges()
   } catch (err) {
@@ -157,14 +314,19 @@ async function deleteCharge() {
 }
 
 async function createCharge() {
+  const validationErrors = validateChargeForm(createForm.value)
+  createErrors.value = validationErrors
+  if (Object.keys(validationErrors).length > 0) return
+
   saving.value = true
   createError.value = ''
   try {
     const payload = { ...createForm.value }
     if (!payload.description) delete payload.description
-    await api.post('/charges/create-charge', payload)
+    await apiHandler("charge","createBusinessCharge", payload)
     showCreateModal.value = false
-    createForm.value = { business_code: '', name: '', charge_uom: '', charge_value: '', description: '' }
+    createForm.value = { business_code: isAdmin.value ? '' : (authStore.user?.business_code || ''), name: '', charge_uom: '', charge_value: '', description: '' }
+    createErrors.value = {}
     await fetchCharges()
   } catch (err) {
     createError.value = err.response?.data?.message || 'Create failed'
@@ -173,42 +335,49 @@ async function createCharge() {
   }
 }
 
+async function updateCharge() {
+  saving.value = true
+  formError.value = ''
+  try {
+    await apiHandler("charge", "updateCharge",
+        {
+          code: selected.value.charge_code,
+          ...editForm
+        })
+    showEditModal.value = false
+    await fetchCharges()
+  } catch (err) {
+    formError.value = err.response?.data?.message || 'Update failed'
+  } finally {
+    saving.value = false
+  }
+}
+
+async function deactivateCharge() {
+  saving.value = true
+  try {
+    await apiHandler("charge","deactivateCharge",
+        {
+          code: selected.value.charge_code,
+          status: 'inactive'
+        }
+    )
+    showDeactivateModal.value = false
+    await fetchCharges()
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Deactivation failed'
+  } finally {
+    saving.value = false
+  }
+}
+
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchCharges(), api.get('/businesses/get-business')])
+  if (!isAdmin.value) {
+    createForm.value.business_code = authStore.user?.business_code || ''
+    await fetchCharges()
+    return
+  }
+  const [_, bizRes] = await Promise.allSettled([fetchCharges(), apiHandler("business", "getAllBusinesses")])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>
-
-<style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
-.header { display: flex; align-items: center; justify-content: space-between; }
-.header h2 { margin: 0; color: #1e293b; }
-.sub { margin: 2px 0 0; font-size: 13px; color: #64748b; }
-.filters { display: flex; gap: 12px; }
-.filters select { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; outline: none; min-width: 200px; }
-.card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.table { width: 100%; border-collapse: collapse; }
-.table th, .table td { text-align: left; padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-.table th { color: #64748b; font-weight: 600; }
-.delete-btn { border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; background: #fee2e2; color: #dc2626; }
-.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
-.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: white; border-radius: 10px; padding: 24px; width: 440px; max-width: 90%; max-height: 90vh; overflow-y: auto; }
-.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.modal-header h3 { margin: 0; }
-.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
-.delete-modal { text-align: center; }
-.delete-modal h3 { margin: 0 0 12px; }
-.delete-modal p { color: #64748b; margin-bottom: 16px; }
-.actions { display: flex; gap: 10px; justify-content: center; }
-.cancel-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-.delete-confirm-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-.btn { background: #6366f1; color: white; border: none; padding: 9px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
-.form { display: flex; flex-direction: column; gap: 14px; }
-.field { display: flex; flex-direction: column; gap: 5px; }
-.field label { font-size: 13px; font-weight: 600; color: #374151; }
-.field input, .field select, .field textarea { padding: 9px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 14px; outline: none; font-family: inherit; }
-.save-btn { background: #6366f1; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
-</style>

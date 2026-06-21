@@ -1,82 +1,125 @@
 <template>
-  <div class="page">
+  <div class="ams-page">
 
     <!-- HEADER -->
-    <div class="header">
+    <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h2>Businesses</h2>
-        <p class="sub">Manage all businesses</p>
+        <h2 class="mb-0">Businesses</h2>
+        <p class="text-muted small mb-0">Manage all businesses</p>
       </div>
-      <router-link to="/businesses/create" class="btn">+ New Business</router-link>
+      <router-link to="/businesses/create" class="btn btn-ams">+ New Business</router-link>
     </div>
 
     <!-- TABLE CARD -->
-    <div class="card">
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else-if="error" class="error-msg">{{ error }}</div>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
+        <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
+        <table v-else class="table table-hover ams-table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Organization Name</th>
+              <th>Time Zone</th>
+              <th>Status</th>
+              <th class="pe-3" style="width:230px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="business in businesses" :key="business.business_code">
+              <td class="ps-3">{{ business.name }}</td>
+              <td>{{ business.email }}</td>
+              <td>{{business.phone}}</td>
+              <td>{{ business.organization_name || '—' }}</td>
+              <td>{{business.timezone}}</td>
+              <td><span :class="['ams-badge', business.status]">{{ business.status }}</span></td>
+              <td class="pe-3">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <router-link :to="`/businesses/${business.business_code}`" class="dropdown-item">
+                        <i class="bi bi-eye me-2"></i>
+                        View
+                      </router-link>
+                    </li>
 
-      <table v-else class="table">
-        <thead>
-        <tr>
-          <th>Name</th>
-          <th>Code</th>
-          <th>Organization</th>
-          <th>Status</th>
-          <th width="180">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="business in businesses" :key="business.business_code">
-          <td>{{ business.name }}</td>
-          <td><code>{{ business.business_code }}</code></td>
-          <td>{{ business.organization_name || business.organization_code || '—' }}</td>
-          <td>
-            <span :class="['badge', business.status]">{{ business.status }}</span>
-          </td>
-          <td>
-            <router-link :to="`/businesses/${business.business_code}`" class="view-btn">View</router-link>
-            <button class="edit-btn" @click="openEdit(business)">Edit</button>
-            <button class="delete-btn" @click="openDelete(business)">Deactivate</button>
-          </td>
-        </tr>
-        <tr v-if="businesses.length === 0">
-          <td colspan="5" class="empty">No businesses found</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+                    <li>
+                      <button class="dropdown-item" @click="openEdit(business)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit
+                      </button>
+                    </li>
 
-    <!-- EDIT MODAL -->
-    <div v-if="showEditModal" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Edit Business</h3>
-          <button class="close" @click="showEditModal = false">✕</button>
-        </div>
-        <form class="form" @submit.prevent="updateBusiness">
-          <input v-model="editForm.name" placeholder="Business Name" required />
-          <select v-model="editForm.status">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <p v-if="formError" class="error-msg">{{ formError }}</p>
-          <button type="submit" class="save-btn" :disabled="saving">
-            {{ saving ? 'Saving...' : 'Save Changes' }}
-          </button>
-        </form>
+                    <li>
+                      <button class="dropdown-item text-danger" @click="openDelete(business)">
+                        <i class="bi bi-trash me-2"></i>
+                        Deactivate
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="businesses.length === 0">
+              <td colspan="7" class="text-center text-muted py-4">No businesses found</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- DELETE MODAL -->
-    <div v-if="showDeleteModal" class="modal-overlay">
-      <div class="modal delete-modal">
-        <h3>Delete Business</h3>
-        <p>Are you sure you want to deactivate <strong>{{ selected?.name }}</strong>?</p>
-        <div class="actions">
-          <button class="cancel-btn" @click="showDeleteModal = false">Cancel</button>
-          <button class="delete-confirm-btn" @click="deactivateBusiness" :disabled="saving">
-            {{ saving ? 'Deleting...' : 'Deactivate' }}
-          </button>
+    <!-- EDIT MODAL -->
+    <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Business</h5>
+            <button type="button" class="btn-close" @click="showEditModal = false"></button>
+          </div>
+          <form @submit.prevent="updateBusiness">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Business Name *</label>
+                <input v-model="editForm.name" class="form-control" placeholder="Business Name" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Status</label>
+                <select v-model="editForm.status" class="form-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <p v-if="formError" class="text-danger small mb-0">{{ formError }}</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
+              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEACTIVATE CONFIRM MODAL -->
+    <div v-if="showDeleteModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Deactivate Business</h5>
+            <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
+          </div>
+          <div class="modal-body text-center">
+            <p class="mb-0">Deactivate <strong>{{ selected?.name }}</strong>?</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
+            <button class="btn btn-danger btn-sm" @click="deactivateBusiness" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -85,38 +128,56 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import {onMounted, reactive, ref} from 'vue';
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const businesses = ref([])
-const loading = ref(true)
-const saving = ref(false)
-const error = ref('')
-const formError = ref('')
-
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+
 const selected = ref(null)
 
-const editForm = reactive({ name: '', status: 'active' })
+const saving = ref(false)
+const formError = ref('')
+
+const loading = ref(false)
+const error = ref('')
+
+const editForm = reactive({
+  name: '',
+  status: 'active'
+})
 
 async function fetchBusinesses() {
+
   loading.value = true
   error.value = ''
+
   try {
-    const res = await api.get('/businesses/get-business')
-    businesses.value = res.data.data || []
+
+    const res = await apiHandler("business", "getAllBusinesses", {
+      // include: "organization",
+    })
+    console.log(res)
+    businesses.value = (res.data.data || []).map((business) => ({
+      ...business,
+      organization_name: business.organization?.name || '',
+    }))
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load businesses'
+    error.value = err.response?.data?.message || 'Failed to load Businesses'
   } finally {
     loading.value = false
   }
 }
 
+
 function openEdit(business) {
+
   selected.value = business
+
   editForm.name = business.name
   editForm.status = business.status
+
   formError.value = ''
   showEditModal.value = true
 }
@@ -127,181 +188,52 @@ function openDelete(business) {
 }
 
 async function updateBusiness() {
+
   saving.value = true
   formError.value = ''
+
   try {
-    await api.put(`/businesses/update-business${selected.value.business_code}`, editForm)
+    await apiHandler('business', 'updateBusiness',
+        {
+          code: selected.value.business_code,
+          ...editForm,
+        })
     showEditModal.value = false
     await fetchBusinesses()
+
   } catch (err) {
     formError.value = err.response?.data?.message || 'Update failed'
   } finally {
+
     saving.value = false
+
   }
 }
 
-// async function updateBusiness() {
-//   saving.value = true
-//   formError.value = ''
-//   try {
-//     await api.put(`/businesses/update-business${selected.value.business_code}`, editForm)
-//     showEditModal.value = false
-//     await fetchBusinesses()
-//   } catch (err) {
-//     formError.value = err.response?.data?.message || 'Update failed'
-//   } finally {
-//     saving.value = false
-//   }
-// }
-
-// Deactivate Business
-
 async function deactivateBusiness() {
+
   saving.value = true
+
   try {
-    await api.patch(`/businesses/update-business-status${selected.value.business_code}`, { status: 'inactive' })
+
+    await apiHandler('business', 'deactivateBusiness',
+        {
+          code: selected.value.business_code,
+          status: "inactive"
+        })
     showDeleteModal.value = false
+
     await fetchBusinesses()
+
   } catch (err) {
     error.value = err.response?.data?.message || 'Deactivation failed'
   } finally {
     saving.value = false
+
   }
 }
+onMounted(() => {
+  fetchBusinesses()
+})
 
-// async function deleteBusiness() {
-//   saving.value = true
-//   try {
-//     await api.delete(`/businesses/delete-business${selected.value.business_code}`)
-//     showDeleteModal.value = false
-//     await fetchBusinesses()
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Delete failed'
-//   } finally {
-//     saving.value = false
-//   }
-// }
-
-onMounted(fetchBusinesses)
 </script>
-
-<style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.header h2 { margin: 0; color: #1e293b; }
-.sub { margin: 2px 0 0; font-size: 13px; color: #64748b; }
-
-.btn {
-  background: #6366f1;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.card {
-  background: white;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-
-.table { width: 100%; border-collapse: collapse; }
-.table th, .table td {
-  text-align: left;
-  padding: 10px 12px;
-  font-size: 13px;
-  border-bottom: 1px solid #f1f5f9;
-}
-.table th { color: #64748b; font-weight: 600; }
-
-.badge {
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-.badge.active   { background: #dcfce7; color: #16a34a; }
-.badge.inactive { background: #fee2e2; color: #dc2626; }
-
-.view-btn {
-  background: #e0f2fe;
-  color: #0284c7;
-  padding: 5px 10px;
-  border-radius: 5px;
-  text-decoration: none;
-  font-size: 12px;
-  margin-right: 4px;
-}
-.edit-btn, .delete-btn {
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 12px;
-  margin-right: 4px;
-}
-.edit-btn   { background: #ede9fe; color: #6366f1; }
-.delete-btn { background: #fee2e2; color: #dc2626; }
-
-.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
-.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
-
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100;
-}
-.modal {
-  background: white;
-  border-radius: 10px;
-  padding: 24px;
-  width: 420px;
-  max-width: 90%;
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-.modal-header h3 { margin: 0; }
-.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
-
-.form { display: flex; flex-direction: column; gap: 12px; }
-.form input, .form select {
-  padding: 9px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-}
-.save-btn {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.delete-modal { text-align: center; }
-.delete-modal h3 { margin: 0 0 12px; }
-.delete-modal p { color: #64748b; margin-bottom: 16px; }
-
-.actions { display: flex; gap: 10px; justify-content: center; }
-.cancel-btn { background: #f1f5f9; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-.delete-confirm-btn { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-
-code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-</style>

@@ -1,78 +1,109 @@
 <template>
-  <div class="page">
+  <div class="ams-page">
 
-    <div class="header">
+    <div class="d-flex align-items-center justify-content-between">
       <div>
-        <h2>Invoices</h2>
-        <p class="sub">Manage all invoices</p>
+        <h2 class="mb-0">Invoices</h2>
+        <p class="text-muted small mb-0">Manage all invoices</p>
       </div>
     </div>
 
-    <div class="filters">
-      <select v-model="bizFilter" @change="fetchInvoices">
+    <div class="d-flex gap-2 flex-wrap">
+      <select v-model="bizFilter" @change="fetchInvoices" class="form-select" style="max-width:220px">
         <option value="">All Businesses</option>
-        <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">
-          {{ biz.name }}
-        </option>
+        <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
       </select>
-      <select v-model="statusFilter" @change="fetchInvoices">
+      <select v-model="statusFilter" @change="fetchInvoices" class="form-select" style="max-width:180px">
         <option value="">All Status</option>
-        <option value="pending">Pending</option>
+        <option value="draft">Draft</option>
         <option value="paid">Paid</option>
+        <option value="unpaid">Unpaid</option>
+        <option value="issued">Issued</option>
         <option value="canceled">Canceled</option>
       </select>
     </div>
 
-    <div class="card">
-      <div v-if="loading" class="loading">Loading...</div>
-      <div v-else-if="error" class="error-msg">{{ error }}</div>
 
-      <table v-else class="table">
-        <thead>
-        <tr>
-          <th>Invoice ID</th>
-          <th>Appointment</th>
-          <th>Total Amount</th>
-          <th>Status</th>
-          <th>Created</th>
-          <th width="140">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="inv in invoices" :key="inv.id">
-          <td><code>{{ inv.id }}</code></td>
-          <td><code>{{ inv.appointment_code || '—' }}</code></td>
-          <td>{{ inv.total_amount != null ? inv.total_amount : '—' }}</td>
-          <td><span :class="['badge', inv.status]">{{ inv.status }}</span></td>
-          <td>{{ formatDate(inv.created_at) }}</td>
-          <td>
-            <button class="view-btn" @click="openDetails(inv)">View</button>
-            <button v-if="inv.status === 'pending'" class="approve-btn" @click="updateStatus(inv, 'paid')">Mark Paid</button>
-          </td>
-        </tr>
-        <tr v-if="invoices.length === 0">
-          <td colspan="6" class="empty">No invoices found</td>
-        </tr>
-        </tbody>
-      </table>
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-0">
+        <div v-if="loading" class="text-center text-muted py-4">Loading...</div>
+        <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
+        <table v-else class="table table-hover ams-table mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Invoice ID</th>
+              <th>Business Name</th>
+              <th>Appointment Notes</th>
+              <th>Created By</th>
+              <th>Total Amount</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th class="pe-3" style="width:140px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="inv in invoices" :key="inv.id">
+              <td class="ps-3"><code>{{ inv.id }}</code></td>
+              <td>{{inv.business_name || '-'}}</td>
+              <td>{{ inv.notes || '—' }}</td>
+              <td>{{inv.created_by}}</td>
+              <td>{{ inv.total != null ? inv.total : '—' }}</td>
+              <td><span :class="['ams-badge', inv.invoice_status]">{{ inv.invoice_status }}</span></td>
+              <td>{{ formatDate(inv.created_at) }}</td>
+              <td class="pe-3">
+                <div class="dropdown">
+                  <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <button class="dropdown-item" @click="openDetails(inv)">
+                        <i class="bi bi-eye me-2"></i>
+                        View
+                      </button>
+                    </li>
+                    <li v-if="inv.invoice_status === 'unpaid' || inv.invoice_status === 'issued'">
+                      <button class="dropdown-item" @click="updateStatus(inv, 'paid')">
+                        <i class="bi bi-check2-circle me-2"></i>
+                        Mark Paid
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <tr v-if="invoices.length === 0">
+              <td colspan="8" class="text-center text-muted py-4">No invoices found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-
     <!-- DETAILS MODAL -->
-    <div v-if="showDetails" class="modal-overlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h3>Invoice #{{ selected?.id }}</h3>
-          <button class="close" @click="showDetails = false">✕</button>
-        </div>
-        <div class="detail-rows">
-          <div class="detail-row"><span>Appointment</span><span>{{ selected?.appointment_code || '—' }}</span></div>
-          <div class="detail-row"><span>Total Amount</span><span>{{ selected?.total_amount }}</span></div>
-          <div class="detail-row"><span>Status</span><span :class="['badge', selected?.status]">{{ selected?.status }}</span></div>
-          <div class="detail-row"><span>Created</span><span>{{ formatDate(selected?.created_at) }}</span></div>
-        </div>
-        <div class="modal-actions">
-          <button v-if="selected?.status === 'pending'" class="approve-btn" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
-          <button v-if="selected?.status === 'pending'" class="delete-btn" @click="updateStatus(selected, 'cancelled')" :disabled="saving">Cancel</button>
+    <div v-if="showDetails" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Invoice #{{ selected?.id }}</h5>
+            <button type="button" class="btn-close" @click="showDetails = false"></button>
+          </div>
+          <div class="modal-body">
+            <dl class="row mb-0">
+              <dt class="col-5 text-muted">Appointment</dt>
+              <dd class="col-7">{{ selected?.appointment_code || '—' }}</dd>
+              <dt class="col-5 text-muted">Total Amount</dt>
+              <dd class="col-7">{{ selected?.total }}</dd>
+              <dt class="col-5 text-muted">Status</dt>
+              <dd class="col-7"><span :class="['ams-badge', selected?.invoice_status]">{{ selected?.invoice_status }}</span></dd>
+              <dt class="col-5 text-muted">Created</dt>
+              <dd class="col-7">{{ formatDate(selected?.created_at) }}</dd>
+            </dl>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="showDetails = false">Close</button>
+            <button v-if="selected?.invoice_status === 'unpaid' || selected?.invoice_status === 'issued'" class="btn btn-success btn-sm" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
+            <button v-if="selected?.invoice_status === 'unpaid' || selected?.invoice_status === 'issued'" class="btn btn-danger btn-sm" @click="updateStatus(selected, 'canceled')" :disabled="saving">Cancel</button>
+          </div>
         </div>
       </div>
     </div>
@@ -83,6 +114,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
+import formatDate from "../../utils/formatDate.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const invoices = ref([])
 const businesses = ref([])
@@ -99,11 +132,22 @@ async function fetchInvoices() {
   loading.value = true
   error.value = ''
   try {
-    const params = {}
+    const params = {
+      include: "business,appointment,updatedByUser"
+    }
     if (bizFilter.value) params.business_code = bizFilter.value
     if (statusFilter.value) params.status = statusFilter.value
-    const res = await api.get('/invoices/get-invoice', { params })
-    invoices.value = res.data.data || []
+    const res = await apiHandler("invoice", "getAllInvoices", params)
+    // invoices.value = res.data.data || []
+    console.log(res)
+    invoices.value = (res.data.data || []).map(
+        (invoices) => ({
+          ...invoices,
+          business_name: invoices.business?.name || '',
+          created_by: invoices.updatedByUser?.name || '',
+          notes: invoices.appointment?.notes
+        })
+    )
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load invoices'
   } finally {
@@ -119,7 +163,11 @@ function openDetails(inv) {
 async function updateStatus(inv, status) {
   saving.value = true
   try {
-    await api.patch(`/invoices/update-invoice-status${inv.id}`, { status })
+    await apiHandler("invoice", "updateInvoice",
+        {
+          id: inv.id,
+          invoice_status: status
+        })
     showDetails.value = false
     await fetchInvoices()
   } catch (err) {
@@ -129,47 +177,10 @@ async function updateStatus(inv, status) {
   }
 }
 
-
-function formatDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString()
-}
-
 onMounted(async () => {
   const [_, bizRes] = await Promise.allSettled([fetchInvoices(), api.get('/businesses/get-business')])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>
 
-<style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
-.header { display: flex; align-items: center; justify-content: space-between; }
-.header h2 { margin: 0; color: #1e293b; }
-.sub { margin: 2px 0 0; font-size: 13px; color: #64748b; }
-.filters { display: flex; gap: 12px; flex-wrap: wrap; }
-.filters select { padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; outline: none; min-width: 180px; }
-.card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-.table { width: 100%; border-collapse: collapse; }
-.table th, .table td { text-align: left; padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-.table th { color: #64748b; font-weight: 600; }
-.badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; text-transform: capitalize; }
-.badge.pending   { background: #fef9c3; color: #ca8a04; }
-.badge.paid      { background: #dcfce7; color: #16a34a; }
-.badge.cancelled { background: #fee2e2; color: #dc2626; }
-.view-btn, .approve-btn, .delete-btn { border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-right: 4px; }
-.view-btn    { background: #ede9fe; color: #6366f1; }
-.approve-btn { background: #dcfce7; color: #16a34a; }
-.delete-btn  { background: #fee2e2; color: #dc2626; }
-.loading, .empty { text-align: center; color: #94a3b8; padding: 20px; font-size: 14px; }
-.error-msg { color: #ef4444; font-size: 13px; margin: 0; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: white; border-radius: 10px; padding: 24px; width: 440px; max-width: 90%; }
-.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.modal-header h3 { margin: 0; }
-.close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; }
-.detail-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-.detail-row { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
-.detail-row span:first-child { color: #64748b; }
-.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
-code { font-size: 12px; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
-</style>
+

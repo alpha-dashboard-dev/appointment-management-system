@@ -11,17 +11,8 @@
 
         <div class="field">
           <label>Organization Name *</label>
-          <input v-model="form.name" placeholder="Enter organization name" required />
-        </div>
-
-        <div class="field">
-          <label>Status *</label>
-          <select v-model="form.status" required>
-            <option value="">Select status</option>
-            <option v-for="status in ['active', 'inactive']" :key="status" :value="status">
-              {{ status }}
-            </option>
-          </select>
+          <input v-model="form.name" placeholder="Enter organization name" :class="{ 'field-input-error': errors.name }" @blur="validateField('name')" />
+          <p v-if="errors.name" class="field-error">{{ errors.name }}</p>
         </div>
 
         <p v-if="error" class="error-msg">{{ error }}</p>
@@ -42,22 +33,37 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/utils/api'
+import { validateOrganizationForm } from '@/utils/validator'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
 
-const form = reactive({ name: '' , status: ''})
+const form = reactive({ name: '', status: 'active' })
 const loading = ref(false)
 const error = ref('')
+const errors = reactive({})
+
+function validateField(field) {
+  const result = validateOrganizationForm(form)
+  if (result[field]) { errors[field] = result[field] } else { delete errors[field] }
+}
 
 async function submit() {
+  const validationErrors = validateOrganizationForm(form)
+  Object.keys(errors).forEach(k => delete errors[k])
+  Object.assign(errors, validationErrors)
+  if (Object.keys(errors).length > 0) return
+
+  const payload = {...form}
+
   loading.value = true
   error.value = ''
   try {
-    await api.post('/organizations/create-organization', form)
+    const res = await apiHandler("organization", "createOrganization", payload)
+    // console.log(res.message)
     router.push('/organizations')
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to create organization'
+    error.value = err.message || 'Failed to create organization'
   } finally {
     loading.value = false
   }
@@ -95,6 +101,9 @@ async function submit() {
   outline: none;
 }
 .field input:focus, .field select:focus { border-color: #6366f1; }
+
+.field-input-error { border-color: #ef4444 !important; }
+.field-error { color: #ef4444; font-size: 12px; margin: 2px 0 0; }
 
 .error-msg { color: #ef4444; font-size: 13px; margin: 0; }
 
