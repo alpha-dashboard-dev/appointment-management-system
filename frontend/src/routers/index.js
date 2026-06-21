@@ -134,13 +134,13 @@ router.beforeEach((to, _from, next) => {
     }
 
     if (to.path === "/login" && authStore.isAuthenticated) {
-        const role = authStore.user?.user_type;
+        const role = authStore.user?.userType;
         return next(roleRedirectMap[role] || "/dashboard");
     }
 
     // Role guard: if route has roles restriction and user's role not in list
     if (to.meta.roles && authStore.isAuthenticated) {
-        const role = authStore.user?.user_type;
+        const role = authStore.user?.userType;
         if (!to.meta.roles.includes(role)) {
             return next(roleRedirectMap[role] || "/login");
         }

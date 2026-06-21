@@ -8,7 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
     const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
 
     const isAuthenticated = computed(() => !!token.value)
-    const role = computed(() => user.value?.user_type || null)
+    const role = computed(() => user.value?.userType || null)
 
     const dashboardRoute = computed(() => {
         const map = {
@@ -23,7 +23,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function login(email, password) {
         const res = await apiHandler("authentication", "login", { email, password })
-        console.log(res)
         token.value = res.data.data.accessToken
         user.value = res.data.data.user
         localStorage.setItem('token', token.value)
