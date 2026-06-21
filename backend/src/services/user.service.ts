@@ -13,10 +13,6 @@ const STAFF_USER_TYPES = [ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CL
 
 class UserService {
 
-    // ========================
-    // 🔐 POLICY HELPERS
-    // ========================
-
     isAdmin(actor: any) {
         return actor?.userType === ROLES.ADMIN;
     }
@@ -30,18 +26,8 @@ class UserService {
         if (this.isAdmin(actor)) return;
 
         if (!this.isSameBusiness(actor, businessCode)) {
-            throw new Error(
-                "Access denied: cross-business operation blocked"
-            );
+            throw new Error("Access denied: cross-business operation blocked");
         }
-    }
-
-    normalizeActor(actor: any) {
-        return {
-            userType: actor.userType,
-            businessCode: actor.businessCode,
-            userCode: actor.user_code,
-        };
     }
 
     // ========================
@@ -52,10 +38,8 @@ class UserService {
 
         if (!actor) throw new Error("Unauthorized");
 
-        const a = this.normalizeActor(actor);
-
         // BUSINESS RULES
-        if (a.userType === ROLES.OPERATIONAL_STAFF) {
+        if (actor.userType === ROLES.OPERATIONAL_STAFF) {
 
             if (data.user_type !== ROLES.CLIENT) {
                 throw new Error(
@@ -63,10 +47,10 @@ class UserService {
                 );
             }
 
-            data.business_code = a.businessCode;
+            data.business_code = actor.businessCode;
         }
 
-        else if (a.userType === ROLES.BUSINESS_OWNER) {
+        else if (actor.userType === ROLES.BUSINESS_OWNER) {
 
             if (!STAFF_USER_TYPES.includes(data.user_type)) {
                 throw new Error(
@@ -74,44 +58,35 @@ class UserService {
                 );
             }
 
-            data.business_code = a.businessCode;
+            data.business_code = actor.businessCode;
         }
 
-        else if (!this.isAdmin(a)) {
+        else if (!this.isAdmin(actor)) {
 
-            throw new Error(
-                "Insufficient permissions"
-            );
+            throw new Error("Insufficient permissions");
         }
 
         validateUser(data);
 
-        const exists =
-            await repo.findByEmail(
-                data.email
+        const exists = await repo.findOne(
+                {email: data.email}
             );
 
         if (exists) {
-            throw new Error(
-                "Email already exists"
-            );
+            throw new Error("Email already exists");
         }
 
         const user_code = generateCode();
 
-        const password = await hashPassword(
-            data.password
-        );
+        const password = await hashPassword(data.password);
 
         return await repo.create({
             user_code,
-            business_code:
-                data.business_code,
+            business_code: data.business_code,
 
             user_type: data.user_type,
 
-            email:
-                data.email.trim().toLowerCase(),
+            email: data.email.trim().toLowerCase(),
 
             password,
 
@@ -119,11 +94,9 @@ class UserService {
 
             phone: data.phone,
 
-            employee_type:
-                data.employee_type || null,
+            employee_type: data.employee_type || null,
 
-            is_active:
-                data.is_active || "active",
+            is_active: data.is_active || "active",
         });
     }
 
@@ -134,12 +107,8 @@ class UserService {
     async getAll(query: any = {}, actor: any) {
         // console.log(query.where)
 
-        // console.log(query)
-
-        const a = this.normalizeActor(actor);
-
-        if (!this.isAdmin(a)) {
-            query.business_code = a.businessCode;
+        if (!this.isAdmin(actor)) {
+            query.business_code = actor.businessCode;
         }
         const where = buildWhere(query);
 
@@ -294,10 +263,10 @@ class UserService {
         );
     }
 
-    async getByUserCode(userCode: string, actor: any) {
+    // async getByUserCode(userCode: string, actor: any) {
 
-        return this.getByCode(userCode, actor);
-    }
+    //     return this.getByCode(userCode, actor);
+    // }
 }
 
 export default new UserService();

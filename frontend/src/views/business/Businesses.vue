@@ -156,8 +156,9 @@ async function fetchBusinesses() {
   try {
 
     const res = await apiHandler("business", "getAllBusinesses", {
-      include: "organization",
+      // include: "organization",
     })
+    console.log(res)
     businesses.value = (res.data.data || []).map((business) => ({
       ...business,
       organization_name: business.organization?.name || '',

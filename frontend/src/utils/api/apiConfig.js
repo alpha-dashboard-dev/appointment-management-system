@@ -111,7 +111,7 @@ export const API_CONFIG = {
         },
 
         deactivateBusiness: {
-            endpoint: '/businesses/update-business-status/:code',
+            endpoint: '/businesses/deactivate-business/:code',
             method: 'PATCH'
         },
     },

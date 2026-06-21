@@ -38,10 +38,10 @@ class BusinessController {
                     alias: "organization",
                     attributes: ""
                 },
-                {
-                    alias: "owner",
-                    attributes: ""
-                }
+                // {
+                //     alias: "owner",
+                //     attributes: ""
+                // }
             ]
             const data =
                 await service.getAll(
