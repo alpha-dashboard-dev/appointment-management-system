@@ -2,6 +2,7 @@ import repo from "../repositories/charge.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateCharge } from "../utils/validator";
 import { ROLES } from "../utils/roles";
+import { buildWhere } from "../utils/buildWhere";
 
 class ChargeService {
 
@@ -11,7 +12,7 @@ class ChargeService {
             data.business_code = actor.businessCode;
         }
 
-        const { business_code, charge_uom, charge_value, name, description} = data;
+        const { business_code, charge_uom, charge_value, name, description } = data;
 
         validateCharge(data);
 
@@ -36,58 +37,63 @@ class ChargeService {
             status: query.status,
         };
 
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
+        // const options = {
+        //     include:
+        //         query.include
+        //             ? String(query.include)
+        //                 .split(",")
+        //             : [],
 
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
+        //     limit:
+        //         query.limit
+        //             ? Number(query.limit)
+        //             : undefined,
 
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
+        //     offset:
+        //         query.offset
+        //             ? Number(query.offset)
+        //             : undefined,
 
-            order: [
-                [
-                    query.sort_by || "created_at",
+        //     order: [
+        //         [
+        //             query.sort_by || "created_at",
 
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
+        //             query.sort_order || "DESC",
+        //         ],s
+        //     ],
+        // };
 
         // Non-admin actors can only see charges from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
             filters.business_code = actor.businessCode;
         }
-        return await repo.findAll(
-            filters,
-            options
-        );
+
+        const where = buildWhere(query);
+        return repo.findAll({
+            where,
+            include: Array.isArray(query.include)
+                ? query.include
+                : [],
+            limit: query.limit ? Number(query.limit) : undefined,
+            offset: query.offset ? Number(query.offset) : undefined,
+            order: [
+                [
+                    query.sort_by || "created_at",
+                    query.sort_order || "DESC"
+                ]
+            ]
+        });
     }
 
-    async getByCode(
-        chargeCode: string,
-        actor?: any,
-        query: any = {}
-    ) {
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-        };
+    async getByCode(chargeCode: string, actor?: any, query: any = {}) {
+        const charge = await repo.findOne(
+            {
+                charge_code: chargeCode
+            },
+            {
+                include: Array.isArray(query.include) ? query.include : [],
 
-        const charge = await repo.findByCode(
-            chargeCode,
-            options
+            }
         );
         if (!charge) throw new Error("Charge not found");
 
@@ -102,9 +108,26 @@ class ChargeService {
         return charge;
     }
 
+    async getOne(where: any, actor: any, query: any = {}) {
+            const charge = await repo.findOne(
+                where,
+                {
+                    include: query.include || []
+                }
+            );
+    
+            if (!charge) {
+                throw new Error("charge not found");
+            }
+    
+            return charge;
+        }
+
     async update(chargeCode: string, data: any, actor: any) {
         // console.log(data)
-        const charge = await repo.findByCode(chargeCode);
+        const charge = await repo.findOne(
+            {charge_code: chargeCode}
+        );
         if (!charge) throw new Error("Charge not found");
 
         // Non-admin actors can only update charges from their own business
@@ -129,24 +152,39 @@ class ChargeService {
         if (data.auto_apply !== undefined)
             allowed.auto_apply = data.auto_apply;
 
-        return await repo.update(chargeCode, allowed);
+        return await repo.update(
+            {charge_code: chargeCode},
+            allowed
+        );
     }
 
-    async deactivate(businessCode: string, status: string) {
+    async deactivate(chargeCode: string, data: any, actor: any) {
+
+        const { status } = data
+
+        const charge = await repo.findOne({
+            charge_code: chargeCode
+        })
+
+        if(!charge){
+            throw new Error("Charge Not Found")
+        }
 
         if (!["active", "inactive"].includes(status)) {
             throw new Error("Invalid status");
         }
         // await this.findBusinessOrFail(businessCode);
 
-        return await repo.update(
-            businessCode,
+        return await repo.deactivate(
+            {charge_code: chargeCode},
             { status }
         );
     }
 
     async delete(chargeCode: string, actor: any) {
-        const charge = await repo.findByCode(chargeCode);
+        const charge = await repo.findOne({
+            charge_code: chargeCode
+        });
         if (!charge) throw new Error("Charge not found");
 
         // Non-admin actors can only delete charges from their own business
@@ -157,7 +195,9 @@ class ChargeService {
             }
         }
 
-        return await repo.delete(chargeCode);
+        return await repo.delete({
+            charge_code: chargeCode
+        });
     }
 }
 
