@@ -33,7 +33,7 @@
               <td>{{ user.email }}</td>
               <td>{{user.phone}}</td>
               <td>{{user.business_name}}</td>
-              <td>{{ user.user_type }}</td>
+              <td>{{ toTitleCase(user.user_type) }}</td>
               <td>
                 <span :class="['ams-badge', user.is_active === 'active' ? 'active' : 'inactive']">
                   {{ user.is_active === 'active' ? 'Active' : 'Inactive' }}
@@ -68,6 +68,40 @@
         </table>
       </div>
     </div>
+
+<!--    <nav class="mt-3">-->
+<!--      <ul class="pagination justify-content-end">-->
+
+<!--        <li class="page-item" :class="{ disabled: currentPage === 1 }">-->
+<!--          <button class="page-link" @click="changePage(currentPage - 1)">-->
+<!--            Previous-->
+<!--          </button>-->
+<!--        </li>-->
+
+<!--        <li-->
+<!--            v-for="page in lastPage"-->
+<!--            :key="page"-->
+<!--            class="page-item"-->
+<!--            :class="{ active: currentPage === page }">-->
+
+<!--          <button-->
+<!--              class="page-link"-->
+<!--              @click="changePage(page)">-->
+
+<!--            {{ page }}-->
+
+<!--          </button>-->
+
+<!--        </li>-->
+
+<!--        <li class="page-item" :class="{ disabled: currentPage === lastPage }">-->
+<!--          <button class="page-link" @click="changePage(currentPage + 1)">-->
+<!--            Next-->
+<!--          </button>-->
+<!--        </li>-->
+
+<!--      </ul>-->
+<!--    </nav>-->
 
     <!-- EDIT MODAL -->
     <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
@@ -141,9 +175,12 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toTitleCase} from "../../utils/upperCase.js";
 
 const users = ref([])
+// const currentPage = ref(1)
+// const lastPage = ref(1)
 const loading = ref(true)
 const saving = ref(false)
 const error = ref('')
@@ -156,21 +193,29 @@ const selected = ref(null)
 const editForm = reactive({ name: '', email: '', phone: '', password: '', is_active: 'active' })
 
 
-// fetch all users with their business details
 async function fetchUsers() {
   loading.value = true
   error.value = ''
 
   try {
-    const response = await api.get('/users/get-all-users-with-business')
+    const response = await apiHandler("user", "getAllUsers", {
+      // include: "business",
+      // page: currentPage.value
+    })
+
+    console.log(response)
 
     users.value = (response.data.data || []).map(
-        (users) => ({
-          ...users,
-          business_name:
-              users.business?.name || '',
+        (user) => ({
+          ...user,
+          business_name: user.business?.name || '',
         })
     )
+
+    // currentPage.value = response.current_page
+    // lastPage.value = response.last_page
+
+    // console.log(currentPage.value)
   } catch (err) {
     error.value =
         err.response?.data?.message ||
@@ -179,18 +224,12 @@ async function fetchUsers() {
     loading.value = false
   }
 }
-// fetch all users without business details
-// async function fetchUsers() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const res = await api.get('/users/get-all-users')
-//     users.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load users'
-//   } finally {
-//     loading.value = false
-//   }
+
+// async function changePage(page) {
+//   if (page < 1 || page > lastPage.value) return
+//
+//   currentPage.value = page
+//   await fetchUsers()
 // }
 
 function openEdit(user) {
@@ -213,7 +252,11 @@ async function updateUser() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/users/update-user/${selected.value.user_code}`, editForm)
+    await apiHandler("user", "updateUser",
+        {
+          code: selected.value.user_code,
+          ...editForm
+        })
     showEditModal.value = false
     await fetchUsers()
   } catch (err) {
@@ -226,7 +269,11 @@ async function updateUser() {
 async function deactivateUser() {
   saving.value = true
   try {
-    await api.patch(`/users/update-user-status/${selected.value.user_code}`, { is_active: 'inactive' })
+    await apiHandler("user", "deactivateUser",
+        {
+          code: selected.value.user_code,
+          is_active: 'inactive'
+        })
     showDeleteModal.value = false
     await fetchUsers()
   } catch (err) {

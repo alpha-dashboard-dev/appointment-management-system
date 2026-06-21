@@ -10,7 +10,7 @@
     </div>
 
     <div class="d-flex gap-2">
-      <select v-model="bizFilter" @change="fetchLocations" class="form-select" style="max-width:240px">
+      <select v-model="bizFilter" class="form-select" style="max-width:240px">
         <option value="">All Businesses</option>
         <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
       </select>
@@ -44,7 +44,7 @@
               <td>{{ loc.city || '—' }}</td>
               <td>{{loc.province || '—'}}</td>
               <td>{{ loc.country || '—' }}</td>
-              <td>{{ loc.location_type }}</td>
+              <td>{{ toTitleCase(loc.location_type) }}</td>
               <td><span :class="['ams-badge', loc.status]">{{ loc.status }}</span></td>
               <td class="pe-3">
                 <div class="dropdown">
@@ -78,14 +78,14 @@
 
     <!-- EDIT MODAL -->
     <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
-      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-height:90vh; max-width:760px; width:auto">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Edit Location</h5>
             <button type="button" class="btn-close" @click="showEditModal = false"></button>
           </div>
           <form @submit.prevent="updateLocation">
-            <div class="modal-body">
+            <div class="modal-body" style="overflow-y:auto; max-height:calc(90vh - 190px);">
 <!--              <div class="mb-3">-->
 <!--                <label class="form-label fw-semibold">Location Type</label>-->
 <!--                <select v-model="editForm.location_type" class="form-select">-->
@@ -165,8 +165,9 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import {ref, reactive, onMounted, computed} from 'vue'
+import {apiHandler} from "../../utils/api/apiHandler.js";
+import {toTitleCase} from "../../utils/upperCase.js";
 
 const locations = ref([])
 const businesses = ref([])
@@ -181,17 +182,15 @@ const showDeleteModal = ref(false)
 const selected = ref(null)
 const editForm = reactive({ location_type: 'business', street: '', address: '', city: '', province: '', postal_code: '', country: '', status: 'active', apartment: '' })
 
-// fetch location with business details
-
 async function fetchLocations() {
   loading.value = true
   error.value = ''
 
   try {
 
-    const response = await api.get('/locations/get-location-with-business',
+    const response = await apiHandler("location", "getAllLocations",
         {
-          params: { business_code: bizFilter.value}
+          include: "business"
         }
     )
 
@@ -209,21 +208,6 @@ async function fetchLocations() {
     loading.value = false
   }
 }
-
-// fetch location without business
-// async function fetchLocations() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-//     const res = await api.get('/locations/get-location', { params })
-//     locations.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load locations'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 
 function openEdit(loc) {
   selected.value = loc
@@ -249,7 +233,11 @@ async function updateLocation() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/locations/update-location${selected.value.location_code}`, editForm)
+    // await api.put(`/locations/update-location/${selected.value.location_code}`, editForm)
+    await apiHandler("location", "updateLocation", {
+      code: selected.value.location_code,
+      ...editForm,
+    })
     showEditModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -262,7 +250,9 @@ async function updateLocation() {
 async function deleteLocation() {
   saving.value = true
   try {
-    await api.delete(`/locations/delete-location${selected.value.location_code}`)
+    await apiHandler("location", "deleteLocation", {
+      code: selected.value.location_code
+    })
     showDeleteModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -273,9 +263,7 @@ async function deleteLocation() {
 }
 
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchLocations(), api.get('/businesses/get-business')])
+  const [_, bizRes] = await Promise.allSettled([fetchLocations(), apiHandler("business", "getAllBusinesses")])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>
-
-

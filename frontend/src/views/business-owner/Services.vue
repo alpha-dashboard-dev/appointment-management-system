@@ -10,14 +10,25 @@
         <div v-else-if="error" class="alert alert-danger m-3 py-2">{{ error }}</div>
         <table v-else class="table table-hover ams-table mb-0">
           <thead class="table-light">
-            <tr><th class="ps-3">Name</th><th>Code</th><th>Description</th><th>Price</th><th>Status</th><th class="pe-3" style="width:140px">Actions</th></tr>
+            <tr>
+              <th class="ps-3">Business Name</th>
+              <th>Service Name</th>
+              <th>Description</th>
+              <th>Price</th>
+              <th>Cost</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th class="pe-3" style="width:150px">Actions</th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="svc in services" :key="svc.service_code">
-              <td class="ps-3">{{ svc.name }}</td>
-              <td><code>{{ svc.service_code }}</code></td>
+              <td class="ps-3">{{ svc.business_name }}</td>
+              <td>{{ svc.name }}</td>
               <td>{{ svc.description }}</td>
-              <td>{{ svc.price ?? '—' }}</td>
+              <td>{{ svc.price != null ? svc.price : '—' }} {{ svc.currency }}</td>
+              <td>{{ svc.cost != null ? svc.cost : '—' }} {{ svc.currency }}</td>
+              <td>{{ svc.duration_value }} {{ svc.duration_uom }}</td>
               <td><span :class="['ams-badge', svc.status]">{{ svc.status }}</span></td>
               <td class="pe-3">
                 <div class="dropdown">
@@ -31,10 +42,11 @@
                         Edit
                       </button>
                     </li>
+
                     <li>
                       <button class="dropdown-item text-danger" @click="openDelete(svc)">
                         <i class="bi bi-trash me-2"></i>
-                        Delete
+                        Deactivate
                       </button>
                     </li>
                   </ul>
@@ -57,18 +69,47 @@
           </div>
           <form @submit.prevent="updateService">
             <div class="modal-body">
-              <div class="mb-3"><label class="form-label fw-semibold">Service Name *</label><input v-model="editForm.name" class="form-control" required /></div>
-              <div class="mb-3"><label class="form-label fw-semibold">Duration</label><input v-model.number="editForm.duration_value" type="number" min="1" class="form-control" /></div>
-              <div class="mb-3"><label class="form-label fw-semibold">Price</label><input v-model.number="editForm.price" type="number" step="0.01" min="0" class="form-control" /></div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Service Name</label>
+                <input v-model="editForm.name" class="form-control" placeholder="Service Name" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Description</label>
+                <input v-model="editForm.description" class="form-control" placeholder="Description" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Duration Time</label>
+                <input v-model.number="editForm.duration_value" type="number" class="form-control" placeholder="Duration " min="1" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Duration Unit Value</label>
+                <select v-model="editForm.duration_uom" class="form-control"  >
+                  <option :value="null">Select Duration Unit</option>
+                  <option v-for="duration_uom in durationUnits" :key="duration_uom" :value="duration_uom">
+                    {{ duration_uom }}
+                  </option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Price</label>
+                <input v-model.number="editForm.price" type="number" class="form-control" placeholder="Price" step="0.01" min="0" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Cost</label>
+                <input v-model.number="editForm.cost" type="number" class="form-control" placeholder="Cost" step="0.01" min="0" />
+              </div>
               <div class="mb-3">
                 <label class="form-label fw-semibold">Status</label>
-                <select v-model="editForm.status" class="form-select"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+                <select v-model="editForm.status" class="form-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
               </div>
               <p v-if="formError" class="text-danger small mb-0">{{ formError }}</p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
-              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
             </div>
           </form>
         </div>
@@ -99,7 +140,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const services = ref([])
@@ -113,18 +154,31 @@ const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
 
-const createForm = reactive({ name: '', duration_minutes: '', price: '', description: '' })
-const editForm = reactive({ name: '', duration_minutes: '', price: '', status: 'active' })
+const editForm = reactive({ name: '', description: '', duration_value: '', duration_uom: '', price: '', cost: '', status: 'active' })
+const durationUnits = ['hour', 'minutes', 'day', 'week']
 
 async function fetchServices() {
   loading.value = true
   error.value = ''
+
   try {
-    const biz = authStore.user?.business_code
-    const res = await api.get('/services/get-service', { params: biz ? { business_code: biz } : {} })
-    services.value = res.data.data || []
+    const response = await apiHandler("service", "getAllServices",
+        {
+          include: "business"
+        }
+    )
+
+    services.value = (response.data.data || []).map(
+        (services) => ({
+          ...services,
+          business_name:
+              services.business?.name || '',
+        })
+    )
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to load services'
+    error.value =
+        err.response?.data?.message ||
+        'Failed to load Services'
   } finally {
     loading.value = false
   }
@@ -133,8 +187,11 @@ async function fetchServices() {
 function openEdit(svc) {
   selected.value = svc
   editForm.name = svc.name
-  editForm.duration_minutes = svc.duration_minutes
+  editForm.description = svc.description
+  editForm.duration_value = svc.duration_value
+  editForm.duration_uom = svc.duration_uom
   editForm.price = svc.price ?? ''
+  editForm.cost = svc.cost ?? ''
   editForm.status = svc.status
   formError.value = ''
   showEditModal.value = true
@@ -142,30 +199,17 @@ function openEdit(svc) {
 
 function openDelete(svc) { selected.value = svc; showDeleteModal.value = true }
 
-async function createService() {
-  saving.value = true
-  formError.value = ''
-  try {
-    const biz = authStore.user?.business_code
-    const payload = { ...createForm, business_code: biz }
-    if (!payload.price) delete payload.price
-    if (!payload.description) delete payload.description
-    await api.post('/services/create-service', payload)
-    showCreateModal.value = false
-    Object.assign(createForm, { name: '', duration_minutes: '', price: '', description: '' })
-    await fetchServices()
-  } catch (err) {
-    formError.value = err.response?.data?.message || 'Create failed'
-  } finally {
-    saving.value = false
-  }
-}
-
 async function updateService() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/services/update-service${selected.value.service_code}`, editForm)
+    // await api.put(`/services/update-service/${selected.value.service_code}`, editForm)
+    await apiHandler("service", "updateService",
+        {
+          code: selected.value.service_code,
+          ...editForm
+        }
+    )
     showEditModal.value = false
     await fetchServices()
   } catch (err) {
@@ -178,7 +222,10 @@ async function updateService() {
 async function deleteService() {
   saving.value = true
   try {
-    await api.delete(`/services/delete-service${selected.value.service_code}`)
+    // await api.delete(`/services/delete-service/${selected.value.service_code}`)
+    await apiHandler("service", "deleteService",{
+      code: selected.value.service_code,
+    })
     showDeleteModal.value = false
     await fetchServices()
   } catch (err) {

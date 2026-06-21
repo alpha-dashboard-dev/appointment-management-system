@@ -10,7 +10,7 @@
     </div>
 
     <div class="d-flex gap-2 flex-wrap">
-      <select v-model="bizFilter" @change="fetchServices" class="form-select" style="max-width:220px">
+      <select v-model="bizFilter" class="form-select" style="max-width:220px">
         <option value="">All Businesses</option>
         <option v-for="biz in businesses" :key="biz.business_code" :value="biz.business_code">{{ biz.name }}</option>
       </select>
@@ -156,7 +156,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const services = ref([])
 const businesses = ref([])
@@ -174,9 +174,19 @@ const editForm = reactive({ name: '', description: '', duration_value: '', durat
 const durationUnits = ['hour', 'minutes', 'day', 'week']
 
 const filteredServices = computed(() => {
-  const s = search.value.toLowerCase()
-  if (!s) return services.value
-  return services.value.filter(svc => (svc.name || '').toLowerCase().includes(s))
+  return services.value.filter((svc) => {
+    const matchesSearch =
+        !search.value ||
+        (svc.name || '')
+            .toLowerCase()
+            .includes(search.value.toLowerCase())
+
+    const matchesBusiness =
+        !bizFilter.value ||
+        svc.business_code === bizFilter.value
+
+    return matchesSearch && matchesBusiness
+  })
 })
 
 // fetch all services with business details
@@ -185,21 +195,19 @@ async function fetchServices() {
   error.value = ''
 
   try {
-    const response = await api.get('/services/get-all-services-with-business',
+    const response = await apiHandler("service", "getAllServices",
         {
-          params: {
-            business_code: bizFilter.value
-          }
+          include: "business"
         }
     )
-
     services.value = (response.data.data || []).map(
-        (services) => ({
-          ...services,
-          business_name:
-              services.business?.name || '',
+        (service) => ({
+          ...service,
+          business_name: service.business?.name || '',
         })
     )
+
+    console.log(services.value[0])
   } catch (err) {
     error.value =
         err.response?.data?.message ||
@@ -208,22 +216,6 @@ async function fetchServices() {
     loading.value = false
   }
 }
-
-
-// fetch all services without business details
-// async function fetchServices() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-//     const res = await api.get('/services/get-service', { params })
-//     services.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load services'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 
 function openEdit(svc) {
   selected.value = svc
@@ -247,7 +239,12 @@ async function updateService() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/services/update-service/${selected.value.service_code}`, editForm)
+    await apiHandler("service", "updateService",
+        {
+          code: selected.value.service_code,
+          ...editForm
+        }
+    )
     showEditModal.value = false
     await fetchServices()
   } catch (err) {
@@ -260,7 +257,9 @@ async function updateService() {
 async function deleteService() {
   saving.value = true
   try {
-    await api.delete(`/services/delete-service/${selected.value.service_code}`)
+    await apiHandler("service", "deleteService",{
+      code: selected.value.service_code,
+    })
     showDeleteModal.value = false
     await fetchServices()
   } catch (err) {
@@ -271,9 +270,7 @@ async function deleteService() {
 }
 
 onMounted(async () => {
-  const [_, bizRes] = await Promise.allSettled([fetchServices(), api.get('/businesses/get-business')])
+  const [_, bizRes] = await Promise.allSettled([fetchServices(), apiHandler("business", "getAllBusinesses")])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>
-
-

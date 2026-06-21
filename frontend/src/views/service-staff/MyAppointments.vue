@@ -39,9 +39,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import api from '@/utils/api'
+
 import formatTime from "../../utils/formatTime.js";
 import formatDate from "../../utils/formatDate.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const appointments = ref([])
 const loading = ref(true)
@@ -54,7 +55,7 @@ async function fetch() {
   try {
     const params = {}
     if (statusFilter.value) params.status = statusFilter.value
-    const res = await api.get('/appointments', { params })
+    const res = await apiHandler("appointment", "getAllAppointments", { params })
     appointments.value = res.data.data || []
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load'

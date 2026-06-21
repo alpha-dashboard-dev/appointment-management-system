@@ -152,8 +152,8 @@ async function onBusinessChange() {
   if (!form.business_code) return
   try {
     const [svcRes, locRes] = await Promise.all([
-      api.get('/services/get-service', { params: { business_code: form.business_code } }),
-      api.get('/locations/get-location', { params: { business_code: form.business_code } }),
+      api.get('/services/client-view', { params: { business_code: form.business_code } }),
+      api.get('/locations/get-all-locations', { params: { business_code: form.business_code } }),
         // api.get('/charges/get-charge', { params: { business_code: form.business_code } }),
     ])
     services.value = svcRes.data.data.services || []
@@ -212,7 +212,7 @@ async function submit() {
     }
     if (form.location_code) payload.location_code = form.location_code
     if (form.notes) payload.notes = form.notes
-    await api.post('/appointments', payload)
+    await api.post('/appointments/create-appointment', payload)
     router.push('/client/appointments')
   } catch (err) {
     error.value = err.response?.data?.message || 'Booking failed'

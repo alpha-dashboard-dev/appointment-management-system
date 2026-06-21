@@ -104,9 +104,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
 import formatDate from "../../utils/formatDate.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const loading = ref(true)
@@ -118,7 +118,7 @@ const pendingAppointments = computed(() => appointments.value.filter(a => a.stat
 
 async function changeStatus(appt, status) {
   try {
-    await api.patch(`/appointments/${appt.appointment_code}/status`, { status })
+    await apiHandler("appointment", "updateAppointmentStatus", {status: status})
     appt.status = status
   } catch (err) {
     console.error('Status update failed', err)
@@ -128,12 +128,12 @@ async function changeStatus(appt, status) {
 onMounted(async () => {
   const biz = authStore.user?.business_code
   const [appts, clients, svcs, staff, invs, locs] = await Promise.allSettled([
-    api.get('/appointments', { params: biz ? { business_code: biz } : {} }),
-    api.get('/clients/get-client', { params: biz ? { business_code: biz } : {} }),
-    api.get('/services/get-service', { params: biz ? { business_code: biz } : {} }),
-    api.get('/users/get-users', { params: biz ? { business_code: biz } : {} }),
-    api.get('/invoices/get-invoice', { params: biz ? { business_code: biz } : {} }),
-    api.get('/locations/get-location', { params: biz ? { business_code: biz } : {} }),
+    apiHandler("appointment", "getAllAppointments", { params: biz ? { business_code: biz } : {} }),
+    apiHandler("client", "getAllClients", { params: biz ? { business_code: biz } : {} }),
+    apiHandler("service", "getAllServices", { params: biz ? { business_code: biz } : {} }),
+    apiHandler("user", "getAllUsers", { params: biz ? { business_code: biz } : {} }),
+    apiHandler("invoice", "getAllInvoices", { params: biz ? { business_code: biz } : {} }),
+    apiHandler("location", "getAllLocations", { params: biz ? { business_code: biz } : {} }),
   ])
 
   if (appts.status === 'fulfilled') {

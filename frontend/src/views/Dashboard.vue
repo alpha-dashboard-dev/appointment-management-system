@@ -116,6 +116,7 @@ import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
 import formatTime from "../utils/formatTime.js";
 import formatDate from "../utils/formatDate.js";
+import {apiHandler} from "../utils/api/apiHandler.js";
 
 const loading = ref(true)
 const recentAppointments = ref([])
@@ -135,14 +136,14 @@ const stats = ref({
 onMounted(async () => {
   try {
     const [orgs, bizs, clients, appts, users, svcs, invs, locs] = await Promise.allSettled([
-      api.get('/organizations/get-organization'),
-      api.get('/businesses/get-business'),
-      api.get('/clients/get-client'),
-      api.get('/appointments'),
-      api.get('/users/get-all-users'),
-      api.get('/services/get-service'),
-      api.get('/invoices/get-invoice'),
-      api.get('/locations/get-location'),
+      apiHandler("organization", "getAllOrganizations"),
+      apiHandler("business", "getAllBusinesses"),
+      apiHandler("client", "getAllClients"),
+      apiHandler("appointment", "getAllAppointments"),
+      apiHandler("user", "getAllUsers"),
+      apiHandler("service", "getAllServices"),
+      apiHandler("invoice", "getAllInvoices"),
+      apiHandler("location", "getAllLocations"),
     ])
 
     stats.value.organizations = orgs.status === 'fulfilled' ? (orgs.value.data.data?.length ?? 0) : 0

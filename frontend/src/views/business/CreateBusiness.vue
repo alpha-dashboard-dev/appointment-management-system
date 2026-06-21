@@ -73,8 +73,8 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/utils/api'
 import { validateBusinessForm } from '@/utils/validator'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter();
 const form = reactive({ name: '', organization_code: '', email: '', timezone: '', status: 'active', phone: '' })
@@ -98,7 +98,7 @@ function validateField(field) {
 
 onMounted(async () => {
   try {
-    const res = await api.get('/organizations/get-organization')
+    const res = await apiHandler("organization", "getAllOrganizations")
     organizations.value = res.data.data || []
   } catch (_) {}
 })
@@ -112,7 +112,7 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    await api.post('/businesses/create-business', form)
+    await apiHandler("business", "createBusiness", form)
     router.push('/businesses')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create business'

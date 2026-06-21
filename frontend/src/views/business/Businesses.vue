@@ -128,75 +128,56 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import {onMounted, reactive, ref} from 'vue';
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const businesses = ref([])
-const loading = ref(true)
-const saving = ref(false)
-const error = ref('')
-const formError = ref('')
-
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+
 const selected = ref(null)
 
-const editForm = reactive({ name: '', status: 'active' })
+const saving = ref(false)
+const formError = ref('')
+
+const loading = ref(false)
+const error = ref('')
+
+const editForm = reactive({
+  name: '',
+  status: 'active'
+})
 
 async function fetchBusinesses() {
+
   loading.value = true
   error.value = ''
 
   try {
-    const response = await api.get('/businesses/get-business')
 
-    businesses.value = (response.data.data || []).map(
-        (business) => ({
-          ...business,
-          organization_name:
-              business.organization?.name || '',
-        })
-    )
+    const res = await apiHandler("business", "getAllBusinesses", {
+      // include: "organization",
+    })
+    console.log(res)
+    businesses.value = (res.data.data || []).map((business) => ({
+      ...business,
+      organization_name: business.organization?.name || '',
+    }))
   } catch (err) {
-    error.value =
-        err.response?.data?.message ||
-        'Failed to load businesses'
+    error.value = err.response?.data?.message || 'Failed to load Businesses'
   } finally {
     loading.value = false
   }
 }
-// async function fetchBusinesses() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const [businessRes, organizationRes] = await Promise.all([
-//       api.get('/businesses/get-business'),
-//       api.get('/organizations/get-organization'),
-//     ])
-//
-//     const organizations = organizationRes.data.data || []
-//     const organizationNameByCode = new Map(
-//       organizations.map((org) => [org.organization_code, org.name])
-//     )
-//
-//     businesses.value = (businessRes.data.data || []).map((business) => ({
-//       ...business,
-//       organization_name:
-//         organizationNameByCode.get(business.organization_code) ||
-//         business.organization_name ||
-//         '',
-//     }))
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load businesses'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 
-function openEdit(business){
+
+function openEdit(business) {
+
   selected.value = business
+
   editForm.name = business.name
   editForm.status = business.status
+
   formError.value = ''
   showEditModal.value = true
 }
@@ -207,62 +188,52 @@ function openDelete(business) {
 }
 
 async function updateBusiness() {
+
   saving.value = true
   formError.value = ''
+
   try {
-    await api.put(`/businesses/update-business${selected.value.business_code}`, editForm)
+    await apiHandler('business', 'updateBusiness',
+        {
+          code: selected.value.business_code,
+          ...editForm,
+        })
     showEditModal.value = false
     await fetchBusinesses()
+
   } catch (err) {
     formError.value = err.response?.data?.message || 'Update failed'
   } finally {
+
     saving.value = false
+
   }
 }
 
-// async function updateBusiness() {
-//   saving.value = true
-//   formError.value = ''
-//   try {
-//     await api.put(`/businesses/update-business${selected.value.business_code}`, editForm)
-//     showEditModal.value = false
-//     await fetchBusinesses()
-//   } catch (err) {
-//     formError.value = err.response?.data?.message || 'Update failed'
-//   } finally {
-//     saving.value = false
-//   }
-// }
-
-// Deactivate Business
-
 async function deactivateBusiness() {
+
   saving.value = true
+
   try {
-    await api.patch(`/businesses/update-business-status${selected.value.business_code}`, { status: 'inactive' })
+
+    await apiHandler('business', 'deactivateBusiness',
+        {
+          code: selected.value.business_code,
+          status: "inactive"
+        })
     showDeleteModal.value = false
+
     await fetchBusinesses()
+
   } catch (err) {
     error.value = err.response?.data?.message || 'Deactivation failed'
   } finally {
     saving.value = false
+
   }
 }
+onMounted(() => {
+  fetchBusinesses()
+})
 
-// async function deleteBusiness() {
-//   saving.value = true
-//   try {
-//     await api.delete(`/businesses/delete-business${selected.value.business_code}`)
-//     showDeleteModal.value = false
-//     await fetchBusinesses()
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Delete failed'
-//   } finally {
-//     saving.value = false
-//   }
-// }
-
-onMounted(fetchBusinesses)
 </script>
-
-

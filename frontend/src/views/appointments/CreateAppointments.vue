@@ -32,6 +32,17 @@
         </div>
 
         <div class="field">
+          <label>Location</label>
+          <select v-model="form.location_code" @change="onLocationChange">
+            <option value="">Select location</option>
+            <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">
+              {{ loc.address + " " + loc.street + " " + loc.city }}
+            </option>
+          </select>
+        </div>
+
+
+        <div class="field">
           <label>Service *</label>
           <select v-model="form.service_code" :class="{ 'field-input-error': errors.service_code }" @change="validateField('service_code')">
             <option value="">Select service</option>
@@ -40,17 +51,6 @@
             </option>
           </select>
           <p v-if="errors.service_code" class="field-error">{{ errors.service_code }}</p>
-        </div>
-
-
-        <div class="field">
-          <label>Location</label>
-          <select v-model="form.location_code">
-            <option value="">Select location</option>
-            <option v-for="loc in locations" :key="loc.location_code" :value="loc.location_code">
-              {{ loc.address + " " + loc.street + " " + loc.city }}
-            </option>
-          </select>
         </div>
 
         <div class="row two-columns">
@@ -102,6 +102,7 @@ import { useRouter } from 'vue-router'
 import api from '@/utils/api'
 import { validateAppointmentForm } from '@/utils/validator'
 import { useAuthStore } from '@/stores/auth.store'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -134,8 +135,8 @@ function validateField(field) {
 
 onMounted(async () => {
   const [bizRes, clientRes] = await Promise.allSettled([
-    api.get('/businesses/get-business'),
-    api.get('/clients/get-client'),
+    apiHandler("business", "getAllBusinesses"),
+    apiHandler("client", "getAllClients"),
   ])
 
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
@@ -150,8 +151,8 @@ onMounted(async () => {
     form.business_code = authStore.user?.business_code || ''
     if (form.business_code) {
       const [svcRes, locRes] = await Promise.allSettled([
-        api.get('/services/get-service', { params: { business_code: form.business_code } }),
-        api.get('/locations/get-location', { params: { business_code: form.business_code } }),
+        apiHandler("service", "getAllServices", { params: { business_code: form.business_code } }),
+        apiHandler("location", "getAllLocations", { params: { business_code: form.business_code } }),
       ])
       if (svcRes.status === 'fulfilled') services.value = svcRes.value.data.data || []
       if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []
@@ -165,11 +166,23 @@ async function onBusinessChange() {
   form.location_code = ''
   if (!form.business_code) { services.value = []; locations.value = []; return }
   const [svcRes, locRes] = await Promise.allSettled([
-    api.get('/services/get-service', { params: { business_code: form.business_code } }),
-    api.get('/locations/get-location', { params: { business_code: form.business_code } }),
+    apiHandler("service", "getAllServices", { params: { business_code: form.business_code } }),
+    apiHandler("location", "getAllLocations", { params: { business_code: form.business_code } }),
   ])
   if (svcRes.status === 'fulfilled') services.value = svcRes.value.data.data || []
   if (locRes.status === 'fulfilled') locations.value = locRes.value.data.data || []
+}
+
+async function onLocationChange() {
+  form.service_code = ''
+  if (!form.business_code) return
+  try {
+    const params = { business_code: form.business_code }
+    if (form.location_code) params.location_code = form.location_code
+    // const svcRes = await api.get('/services/client-view', { params })
+    const svcRes = await apiHandler("service", "clientView", params)
+    services.value = svcRes.data.data.services || []
+  } catch (_) {}
 }
 
 async function submit() {
@@ -181,11 +194,23 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    const payload = { ...form, status: 'pending' }
+    const payload = {
+      // ...form,
+      business_code: form.business_code,
+      client_code: form.client_code,
+      service_codes: form.service_code ? [form.service_code] : [],
+      location_code: form.location_code,
+      appointment_start_date: form.appointment_start_date,
+      appointment_end_date: form.appointment_end_date,
+      start_time: form.start_time,
+      end_time: form.end_time,
+      notes: form.notes,
+      status: 'pending',
+    }
     if (!payload.location_code) delete payload.location_code
     if (!payload.notes) delete payload.notes
     if (!payload.client_code) delete payload.client_code
-    await api.post('/appointments', payload)
+    await apiHandler('appointment', "createAppointment", payload)
     router.push('/appointments')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create appointment'

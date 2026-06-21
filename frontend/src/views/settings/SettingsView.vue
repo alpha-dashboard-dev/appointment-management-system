@@ -21,7 +21,7 @@ const sections = [
   },
 
   {
-    title: 'Appointment Settings',
+    title: 'appointment Settings',
     icon: 'bi bi-calendar-check',
     items: ['General']
   },

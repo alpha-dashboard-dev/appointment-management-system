@@ -8,7 +8,7 @@ const VALID_APPOINTMENT_STATUSES = ['pending', 'approved', 'in_progress', 'rejec
 const VALID_RECURRENCE_UOMS = ['monthly', 'daily', 'weekly', 'fortnightly', 'quarterly', 'fixed']
 const VALID_DURATION_UOMS = ['week', 'day', 'hour', 'minutes']
 const VALID_CHARGE_UOMS = ['fixed', 'percentage']
-const VALID_INVOICE_STATUSES = ['draft', 'issued', 'paid', 'canceled']
+const VALID_INVOICE_STATUSES = ['draft', 'issued', 'paid', 'unpaid', 'canceled']
 const VALID_LOCATION_TYPES = ['business', 'client']
 const VALID_AVAILABILITY = ['available', 'not_available']
 const VALID_ABILITY_USER_TYPES = ['admin', 'business_owner', 'staff', 'client']
@@ -169,13 +169,17 @@ export function validateChargeForm(data) {
   return errors
 }
 
-// ---------- Appointment ----------
+// ---------- appointment ----------
 export function validateAppointmentForm(data) {
   const errors = {}
   if (!data.business_code) {
     errors.business_code = 'Business is required'
   }
-  if (!data.service_code) {
+  const serviceCodes = Array.isArray(data.service_codes)
+    ? data.service_codes.filter(Boolean)
+    : (data.service_code ? [data.service_code] : [])
+  if (serviceCodes.length === 0) {
+    errors.service_codes = 'At least one service is required'
     errors.service_code = 'Service is required'
   }
   if (!data.appointment_start_date || !isValidDate(data.appointment_start_date)) {

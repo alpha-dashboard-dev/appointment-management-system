@@ -31,6 +31,8 @@ const routes = [
             { path: "clients/create", component: () => import("@/views/client/CreateClient.vue") },
             { path: "appointments", component: () => import("@/views/appointments/Appointments.vue") },
             { path: "appointments/create", component: () => import("@/views/appointments/CreateAppointments.vue") },
+            { path: "appointment-recurrence", component: () => import("@/views/appointments/appointmentRecurrence.vue") },
+            { path: "appointment-recurrence/create", component: () => import("@/views/appointments/create_appointment_recurrence.vue") },
             { path: "services", component: () => import("@/views/service/Services.vue") },
             { path: "services/create", component: () => import("@/views/service/CreateService.vue") },
             { path: "locations", component: () => import("@/views/location/Locations.vue") },
@@ -74,6 +76,7 @@ const routes = [
         children: [
             { path: "dashboard", component: () => import("@/views/operational-staff/Dashboard.vue") },
             { path: "appointments", component: () => import("@/views/operational-staff/Appointments.vue") },
+            { path: "appointments/create", component: () => import("@/views/appointments/CreateAppointments.vue") },
             { path: "pending", component: () => import("@/views/operational-staff/PendingAppointments.vue") },
             { path: "schedules", component: () => import("@/views/operational-staff/Schedules.vue") },
             { path: "availability", component: () => import("@/views/operational-staff/Availability.vue") },
@@ -126,13 +129,13 @@ router.beforeEach((to, _from, next) => {
     }
 
     if (to.path === "/login" && authStore.isAuthenticated) {
-        const role = authStore.user?.user_type;
+        const role = authStore.user?.userType;
         return next(roleRedirectMap[role] || "/dashboard");
     }
 
     // if route has roles restriction and user's role not in list
     if (to.meta.roles && authStore.isAuthenticated) {
-        const role = authStore.user?.user_type;
+        const role = authStore.user?.userType;
         if (!to.meta.roles.includes(role)) {
             return next(roleRedirectMap[role] || "/login");
         }

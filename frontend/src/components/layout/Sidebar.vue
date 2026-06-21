@@ -112,7 +112,17 @@
           <span v-if="!collapsed">Appointments</span>
         </router-link>
       </div>
-    
+
+
+      <!-- appointment Recurrence     -->
+      <div class="group">
+        <router-link to="/appointment-recurrence" class="group-title">
+          <i class="bi bi-calendar3 icon"></i>
+
+          <span v-if="!collapsed">Appointments Recurrence</span>
+        </router-link>
+      </div>
+
 
       <!-- SERVICES -->
       <div class="group">

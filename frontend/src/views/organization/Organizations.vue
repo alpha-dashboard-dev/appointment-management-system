@@ -68,7 +68,7 @@
             <h5 class="modal-title">Edit Organization</h5>
             <button type="button" class="btn-close" @click="showEditModal = false"></button>
           </div>
-          <form @submit.prevent="updateOrg">
+          <form @submit.prevent="updateOrganization">
             <div class="modal-body">
               <div class="mb-3">
                 <label class="form-label fw-semibold">Organization Name *</label>
@@ -105,7 +105,7 @@
           </div>
           <div class="modal-footer justify-content-center">
             <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
-            <button class="btn btn-danger btn-sm" @click="deactivateOrg" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
+            <button class="btn btn-danger btn-sm" @click="deactivateOrganization" :disabled="saving">{{ saving ? '...' : 'Deactivate' }}</button>
           </div>
         </div>
       </div>
@@ -116,38 +116,51 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const organizations = ref([])
-const loading = ref(true)
-const saving = ref(false)
+const loading = ref(false)
 const error = ref('')
+
+const saving = ref(false)
 const formError = ref('')
 
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+
 const selected = ref(null)
 
-const editForm = reactive({ name: '', status: 'active' })
+const editForm = reactive({
+  name: '',
+  status: 'active'
+})
 
-async function fetchOrgs() {
+
+async function fetchOrganizations() {
+
   loading.value = true
   error.value = ''
+
   try {
-    const res = await api.get('/organizations/get-organization')
+    const res = await apiHandler('organization', 'getAllOrganizations')
     organizations.value = res.data.data || []
+
   } catch (err) {
+
     error.value = err.response?.data?.message || 'Failed to load organizations'
+
   } finally {
     loading.value = false
   }
 }
 
 function openEdit(org) {
+
   selected.value = org
+
   editForm.name = org.name
   editForm.status = org.status
-  formError.value = ''
+
   showEditModal.value = true
 }
 
@@ -156,34 +169,53 @@ function openDelete(org) {
   showDeleteModal.value = true
 }
 
-async function updateOrg() {
+async function updateOrganization() {
+
   saving.value = true
   formError.value = ''
+
   try {
-    await api.put(`/organizations/update-organization${selected.value.organization_code}`, editForm)
+    await apiHandler('organization', 'updateOrganization',
+        {
+          code: selected.value.organization_code,
+          ...editForm,
+        })
     showEditModal.value = false
-    await fetchOrgs()
+    await fetchOrganizations()
+
   } catch (err) {
     formError.value = err.response?.data?.message || 'Update failed'
   } finally {
+
     saving.value = false
+
   }
 }
 
-async function deactivateOrg() {
+async function deactivateOrganization() {
+
   saving.value = true
+
   try {
-    await api.patch(`/organizations/update-organization-status${selected.value.organization_code}`, { status: 'inactive' })
+
+    await apiHandler('organization', 'deactivateOrganization',
+        {
+          code: selected.value.organization_code,
+          status: "inactive"
+        })
     showDeleteModal.value = false
-    await fetchOrgs()
+
+    await fetchOrganizations()
+
   } catch (err) {
-    error.value = err.response?.data?.message || 'Delete failed'
+    error.value = err.response?.data?.message || 'Deactivation failed'
   } finally {
     saving.value = false
+
   }
 }
 
-onMounted(fetchOrgs)
+onMounted(() => {
+  fetchOrganizations()
+})
 </script>
-
-

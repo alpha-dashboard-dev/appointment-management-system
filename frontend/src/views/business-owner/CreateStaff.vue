@@ -49,6 +49,7 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -61,7 +62,7 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    await api.post('/users/create-user', { ...form, business_code: authStore.user?.business_code })
+    await apiHandler("user", "createUser", { ...form, business_code: authStore.user?.business_code })
     router.push('/business/staff')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create staff'

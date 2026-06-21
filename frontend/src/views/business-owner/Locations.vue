@@ -12,7 +12,6 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Business Name</th>
-              <th>Location Code</th>
               <th>Address</th>
               <th>Street</th>
               <th>Apartment</th>
@@ -26,15 +25,14 @@
           </thead>
           <tbody>
             <tr v-for="loc in locations" :key="loc.location_code">
-              <td class="ps-3">{{ loc.business_name }}</td>
-              <td><code>{{ loc.location_code }}</code></td>
+              <td class="ps-3">{{ loc.business_name ||  '—'}}</td>
               <td>{{ loc.address || '—' }}</td>
               <td>{{loc.street || '—'}}</td>
               <td>{{loc.apartment || '—'}}</td>
               <td>{{ loc.city || '—' }}</td>
               <td>{{loc.province || '—'}}</td>
               <td>{{ loc.country || '—' }}</td>
-              <td>{{ loc.location_type || '—' }}</td>
+              <td>{{ loc.location_type }}</td>
               <td><span :class="['ams-badge', loc.status]">{{ loc.status }}</span></td>
               <td class="pe-3">
                 <div class="dropdown">
@@ -66,25 +64,64 @@
 
     <!-- EDIT MODAL -->
     <div v-if="showEditModal" class="modal d-block" tabindex="-1" style="background:rgba(0,0,0,0.5);z-index:1050">
-      <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-height:90vh; max-width:760px; width:auto">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Edit Location</h5>
             <button type="button" class="btn-close" @click="showEditModal = false"></button>
           </div>
           <form @submit.prevent="updateLocation">
-            <div class="modal-body">
-              <div class="mb-3"><label class="form-label fw-semibold">Address</label><input v-model="editForm.address" class="form-control" /></div>
-              <div class="mb-3"><label class="form-label fw-semibold">City</label><input v-model="editForm.city" class="form-control" /></div>
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Status</label>
-                <select v-model="editForm.status" class="form-select"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+            <div class="modal-body" style="overflow-y:auto; max-height:calc(90vh - 190px);">
+              <!--              <div class="mb-3">-->
+              <!--                <label class="form-label fw-semibold">Location Type</label>-->
+              <!--                <select v-model="editForm.location_type" class="form-select">-->
+              <!--                  <option value="business">Business</option>-->
+              <!--                  <option value="client">Client</option>-->
+              <!--                </select>-->
+              <!--              </div>-->
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Address</label>
+                  <input v-model="editForm.address" class="form-control" placeholder="Address" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Street</label>
+                  <input v-model="editForm.street" class="form-control" placeholder="Street" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Apartment</label>
+                  <input v-model="editForm.apartment" class="form-control" placeholder="Apartment" />
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">City</label>
+                  <input v-model="editForm.city" class="form-control" placeholder="City" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Province</label>
+                  <input v-model="editForm.province" class="form-control" placeholder="Province" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Postal Code</label>
+                  <input v-model="editForm.postal_code" class="form-control" placeholder="Postal Code" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Country</label>
+                  <input v-model="editForm.country" class="form-control" placeholder="Country" />
+                </div>
               </div>
-              <p v-if="formError" class="text-danger small mb-0">{{ formError }}</p>
+              <div class="mt-3">
+                <label class="form-label fw-semibold">Status</label>
+                <select v-model="editForm.status" class="form-select">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <p v-if="formError" class="text-danger small mt-2 mb-0">{{ formError }}</p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" @click="showEditModal = false">Cancel</button>
-              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+              <button type="submit" class="btn btn-ams" :disabled="saving">{{ saving ? 'Saving...' : 'Save Changes' }}</button>
             </div>
           </form>
         </div>
@@ -100,11 +137,11 @@
             <button type="button" class="btn-close" @click="showDeleteModal = false"></button>
           </div>
           <div class="modal-body text-center">
-            <p class="mb-0">Delete location <strong>{{ selected?.location_code }}</strong>?</p>
+            <p class="mb-0">Delete location <strong>{{ selected?.address + " " + selected?.city }}</strong>?</p>
           </div>
           <div class="modal-footer justify-content-center">
             <button class="btn btn-secondary btn-sm" @click="showDeleteModal = false">Cancel</button>
-            <button class="btn btn-danger btn-sm" @click="deleteLocation" :disabled="saving">{{ saving ? 'Deleting...' : 'Delete' }}</button>
+            <button class="btn btn-danger btn-sm" @click="deleteLocation" :disabled="saving">{{ saving ? '...' : 'Delete' }}</button>
           </div>
         </div>
       </div>
@@ -115,7 +152,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const locations = ref([])
@@ -124,7 +161,6 @@ const saving = ref(false)
 const error = ref('')
 const formError = ref('')
 
-const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const selected = ref(null)
@@ -136,55 +172,38 @@ async function fetchLocations() {
   error.value = ''
 
   try {
-    const biz = authStore.user?.business_code
-
-    const [locationRes, businessRes] = await Promise.all([
-      api.get('/locations/get-location', {
-        params: biz ? { business_code: biz } : {}
-      }),
-      api.get('/businesses/get-business')
-    ])
-
-    const businesses = businessRes.data.data || []
-
-    const businessNameByCode = new Map(
-        businesses.map((bus) => [bus.business_code, bus.name])
+    const response = await apiHandler("location", "getAllLocations",
+        {
+          include: "business"
+        }
     )
 
-    locations.value = (locationRes.data.data || []).map((location) => ({
-      ...location,
-      business_name:
-          businessNameByCode.get(location.business_code) ||
-          location.business_name ||
-          ''
-    }))
+    locations.value = (response.data.data || []).map(
+        (location) => ({
+          ...location,
+          business_name: location.business?.name || '',
+        })
+    )
   } catch (err) {
     error.value =
-        err.response?.data?.message || 'Failed to load locations'
+        err.response?.data?.message ||
+        'Failed to load Locations'
   } finally {
     loading.value = false
   }
 }
 
-// async function fetchLocations() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const biz = authStore.user?.business_code
-//     const res = await api.get('/locations/get-location', { params: biz ? { business_code: biz } : {} })
-//     locations.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load locations'
-//   } finally {
-//     loading.value = false
-//   }
-// }
-
 function openEdit(loc) {
   selected.value = loc
-  editForm.city = loc.city
+  editForm.location_type = loc.location_type || 'business'
+  editForm.street = loc.street || ''
   editForm.address = loc.address || ''
+  editForm.city = loc.city || ''
+  editForm.province = loc.province || ''
+  editForm.postal_code = loc.postal_code || ''
+  editForm.country = loc.country || ''
   editForm.status = loc.status || 'active'
+  editForm.apartment = loc.apartment || ''
   formError.value = ''
   showEditModal.value = true
 }
@@ -195,7 +214,10 @@ async function updateLocation() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/locations/update-location${selected.value.location_code}`, editForm)
+    await apiHandler("location", "updateLocation", {
+      code: selected.value.location_code,
+      ...editForm,
+    })
     showEditModal.value = false
     await fetchLocations()
   } catch (err) {
@@ -208,7 +230,9 @@ async function updateLocation() {
 async function deleteLocation() {
   saving.value = true
   try {
-    await api.delete(`/locations/delete-location${selected.value.location_code}`)
+    await apiHandler("location", "deleteLocation", {
+      code: selected.value.location_code
+    })
     showDeleteModal.value = false
     await fetchLocations()
   } catch (err) {

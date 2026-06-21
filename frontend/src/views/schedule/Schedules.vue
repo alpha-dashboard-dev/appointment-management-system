@@ -24,7 +24,10 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">ID</th>
-              <th>Staff</th>
+              <th>Business Name</th>
+              <th>Staff Name</th>
+<!--              <th>Staff Type</th>-->
+              <th>Location</th>
               <th>Day</th>
               <th>Start Time</th>
               <th>End Time</th>
@@ -33,9 +36,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="schedule in schedules" :key="schedule.id">
+            <tr v-for="schedule in activeSchedules" :key="schedule.id">
               <td class="ps-3">{{ schedule.id }}</td>
+              <td>{{schedule.business_name}}</td>
               <td>{{ schedule.name || '—' }}</td>
+<!--              <td>{{schedule.staff_type}}</td>-->
+              <td>{{schedule.location_address}}</td>
               <td class="text-capitalize">{{ schedule.working_days }}</td>
               <td>{{ formatTime(schedule.start_time) }}</td>
               <td>{{ formatTime(schedule.end_time) }}</td>
@@ -63,7 +69,7 @@
               </td>
             </tr>
             <tr v-if="schedules.length === 0">
-              <td colspan="7" class="text-center text-muted py-4">No schedules found</td>
+              <td colspan="9" class="text-center text-muted py-4">No schedules found</td>
             </tr>
           </tbody>
         </table>
@@ -268,6 +274,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import api from '@/utils/api'
 import formatTime from "../../utils/formatTime.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.role === 'admin')
@@ -280,6 +287,9 @@ const saving = ref(false)
 const error = ref('')
 const createError = ref('')
 const bizFilter = ref('')
+const activeSchedules = computed(() => {
+  return schedules.value.filter(s => s.status === 'active')
+})
 
 const showDeleteModal = ref(false)
 const showEditModal = ref(false)
@@ -293,7 +303,6 @@ function openEdit(schedule) {
   selected.value = schedule
   editForm.value = {
     working_days: schedule.working_days,
-    // employee_type: schedule.employee_type || '',
     location_code: schedule.location_code || '',
     start_time: (schedule.start_time || '').slice(0, 5),
     end_time: (schedule.end_time || '').slice(0, 5),
@@ -311,7 +320,11 @@ async function updateSchedule() {
     payload.start_time = (payload.start_time || '').slice(0, 5)
     payload.end_time = (payload.end_time || '').slice(0, 5)
     if (!payload.location_code) delete payload.location_code
-    await api.put(`/schedules/update-schedule${selected.value.id}`, payload)
+    // await api.put(`/schedules/update-schedule/${selected.value.id}`, payload)
+    await apiHandler("staffSchedule", "updateSchedule",{
+      id: selected.value.id,
+      ...payload
+    })
     showEditModal.value = false
     await refreshSchedules()
   } catch (err) {
@@ -324,7 +337,7 @@ async function updateSchedule() {
 async function refreshSchedules() {
   try {
     const params = bizFilter.value ? { business_code: bizFilter.value } : {}
-    const res = await api.get('/schedules/get-schedule', { params })
+    const res = await apiHandler("staffSchedule", "getAllSchedules", { params })
     schedules.value = res.data.data || []
   } catch (_) {}
 }
@@ -372,7 +385,8 @@ async function fetchStaff(business_code) {
   staffList.value = []
   if (!business_code) return
   try {
-    const res = await api.get('/users/get-all-users', { params: { business_code } })
+    const res = await apiHandler("user", "getAllUsers", { business_code })
+    console.log(res)
     const all = res.data.data || []
     staffList.value = all.filter(u => u.user_type === 'operational_staff' || u.user_type === 'service_staff')
   } catch (_) {}
@@ -382,7 +396,8 @@ async function fetchLocations(business_code) {
   locationsList.value = []
   if (!business_code) return
   try {
-    const res = await api.get('/locations/get-location', { params: { business_code } })
+    // const res = await api.get('/locations/get-all-locations', { params: { business_code } })
+    const res = await apiHandler("location", "getAllLocations", { business_code })
     locationsList.value = res.data.data || []
   } catch (_) {}
 }
@@ -398,31 +413,30 @@ async function fetchSchedules() {
   error.value = ''
 
   try {
-    const params = bizFilter.value ? { business_code: bizFilter.value } : {}
+    const response = await apiHandler("staffSchedule", "getAllSchedules", {
+      ...(bizFilter.value && {
+        business_code: bizFilter.value
+      }),
+      include: 'user,business,location'
+    })
 
-    const [scheduleRes, usersRes] = await Promise.all([
-      api.get('/schedules/get-schedule', { params }),
-      api.get('/users/get-all-users', { params })
-    ])
-
-    const users = usersRes.data.data || []
-
-    const staffNameByCode = new Map(users.map((user) => [user.user_code, user.name.trim()]))
-
-    schedules.value = (scheduleRes.data.data || []).map((schedule) => ({
-      ...schedule,
-      name:
-          staffNameByCode.get(schedule.user_code) ||
-          ''
-    }))
+    schedules.value = (response.data.data || []).map(
+        (schedule) => ({
+          ...schedule,
+          name: schedule.user?.name?.trim() || '',
+          staff_type: schedule.user?.user_type || '',
+          business_name: schedule.business?.name?.trim() || '',
+          location_address: schedule.location?.address?.trim() + " " + schedule.location?.street?.trim() + " " + schedule.location?.city || '',
+        })
+    )
   } catch (err) {
     error.value =
-        err.response?.data?.message || 'Failed to load schedules'
+        err.response?.data?.message ||
+        'Failed to load schedules'
   } finally {
     loading.value = false
   }
 }
-
 
 function openDelete(schedule) {
   selected.value = schedule
@@ -432,7 +446,9 @@ function openDelete(schedule) {
 async function deleteSchedule() {
   saving.value = true
   try {
-    await api.delete(`/schedules/delete-schedule${selected.value.id}`)
+    await apiHandler("staffSchedule", "deleteSchedule", {
+      id: selected.value.id
+    })
     showDeleteModal.value = false
     await fetchSchedules()
   } catch (err) {
@@ -464,9 +480,10 @@ async function createSchedule() {
 
   saving.value = true
   try {
-    await api.post('/schedules/bulk-create-schedule', entries)
+    const res = await apiHandler("staffSchedule", "createSchedule", entries)
+    console.log(res)
     showCreateModal.value = false
-    createForm.value = { business_code: '', user_code: '', employee_type: '', location_code: '' }
+    createForm.value = { business_code: '', user_code: '', location_code: '' }
     weekDays.value = freshWeekDays()
     scheduleMode.value = 'whole_week'
     sameTimeForAllDays.value = false
@@ -488,7 +505,7 @@ onMounted(async () => {
     await Promise.all([fetchSchedules(), fetchStaff(bizCode), fetchLocations(bizCode)])
     return
   }
-  const [_, bizRes] = await Promise.allSettled([fetchSchedules(), api.get('/businesses/get-business')])
+  const [_, bizRes] = await Promise.allSettled([fetchSchedules(), apiHandler("business", "getAllBusinesses")])
   if (bizRes.status === 'fulfilled') businesses.value = bizRes.value.data.data || []
 })
 </script>

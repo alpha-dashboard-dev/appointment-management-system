@@ -161,7 +161,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import api from '@/utils/api'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const clients = ref([])
 const loading = ref(true)
@@ -185,19 +185,21 @@ const filteredClients = computed(() => {
   )
 })
 
+
 // fetch all clients with business name
 async function fetchClients() {
   loading.value = true
   error.value = ''
 
   try {
-    const response = await api.get('/users/get-all-users-with-business')
+    const response = await apiHandler("client","getAllClients",{
+        include: "business"
+    })
 
     clients.value = (response.data.data || []).map(
         (clients) => ({
           ...clients,
-          business_name:
-              clients.business?.name || '',
+          business_name: clients.business?.name || '',
         })
     )
   } catch (err) {
@@ -209,19 +211,6 @@ async function fetchClients() {
   }
 }
 
-// fetch all clients without business details
-// async function fetchClients() {
-//   loading.value = true
-//   error.value = ''
-//   try {
-//     const res = await api.get('/clients/get-client')
-//     clients.value = res.data.data || []
-//   } catch (err) {
-//     error.value = err.response?.data?.message || 'Failed to load clients'
-//   } finally {
-//     loading.value = false
-//   }
-// }
 
 function openEdit(client) {
   selected.value = client
@@ -243,7 +232,10 @@ async function updateClient() {
   saving.value = true
   formError.value = ''
   try {
-    await api.put(`/clients/update-client/${selected.value.user_code}`, editForm)
+    await apiHandler("client", "updateClient",{
+      code: selected.value.user_code,
+      ...editForm
+    })
     showEditModal.value = false
     await fetchClients()
   } catch (err) {
@@ -256,7 +248,12 @@ async function updateClient() {
 async function deactivateClient() {
   saving.value = true
   try {
-    await api.patch(`/users/update-user-status${selected.value.user_code}`, { is_active: 'inactive' })
+    await apiHandler("client" ,"deactivateClient",
+        {
+          code: selected.value.user_code,
+          is_active: 'inactive'
+        }
+    )
     showDeleteModal.value = false
     await fetchClients()
   } catch (err) {

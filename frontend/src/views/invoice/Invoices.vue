@@ -17,6 +17,7 @@
         <option value="">All Status</option>
         <option value="draft">Draft</option>
         <option value="paid">Paid</option>
+        <option value="unpaid">Unpaid</option>
         <option value="issued">Issued</option>
         <option value="canceled">Canceled</option>
       </select>
@@ -31,7 +32,9 @@
           <thead class="table-light">
             <tr>
               <th class="ps-3">Invoice ID</th>
-              <th>Appointment</th>
+              <th>Business Name</th>
+              <th>Appointment Notes</th>
+              <th>Created By</th>
               <th>Total Amount</th>
               <th>Status</th>
               <th>Created</th>
@@ -41,7 +44,9 @@
           <tbody>
             <tr v-for="inv in invoices" :key="inv.id">
               <td class="ps-3"><code>{{ inv.id }}</code></td>
-              <td><code>{{ inv.appointment_code || '—' }}</code></td>
+              <td>{{inv.business_name || '-'}}</td>
+              <td>{{ inv.notes || '—' }}</td>
+              <td>{{inv.created_by}}</td>
               <td>{{ inv.total != null ? inv.total : '—' }}</td>
               <td><span :class="['ams-badge', inv.invoice_status]">{{ inv.invoice_status }}</span></td>
               <td>{{ formatDate(inv.created_at) }}</td>
@@ -57,7 +62,7 @@
                         View
                       </button>
                     </li>
-                    <li v-if="inv.invoice_status === 'draft' || inv.invoice_status === 'issued'">
+                    <li v-if="inv.invoice_status === 'unpaid' || inv.invoice_status === 'issued'">
                       <button class="dropdown-item" @click="updateStatus(inv, 'paid')">
                         <i class="bi bi-check2-circle me-2"></i>
                         Mark Paid
@@ -68,7 +73,7 @@
               </td>
             </tr>
             <tr v-if="invoices.length === 0">
-              <td colspan="6" class="text-center text-muted py-4">No invoices found</td>
+              <td colspan="8" class="text-center text-muted py-4">No invoices found</td>
             </tr>
           </tbody>
         </table>
@@ -96,8 +101,8 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" @click="showDetails = false">Close</button>
-            <button v-if="selected?.invoice_status === 'draft' || selected?.invoice_status === 'issued'" class="btn btn-success btn-sm" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
-            <button v-if="selected?.invoice_status === 'draft' || selected?.invoice_status === 'issued'" class="btn btn-danger btn-sm" @click="updateStatus(selected, 'canceled')" :disabled="saving">Cancel</button>
+            <button v-if="selected?.invoice_status === 'unpaid' || selected?.invoice_status === 'issued'" class="btn btn-success btn-sm" @click="updateStatus(selected, 'paid')" :disabled="saving">Mark Paid</button>
+            <button v-if="selected?.invoice_status === 'unpaid' || selected?.invoice_status === 'issued'" class="btn btn-danger btn-sm" @click="updateStatus(selected, 'canceled')" :disabled="saving">Cancel</button>
           </div>
         </div>
       </div>
@@ -110,6 +115,7 @@
 import { ref, onMounted } from 'vue'
 import api from '@/utils/api'
 import formatDate from "../../utils/formatDate.js";
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const invoices = ref([])
 const businesses = ref([])
@@ -126,11 +132,22 @@ async function fetchInvoices() {
   loading.value = true
   error.value = ''
   try {
-    const params = {}
+    const params = {
+      include: "business,appointment,updatedByUser"
+    }
     if (bizFilter.value) params.business_code = bizFilter.value
     if (statusFilter.value) params.status = statusFilter.value
-    const res = await api.get('/invoices/get-invoice', { params })
-    invoices.value = res.data.data || []
+    const res = await apiHandler("invoice", "getAllInvoices", params)
+    // invoices.value = res.data.data || []
+    console.log(res)
+    invoices.value = (res.data.data || []).map(
+        (invoices) => ({
+          ...invoices,
+          business_name: invoices.business?.name || '',
+          created_by: invoices.updatedByUser?.name || '',
+          notes: invoices.appointment?.notes
+        })
+    )
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to load invoices'
   } finally {
@@ -146,7 +163,11 @@ function openDetails(inv) {
 async function updateStatus(inv, status) {
   saving.value = true
   try {
-    await api.patch(`/invoices/update-invoice-status/${inv.id}`, { invoice_status: status })
+    await apiHandler("invoice", "updateInvoice",
+        {
+          id: inv.id,
+          invoice_status: status
+        })
     showDetails.value = false
     await fetchInvoices()
   } catch (err) {

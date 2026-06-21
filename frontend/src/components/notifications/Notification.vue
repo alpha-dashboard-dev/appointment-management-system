@@ -6,7 +6,7 @@ const notifications = ref([
 
   {
     id:1,
-    title:'New Appointment',
+    title:'New appointment',
     message:'Ali booked appointment.',
     time:'2 min ago',
     unread:true

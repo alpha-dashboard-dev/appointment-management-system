@@ -83,8 +83,8 @@
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
-import api from '@/utils/api'
 import { validateLocationForm } from '@/utils/validator'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -109,7 +109,7 @@ onMounted(async () => {
     return
   }
   try {
-    const res = await api.get('/businesses/get-business')
+    const res = await apiHandler("business", "getAllBusinesses")
     businesses.value = res.data.data || []
   } catch (_) {}
 })
@@ -126,7 +126,7 @@ async function submit() {
     const payload = { ...form }
     Object.keys(payload).forEach(k => { if (!payload[k]) delete payload[k] })
     payload.business_code = form.business_code
-    await api.post('/locations/create-location', payload)
+    await apiHandler("location", "createLocation", payload)
     router.push(backLink.value)
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create location'

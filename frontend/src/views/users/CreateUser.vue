@@ -87,6 +87,7 @@ import { useRouter, useRoute } from 'vue-router'
 import api from '@/utils/api'
 import { validateUserForm } from '@/utils/validator'
 import { useAuthStore } from '@/stores/auth.store'
+import {apiHandler} from "../../utils/api/apiHandler.js";
 
 const router = useRouter()
 const route = useRoute()
@@ -126,7 +127,7 @@ function validateField(field) {
 
 onMounted(async () => {
   try {
-    const res = await api.get('/businesses/get-business')
+    const res = await apiHandler("business", "getAllBusinesses")
     businesses.value = res.data.data || []
   } catch (_) {}
 })
@@ -145,7 +146,7 @@ async function submit() {
       payload.employee_type = null
     }
     if (!payload.business_code) delete payload.business_code
-    await api.post('/users/create-user', payload)
+    await apiHandler("user", "createUser", payload)
     router.push('/users')
   } catch (err) {
     error.value = err.response?.data?.message || 'Failed to create user'
