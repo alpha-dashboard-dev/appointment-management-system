@@ -54,11 +54,7 @@ class LocationService {
         });
     }
 
-    async getByCode(
-        locationCode: string,
-        actor?: any,
-        query: any = {}
-    ) {
+    async getByCode(locationCode: string, actor?: any, query: any = {}) {
 
         const loc = await repo.findOne(
             {
@@ -66,7 +62,6 @@ class LocationService {
             },
             {
                 include: Array.isArray(query.include) ? query.include : [],
-
             }
         );
         if (!loc) throw new Error("Location not found");

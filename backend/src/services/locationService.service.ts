@@ -3,6 +3,7 @@ import locationRepo from "../repositories/location.repository";
 import serviceRepo from "../repositories/service.repository";
 import { validateLocationService } from "../utils/validator";
 import { ROLES } from "../utils/roles";
+import {buildWhere} from "../utils/buildWhere";
 
 class LocationServiceService {
 
@@ -18,7 +19,9 @@ class LocationServiceService {
 
         validateLocationService(data);
 
-        const location = await locationRepo.findByCode(location_code);
+        const location = await locationRepo.findOne({
+            location_code: location_code,
+        });
         if ((location.dataValues?.status ?? location.status) !== "active") {
             throw new Error("Cannot add services to an inactive location");
         }
@@ -31,7 +34,9 @@ class LocationServiceService {
             }
         }
 
-        const service = await serviceRepo.findByCode(service_code);
+        const service = await serviceRepo.findOne({
+            service_code: service_code,
+        });
         if ((service.dataValues?.status ?? service.status) !== "active") {
             throw new Error("Cannot map an inactive service to a location");
         }
@@ -53,73 +58,40 @@ class LocationServiceService {
     }
 
     async getAll(query: any = {}, actor?: any) {
-        const filters: any = {
-            business_code:
-                query.business_code,
 
-            location_code:
-                query.location_code,
-
-            service_code:
-                query.service_code,
-
-            availability:
-                query.availability,
-        };
-
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
-            order: [
-                [
-                    query.sort_by || "created_at",
-
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
+        const where = buildWhere(query)
 
         // Non-admin actors can only see location services from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
-            filters.business_code = actor.businessCode;
+            where.business_code = actor.businessCode;
         }
-        return await repo.findAll(
-            filters,
-            options
-        );
+        return await repo.findAll({
+            where,
+            include: Array.isArray(query.include) ? query.include : [],
+            limit: query.limit ? Number(query.limit) : undefined,
+            offset: query.offset ? Number(query.offset) : undefined,
+            order: [
+                [
+                    query.sort_by || "created_at",
+                    query.sort_order || "DESC"
+                ]
+            ]
+        });
     }
 
-    async getById(
-        id: number,
-        actor?: any,
-        query: any = {}
-    ) {
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-        };
-
-        const record = await repo.findById(
-            id,
-            options
+    async getById(id: number, query: any = {}, actor?: any) {
+        const record = await repo.findOne(
+            {
+                id: id,
+            },
+            {
+                include: Array.isArray(query.include) ? query.include : [],
+            }
         );
+
+        if(!record){
+            throw new Error("Record not found");
+        }
 
         // Non-admin actors can only view location services from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
@@ -133,7 +105,13 @@ class LocationServiceService {
     }
 
     async update(id: number, data: any, actor: any) {
-        const record = await repo.findById(id);
+        const record = await repo.findOne(
+            {id: id}
+        );
+
+        if(!record){
+            throw new Error("Record not found");
+        }
 
         // Non-admin actors can only update location services from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
@@ -146,11 +124,19 @@ class LocationServiceService {
         const allowed: any = {};
         if (data.availability !== undefined) allowed.availability = data.availability;
 
-        return await repo.update(id, allowed);
+        return await repo.update(
+            { id: id },
+            allowed);
     }
 
     async delete(id: number, actor: any) {
-        const record = await repo.findById(id);
+        const record = await repo.findOne(
+            {id: id}
+        );
+
+        if(!record){
+            throw new Error("Record not found");
+        }
 
         // Non-admin actors can only delete location services from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
@@ -160,7 +146,9 @@ class LocationServiceService {
             }
         }
 
-        return await repo.delete(id);
+        return await repo.delete({
+            id: id,
+        });
     }
 }
 

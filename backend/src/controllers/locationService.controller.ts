@@ -14,7 +14,21 @@ class LocationServiceController {
 
     async getAll(req: Request, res: Response) {
         try {
-            const data = await service.getAll(req.query, req.user);
+            let include = req.query.include ?? "";
+
+            include = [
+                {
+                    alias: "business",
+                    attributes: [],
+                },
+            ]
+            const data = await service.getAll(
+                {
+                    ...req.query,
+                    include,
+                },
+                req.user
+            );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -23,10 +37,21 @@ class LocationServiceController {
 
     async getById(req: Request, res: Response) {
         try {
+            let include = req.query.include ?? "";
+
+            include = [
+                {
+                    alias: "business",
+                    attributes: [],
+                },
+            ]
             const data = await service.getById(
                 Number(req.params.id),
-                req.user,
-                req.query
+                {
+                    ...req.query,
+                    include,
+                },
+                req.user
             );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {

@@ -16,7 +16,6 @@ export const FILTER_CONFIG: any = {
         field: "is_active",
         op: Op.eq
     },
-
     search: {
         type: "or",
         fields: [
@@ -25,6 +24,11 @@ export const FILTER_CONFIG: any = {
             { field: "phone", op: Op.like },
             { field: "street", op: Op.like }
         ]
+    },
+
+    id: {
+        field: "id",
+        op: Op.eq
     }
 };
 

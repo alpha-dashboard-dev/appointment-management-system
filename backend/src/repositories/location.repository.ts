@@ -43,7 +43,7 @@ class LocationRepository {
     //     );
     // }
 
-    async findOne(options: any = {}) {
+    async findOne(where: any = {}, options: any = {}) {
 
         // console.log(options);
         const include = buildIncludes(
@@ -53,7 +53,7 @@ class LocationRepository {
         return dbHelper.findOne(
             this.tables,
             {
-               ...options,
+               where,
                 include
             }
         );
