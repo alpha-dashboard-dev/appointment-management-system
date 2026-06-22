@@ -106,11 +106,11 @@ class UserService {
 
     async getAll(query: any = {}, actor: any) {
         // console.log(query.where)
+        const where = buildWhere(query);
 
         if (!this.isAdmin(actor)) {
-            query.business_code = actor.businessCode;
+            where.business_code = actor.businessCode;
         }
-        const where = buildWhere(query);
 
         return repo.findAll({
             where,

@@ -70,9 +70,9 @@ class ChargeRepository {
         return dbHelper.delete(this.tables, where);
     }
 
-    // async findActiveByBusiness(businessCode: string) {
-    //     return dbHelper.findAll(this.tables, { where: { business_code: businessCode, status: "active" } });
-    // }
+    async findActiveByBusiness(businessCode: string) {
+        return dbHelper.findAll(this.tables, { where: { business_code: businessCode, status: "active" } });
+    }
 
     async findByCode(chargeCode: string, options: any = {}) {
         return dbHelper.findOne(this.tables, {

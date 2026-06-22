@@ -1,5 +1,4 @@
-// Generates unique 8-character codes used as identifiers across all models
-// (e.g. businessCode, appointmentCode).
+// Generates unique 8-character codes used as identifiers across all models<
 
 import crypto from "crypto";
 export function generateCode(): string {

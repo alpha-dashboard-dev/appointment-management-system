@@ -30,10 +30,17 @@ router.get(
 
 
 router.get(
-    "/get-service/:serviceCode",
+    "/get-one-service/:serviceCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
     controller.getByCode
+);
+
+router.get(
+    "/get-one-service",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.getByAnyField
 );
 
 router.put(
@@ -44,10 +51,10 @@ router.put(
 );
 
 router.patch(
-    "/update-service-status/:serviceCode/status",
+    "/deactivate-service/:serviceCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
-    controller.changeStatus
+    controller.deactivate
 );
 
 router.delete(

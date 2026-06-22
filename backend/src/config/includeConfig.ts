@@ -18,6 +18,13 @@ export const INCLUDE_CONFIG = {
         owner: {
             attributes: ["name"]
         }
+    },
+    Service: {
+        business: {
+            attributes: ["name"]
+        }
     }
+
+
 
 };

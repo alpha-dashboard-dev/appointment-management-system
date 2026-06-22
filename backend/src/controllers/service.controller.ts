@@ -14,7 +14,21 @@ class ServiceController {
 
     async getAll(req: Request, res: Response) {
         try {
-            const data = await service.getAll(req.query, req.user);
+                let include = req.query.include ?? "";
+
+                include = [
+                    {
+                        alias: "business",
+                        attributes: [],
+                    },
+                ]
+            const data = await service.getAll(
+                {
+                    ...req.query,
+                    include
+                },
+                req.user
+            );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -24,10 +38,23 @@ class ServiceController {
 
     async getByCode(req: Request, res: Response) {
         try {
+
+            let include = req.query.include ?? "";
+
+            include = [
+                {
+                    alias: "business",
+                    attributes: [],
+                },
+            ]
+            const serviceCode = String(req.params.serviceCode);
             const data = await service.getByCode(
-                String(req.params.serviceCode),
+                serviceCode,
                 req.user,
-                req.query
+                {
+                    ...req.query,
+                    include
+                }
             );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
@@ -35,21 +62,52 @@ class ServiceController {
         }
     }
 
+    async getByAnyField(req: Request, res: Response) {
+
+        try {
+
+            // console.log(req.query)
+            const { include, ...where } = req.query;
+            // console.log(field, value)
+            const user = req.user;
+            const data = await service.getOne(
+                where,
+                user,
+                {
+                    include
+                }
+            )
+
+            return res.status(200).json({
+                success: true,
+                data,
+            });
+
+        } catch (err: any) {
+
+            return res.status(404).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+
     async update(req: Request, res: Response) {
         try {
-            const data = await service.update(String(req.params.serviceCode), req.body, req.user);
+            const serviceCode = String(req.params.serviceCode);
+            const data = await service.update(serviceCode, req.body, req.user);
             return res.status(200).json({ success: true, message: "Service updated", data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });
         }
     }
 
-    async changeStatus(req: Request, res: Response) {
+    async deactivate(req: Request, res: Response) {
         try {
             const serviceCode = String(req.params.serviceCode);
             const { status } = req.body;
 
-            const data = await service.changeStatus(serviceCode, status, req.user);
+            const data = await service.deactivate(serviceCode, status, req.user);
 
             return res.status(200).json({
                 success: true,

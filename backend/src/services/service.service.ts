@@ -5,6 +5,7 @@ import chargeRepo from "../repositories/charge.repository";
 import { generateCode } from "../utils/codeGenerator";
 import { validateService } from "../utils/validator";
 import { ROLES } from "../utils/roles";
+import {buildWhere} from "../utils/buildWhere";
 
 class ServiceService {
 
@@ -35,64 +36,43 @@ class ServiceService {
     }
 
     async getAll(query: any = {}, actor?: any) {
-        const filters: any = {
-            business_code:
-                query.business_code,
-        };
 
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
+        // console.log(query)
 
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
+        const where = buildWhere(query);
+        // console.log(where.business_code);
+        // Non-admin, non-client actors can only see services from their own business
+        if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
+            where.business_code = actor.businessCode;
+        }
+        // Clients pass business_code as a query param; don't override it
+        return await repo.findAll({
+            where,
+            include: Array.isArray(query.include) ? query.include : [],
+            limit: query.limit ? Number(query.limit) : undefined,
+            offset: query.offset ? Number(query.offset) : undefined,
             order: [
                 [
                     query.sort_by || "created_at",
-
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
-
-        // Non-admin, non-client actors can only see services from their own business
-        if (actor && actor.userType !== ROLES.ADMIN && actor.userType !== ROLES.CLIENT) {
-            filters.business_code = actor.businessCode;
-        }
-        // Clients pass business_code as a query param; don't override it
-        return await repo.findAll(
-            filters,
-            options
-        );
+                    query.sort_order || "DESC"
+                ]
+            ]
+        });
     }
 
-    async getByCode(
-        serviceCode: string,
+    async getByCode(serviceCode: string,
         actor?: any,
         query: any = {}
     ) {
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-        };
 
-        const service = await repo.findByCode(
-            serviceCode,
-            options
+        const service = await repo.findOne(
+            {
+                service_code: serviceCode
+            },
+            {
+                include: Array.isArray(query.include) ? query.include : [],
+
+            }
         );
         if (!service) throw new Error("Service not found");
 
@@ -107,8 +87,32 @@ class ServiceService {
         return service;
     }
 
+    async getOne(where: any, actor: any, query: any = {}) {
+        const service = await repo.findOne(
+            where,
+            {
+                include: query.include || []
+            }
+        );
+
+        if (!service) {
+            throw new Error("Service not found");
+        }
+
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const serviceBusiness = service.dataValues?.business_code ?? service.business_code;
+            if (serviceBusiness !== actor.businessCode) {
+                throw new Error("Access denied: service does not belong to your business");
+            }
+        }
+
+        return service;
+    }
+
     async update(serviceCode: string, data: any, actor: any) {
-        const service = await repo.findByCode(serviceCode);
+        const service = await repo.findOne({
+            service_code: serviceCode
+        });
         if (!service) throw new Error("Service not found");
 
         // Non-admin actors can only update services from their own business
@@ -137,18 +141,24 @@ class ServiceService {
         if (data.status !== undefined)
             allowed.status = data.status;
 
-        return await repo.update(serviceCode, allowed);
+        return await repo.update(
+            {service_code: serviceCode},
+            allowed
+        );
     }
 
-    async changeStatus(serviceCode: string, status: string, user: any) {
+    async deactivate(serviceCode: string, status: string, user: any) {
         if (!user || (user.userType !== ROLES.ADMIN && user.userType !== ROLES.BUSINESS_OWNER)) {
             throw new Error("Only admin and business owner can change service status");
         }
+
         if (!["active", "inactive"].includes(status)) {
             throw new Error("Invalid status");
         }
 
-        const service = await repo.findByCode(serviceCode);
+        const service = await repo.findOne({
+            service_code: serviceCode,
+        });
         if (!service) throw new Error("Service not found");
 
         // Business owners can only change status of their own services
@@ -159,11 +169,21 @@ class ServiceService {
             }
         }
 
-        return await repo.update(serviceCode, { status });
+        return await repo.deactivate(
+            {
+                service_code: serviceCode,
+            },
+            // status
+            {
+                status
+            }
+        );
     }
 
     async delete(serviceCode: string, actor: any) {
-        const service = await repo.findByCode(serviceCode);
+        const service = await repo.findOne({
+            service_code: serviceCode
+        });
         if (!service) throw new Error("Service not found");
 
         // Non-admin actors can only delete services from their own business
@@ -174,7 +194,9 @@ class ServiceService {
             }
         }
 
-        return await repo.delete(serviceCode);
+        return await repo.delete({
+            service_code: serviceCode,
+        });
     }
     async getServicesForClient(businessCode: string, locationCode?: string) {
         const allServices = await repo.findAll({ business_code: businessCode });
