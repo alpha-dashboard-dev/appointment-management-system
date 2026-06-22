@@ -27,6 +27,13 @@ router.get(
     controller.getByCode
 );
 
+router.get(
+    "/get-location",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF, ROLES.CLIENT),
+    controller.getByAnyField
+);
+
 router.put(
     "/update-location/:locationCode",
     authenticate,
@@ -35,7 +42,7 @@ router.put(
 );
 
 router.patch(
-    "/update-location-status:locationCode",
+    "/deactivate-location/:locationCode",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
     controller.update

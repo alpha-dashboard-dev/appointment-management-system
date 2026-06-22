@@ -23,6 +23,12 @@ export const INCLUDE_CONFIG = {
         business: {
             attributes: ["name"]
         }
+    },
+
+    Location: {
+        business: {
+            attributes: ["name"]
+        }
     }
 
 

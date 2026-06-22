@@ -175,7 +175,7 @@ async function submit() {
         form.password
     )
 
-    router.push(
+    await router.push(
         authStore.dashboardRoute
     )
 

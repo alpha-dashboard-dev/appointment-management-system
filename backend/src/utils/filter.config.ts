@@ -22,7 +22,8 @@ export const FILTER_CONFIG: any = {
         fields: [
             { field: "name", op: Op.like },
             { field: "email", op: Op.like },
-            { field: "phone", op: Op.like }
+            { field: "phone", op: Op.like },
+            { field: "street", op: Op.like }
         ]
     }
 };
