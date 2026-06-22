@@ -2,6 +2,7 @@ import repo from "../repositories/invoice.repository";
 import appointmentRepo from "../repositories/appointment.repository";
 import { validateInvoice, validateInvoiceStatus } from "../utils/validator";
 import { ROLES } from "../utils/roles";
+import {buildWhere} from "../utils/buildWhere";
 
 class InvoiceService {
 
@@ -38,73 +39,48 @@ class InvoiceService {
     }
 
     async getAll(query: any = {}, actor?: any) {
-        const filters: any = {
-            business_code:
-                query.business_code,
+       const where = buildWhere(query)
 
-            appointment_code:
-                query.appointment_code,
-
-            status: query.status,
-        };
-
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            query.business_code = actor.businessCode;
+        }
+        return repo.findAll({
+            where,
+            include: Array.isArray(query.include)
+                ? query.include
+                : [],
+            limit: query.limit ? Number(query.limit) : undefined,
+            offset: query.offset ? Number(query.offset) : undefined,
             order: [
                 [
                     query.sort_by || "created_at",
-
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
-
-        if (actor && actor.userType !== ROLES.ADMIN) {
-            filters.business_code = actor.businessCode;
-        }
-        return await repo.findAll(
-            filters,
-            options
-        );
+                    query.sort_order || "DESC"
+                ]
+            ]
+        });
     }
 
-    async getById(
-        id: number,
-        query: any = {}
-    ) {
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-        };
+    async getById(id: number, query: any = {}, actor: any) {
 
-        const invoice = await repo.findById(
-            id,
-            options
+        const invoice = await repo.findOne(
+            {
+                id: id
+            },
+            {
+                include: Array.isArray(query.include) ? query.include : [],
+            }
+
         );
         if (!invoice) throw new Error("Invoice not found");
         return invoice;
     }
 
     async update(id: number, data: any, actor: any) {
-        const invoice = await repo.findById(id);
+        const invoice = await repo.findOne(
+            {
+                id: id,
+            }
+        );
         if (!invoice) throw new Error("Invoice not found");
 
         const allowed: any = {};
@@ -113,17 +89,39 @@ class InvoiceService {
         if (data.date !== undefined) allowed.date = data.date;
         allowed.updated_by = actor?.userCode || null;
 
-        return await repo.update(id, allowed);
+        return await repo.update(
+            { id: id },
+            allowed);
     }
 
     async changeStatus(id: number, status: string, actor: any) {
         validateInvoiceStatus({ status });
-        const invoice = await repo.findById(id);
+        const invoice = await repo.findOne(
+            { id: id }
+        );
         if (!invoice) throw new Error("Invoice not found");
 
-        return await repo.update(id, {
+        return await repo.update({ id: id }, {
             invoice_status: status,
             updated_by: actor?.userCode || null,
+        });
+    }
+
+    async delete(id: number, actor: any) {
+        const invoice = await repo.findOne({
+                id: id
+            });
+
+        if (!invoice) throw new Error("Invoice not found");
+
+        if (actor.userType !== ROLES.ADMIN) {
+            throw new Error(
+                "Only admin can permanently delete invoices"
+            );
+        }
+
+        return await repo.delete({
+            id: id
         });
     }
 }

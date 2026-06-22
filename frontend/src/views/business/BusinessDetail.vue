@@ -232,8 +232,9 @@ async function fetchBusiness(code) {
   try {
     const res = await apiHandler("business", "getOneBusiness", {
       code: businessCode,
-      include: 'organization,services,users,locations,appointments'
     })
+
+    // console.log(res)
 
     business.value = res.data.data || {}
   } finally {

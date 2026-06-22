@@ -17,7 +17,14 @@ export const INCLUDE_CONFIG = {
         },
         owner: {
             attributes: ["name"]
+        },
+        services: {
+            attributes: ["name", "description", "price", "status"]
+        },
+        locations: {
+            attributes: ["address", "street", "city", "country", "location_type", "status" ]
         }
+
     },
     Service: {
         business: {
@@ -39,6 +46,15 @@ export const INCLUDE_CONFIG = {
             attributes: ["address"]
         },
         service: {
+            attributes: ["name"]
+        }
+    },
+
+    Invoice: {
+        business: {
+            attributes: ["name"]
+        },
+        updatedByUser: {
             attributes: ["name"]
         }
     }

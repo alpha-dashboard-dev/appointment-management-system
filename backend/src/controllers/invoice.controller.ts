@@ -14,7 +14,19 @@ class InvoiceController {
 
     async getAll(req: Request, res: Response) {
         try {
-            const data = await service.getAll(req.query, req.user);
+            let include = req.query.include ?? "";
+            include = [
+                {
+                    alias: "updatedByUser",
+                    attributes: [],
+                },
+            ]
+            const data = await service.getAll(
+                {
+                    ...req.query,
+                    include
+                },
+                req.user);
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -23,9 +35,20 @@ class InvoiceController {
 
     async getById(req: Request, res: Response) {
         try {
+            let include = req.query.include ?? "";
+            include = [
+                {
+                    alias: "updatedByUser",
+                    attributes: [],
+                },
+            ]
             const data = await service.getById(
                 Number(req.params.id),
-                req.query
+                {
+                    ...req.query,
+                    include
+                },
+                req.user
             );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
@@ -49,6 +72,29 @@ class InvoiceController {
             return res.status(200).json({ success: true, message: "Invoice status updated", data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });
+        }
+    }
+
+    async delete(req: Request, res: Response) {
+
+        try {
+
+            await service.delete(
+                Number(req.params.id),
+                req.user
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: "Invoice permanently deleted"
+            });
+
+        } catch (err: any) {
+
+            return res.status(400).json({
+                success: false,
+                message: err.message
+            });
         }
     }
 }

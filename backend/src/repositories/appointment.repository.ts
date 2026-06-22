@@ -1,6 +1,7 @@
 import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 import { Op } from "sequelize";
+import {buildIncludes} from "../utils/includeBuilder";
 
 const db = initModels();
 
@@ -9,62 +10,80 @@ class AppointmentRepository {
     private tables: any;
 
     constructor() {
-        this.tables = { sequelize: db.Appointment };
+        // this.tables = { sequelize: db.Appointment };
+        this.tables = db.Appointment
     }
 
-    buildIncludes(include: string[] = []) {
-        const associations =
-            db.Appointment.associations || {};
-
-        return [...new Set(include)]
-            .filter((alias) => associations[alias])
-            .map((alias) => ({
-                association: alias,
-            }));
-    }
+    // buildIncludes(include: string[] = []) {
+    //     const associations =
+    //         db.Appointment.associations || {};
+    //
+    //     return [...new Set(include)]
+    //         .filter((alias) => associations[alias])
+    //         .map((alias) => ({
+    //             association: alias,
+    //         }));
+    // }
 
     async create(data: any) {
         return dbHelper.create(this.tables, data);
     }
 
-    async findAll(filters: any = {}, options: any = {}) {
-        const where: any = {};
-        if (filters.business_code) where.business_code = filters.business_code;
-        if (filters.status) where.status = filters.status;
-        if (filters.user_code) where.created_by = filters.user_code;
-        if (filters.rescheduled_from) where.rescheduled_from = filters.rescheduled_from;
-        let include =
-            this.buildIncludes(options.include || []);
+    async findAll(options: any = {}) {
+        // console.log(options);
 
-        // nested include for services -> service
-        include = include.map((item: any) => {
+        const include = buildIncludes(
+            this.tables,
+            options.include || []
+        );
 
-            if (item.association === "services") {
-
-                return {
-                    association: "services",
-
-                    include: [
-                        {
-                            association: "service"
-                        }
-                    ]
-                };
+        return dbHelper.findAll(
+            this.tables,
+            {
+                ...options,
+                include
             }
-
-            return item;
-        });
-        return dbHelper.findAll(this.tables, {
-            where,
-            include,
-            // include: this.buildIncludes(
-            //     options.include || []
-            // ),
-            limit: options.limit,
-            offset: options.offset,
-            order: options.order || [["created_at", "DESC"]],
-        });
+        );
     }
+
+    // async findAll(filters: any = {}, options: any = {}) {
+    //     const where: any = {};
+    //     if (filters.business_code) where.business_code = filters.business_code;
+    //     if (filters.status) where.status = filters.status;
+    //     if (filters.user_code) where.created_by = filters.user_code;
+    //     if (filters.rescheduled_from) where.rescheduled_from = filters.rescheduled_from;
+    //     let include =
+    //         this.buildIncludes(options.include || []);
+    //
+    //     // nested include for services -> service
+    //     include = include.map((item: any) => {
+    //
+    //         if (item.association === "services") {
+    //
+    //             return {
+    //                 association: "services",
+    //
+    //                 include: [
+    //                     {
+    //                         association: "service"
+    //                     }
+    //                 ]
+    //             };
+    //         }
+    //
+    //         return item;
+    //     });
+    //     return dbHelper.findAll(this.tables, {
+    //         where,
+    //         include,
+    //         // include: this.buildIncludes(
+    //         //     options.include || []
+    //         // ),
+    //         limit: options.limit,
+    //         offset: options.offset,
+    //         order: options.order || [["created_at", "DESC"]],
+    //     });
+    // }
 
     // For service_staff: returns only appointments where they are a participant
     async findByParticipantCodes(

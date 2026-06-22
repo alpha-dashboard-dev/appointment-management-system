@@ -21,6 +21,7 @@ import pricingService from "./appointmentPricing.service";
 
 import initModels from "../config/database/sequelize/models/index";
 import appointmentServiceItemService from "./appointmentServiceItem.service";
+import {buildWhere} from "../utils/buildWhere";
 
 const db = initModels();
 
@@ -144,36 +145,59 @@ class AppointmentService {
         }
     }
 
-    async getAll(query: any = {}, actor?: any) {
-        const options = buildQueryOptions(query);
+    // async getAll(query: any = {}, actor?: any) {
+    //     const options = buildQueryOptions(query);
+    //
+    //     const filters: any = {
+    //         business_code: query.business_code,
+    //         status: query.status,
+    //     };
+    //
+    //     // Non-admin actors restricted to their business
+    //     if (actor && actor.userType !== ROLES.ADMIN) {
+    //         filters.business_code = actor.businessCode;
+    //     }
+    //
+    //     // Service staff can only see their own appointments
+    //     if (actor && actor.userType === ROLES.SERVICE_STAFF) {
+    //         const participantCodes = await participantRepo.findAppointmentCodesByUser(actor.userCode);
+    //         return repo.findByParticipantCodes(participantCodes, filters, options);
+    //     }
+    //
+    //     // console.log('ACTOR:', actor);
+    //     // console.log('USER TYPE:', actor?.userType);
+    //
+    //     // Clients see only their own appointments
+    //     if (actor && actor.userType === ROLES.CLIENT) {
+    //         filters.created_by = actor.userCode;
+    //     }
+    //
+    //     return await repo.findAll(filters, options);
+    // }
 
-        const filters: any = {
-            business_code: query.business_code,
-            status: query.status,
-        };
+    async getAll(query: any = {}, actor: any) {
+        // console.log(query.where)
+        const where = buildWhere(query);
 
-        // Non-admin actors restricted to their business
-        if (actor && actor.userType !== ROLES.ADMIN) {
-            filters.business_code = actor.businessCode;
+        if (!actor || actor.userType !== ROLES.ADMIN) {
+            where.business_code = actor.businessCode;
         }
 
-        // Service staff can only see their own appointments
-        if (actor && actor.userType === ROLES.SERVICE_STAFF) {
-            const participantCodes = await participantRepo.findAppointmentCodesByUser(actor.userCode);
-            return repo.findByParticipantCodes(participantCodes, filters, options);
-        }
-
-        // console.log('ACTOR:', actor);
-        // console.log('USER TYPE:', actor?.userType);
-
-        // Clients see only their own appointments
-        if (actor && actor.userType === ROLES.CLIENT) {
-            filters.created_by = actor.userCode;
-        }
-
-        return await repo.findAll(filters, options);
+        return repo.findAll({
+            where,
+            include: Array.isArray(query.include)
+                ? query.include
+                : [],
+            limit: query.limit ? Number(query.limit) : undefined,
+            offset: query.offset ? Number(query.offset) : undefined,
+            order: [
+                [
+                    query.sort_by || "created_at",
+                    query.sort_order || "DESC"
+                ]
+            ]
+        });
     }
-
 
     async getByCode(appointmentCode: string, actor?: any, query: any = {}) {
         const options = buildQueryOptions(query);

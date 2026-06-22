@@ -36,7 +36,6 @@ class UserRepository {
         include
       }
     );
-
   }
 
   async findOne(where: any = {}, options: any = {}) {

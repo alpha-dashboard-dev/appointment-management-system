@@ -2,6 +2,8 @@ import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
 import {Op} from "sequelize";
 import { ROLES } from "../utils/roles";
+import { buildIncludes } from "../utils/includeBuilder";
+
 
 const db = initModels();
 
@@ -15,37 +17,40 @@ class ScheduleRepository {
     private tables: any;
 
     constructor() {
-        this.tables = { sequelize: db.UserShiftSchedule };
+        // this.tables = { sequelize: db.UserShiftSchedule };
+        this.tables = db.UserShiftSchedule
     }
 
-    buildIncludes(include: string[] = []) {
-        const associations =
-            db.UserShiftSchedule.associations || {};
-
-        return [...new Set(include)]
-            .filter((alias) => associations[alias])
-            .map((alias) => ({
-                association: alias,
-            }));
-    }
+    // buildIncludes(include: string[] = []) {
+    //     const associations =
+    //         db.UserShiftSchedule.associations || {};
+    //
+    //     return [...new Set(include)]
+    //         .filter((alias) => associations[alias])
+    //         .map((alias) => ({
+    //             association: alias,
+    //         }));
+    // }
 
     async create(data: any) {
         return dbHelper.create(this.tables, data);
     }
 
-    async findAll(filters: any = {}, options: any = {}) {
-        const where: any = {};
-        if (filters.business_code) where.business_code = filters.business_code;
-        if (filters.user_code) where.user_code = filters.user_code;
-        return dbHelper.findAll(this.tables, {
-            where,
-            include: this.buildIncludes(
-                options.include || []
-            ),
-            limit: options.limit,
-            offset: options.offset,
-            order: options.order || [["created_at", "DESC"]],
-        });
+    async findAll(options: any = {}) {
+        // console.log(options);
+
+        const include = buildIncludes(
+            this.tables,
+            options.include || []
+        );
+
+        return dbHelper.findAll(
+            this.tables,
+            {
+                ...options,
+                include
+            }
+        );
     }
 
     async findById(id: number, options: any = {}) {

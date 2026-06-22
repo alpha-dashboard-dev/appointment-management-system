@@ -170,20 +170,16 @@ async function submit() {
 
   try {
 
-    await authStore.login(
-        form.email,
-        form.password
-    )
+    await authStore.login(form.email, form.password)
+    console.log(authStore.dashboardRoute)
+    console.log(authStore.dashboardRoute.value)
 
-    await router.push(
-        authStore.dashboardRoute
-    )
+    await router.push(authStore.dashboardRoute)
 
   } catch (err) {
 
     error.value =
-        err.response?.data?.message
-        || 'Login failed. Check credentials.'
+        err.response?.data?.message || 'Login failed. Check credentials.'
 
   } finally {
 

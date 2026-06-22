@@ -126,27 +126,69 @@ const roleRedirectMap = {
     client: "/client/dashboard",
 };
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to) => {
     const authStore = useAuthStore();
 
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        return next("/login");
+        return "/login";
     }
 
     if (to.path === "/login" && authStore.isAuthenticated) {
         const role = authStore.user?.userType;
-        return next(roleRedirectMap[role] || "/dashboard");
+        return roleRedirectMap[role] || "/dashboard";
     }
 
-    // Role guard: if route has roles restriction and user's role not in list
     if (to.meta.roles && authStore.isAuthenticated) {
         const role = authStore.user?.userType;
+
         if (!to.meta.roles.includes(role)) {
-            return next(roleRedirectMap[role] || "/login");
+            return roleRedirectMap[role] || "/login";
         }
     }
 
-    next();
+    return true;
 });
+
+// router.beforeEach((to, _from, next) => {
+//     const authStore = useAuthStore();
+//
+//     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+//         return next("/login");
+//     }
+//
+//     if (to.path === "/login" && authStore.isAuthenticated) {
+//         const role = authStore.user?.userType;
+//         return next(roleRedirectMap[role] || "/dashboard");
+//     }
+//
+//     // Role guard: if route has roles restriction and user's role not in list
+//     if (to.meta.roles && authStore.isAuthenticated) {
+//         const role = authStore.user?.userType;
+//         if (!to.meta.roles.includes(role)) {
+//             return next(roleRedirectMap[role] || "/login");
+//         }
+//     }
+//
+//     next();
+// });
+
+// router.beforeEach((to) => {
+//     console.log("1");
+//
+//     const authStore = useAuthStore();
+//     console.log("TO:", to.path);
+//     console.log("AUTH:", authStore.isAuthenticated);
+//     console.log("ROLE:", authStore.user?.userType);
+//     console.log("META ROLES:", to.meta.roles);
+//
+//
+//     console.log("2");
+//
+//     console.log(authStore.isAuthenticated);
+//
+//     console.log("3");
+//
+//     return true;
+// });
 
 export default router;

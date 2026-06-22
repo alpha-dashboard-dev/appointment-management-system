@@ -77,7 +77,20 @@ class BusinessController {
                     attributes: ""
                 },
                 {
-                    alias: "owner",
+                    alias: "users",
+                    attributes: ""
+
+                },
+                {
+                    alias: "services",
+                    attributes: ""
+                },
+                {
+                    alias: "locations",
+                    attributes: ""
+                },
+                {
+                    alias: "appointments",
                     attributes: ""
                 }
             ]

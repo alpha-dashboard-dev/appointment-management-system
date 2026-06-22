@@ -544,10 +544,7 @@ async function fetchAppointments() {
   loading.value = true
   error.value = ''
   try {
-    const res = await apiHandler("appointment", "getAllAppointments",
-        {
-            include: "business,creator,approver,services,services.service,location"
-    })
+    const res = await apiHandler("appointment", "getAllAppointments")
     appointments.value = (res.data.data || []).map((appt) => ({
       ...appt,
       business_name: appt.business?.name || '',
@@ -582,7 +579,7 @@ async function openDetails(appt) {
   try {
     const res = await apiHandler("appointment", "getAppointmentHistory", {
       code: appt.appointment_code,
-      include : "changedByUser"
+      // include : "changedByUser"
     })
     appointmentHistory.value = (res.data.data || []).map((appt) => ({
       ...appt,

@@ -1,5 +1,6 @@
 import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+import {buildIncludes} from "../utils/includeBuilder";
 
 const db = initModels();
 
@@ -8,7 +9,8 @@ class InvoiceRepository {
     private tables: any;
 
     constructor() {
-        this.tables = { sequelize: db.Invoice };
+        // this.tables = { sequelize: db.Invoice };
+        this.tables = db.Invoice
     }
 
     buildIncludes(include: string[] = []) {
@@ -26,54 +28,86 @@ class InvoiceRepository {
         return dbHelper.create(this.tables, data);
     }
 
-    async findAll(filters: any = {}, options: any = {}) {
-        const where: any = {};
-        if (filters.business_code) where.business_code = filters.business_code;
-        if (filters.appointment_code) where.appointment_code = filters.appointment_code;
-        if (filters.status) where.invoice_status = filters.status;
-        return dbHelper.findAll(this.tables, {
+    async findAll(options: any = {}) {
+        // console.log(options);
+
+        const include = buildIncludes(
+            this.tables,
+            options.include || []
+        );
+
+        return dbHelper.findAll(
+            this.tables,
+            {
+                ...options,
+                include
+            }
+        );
+
+    }
+
+    async findOne(where: any = {}, options: any = {}) {
+        return dbHelper.findOne(
+            this.tables,
+            {
+                where,
+                include: buildIncludes(
+                    this.tables,
+                    options.include || []
+                ),
+            }
+        );
+    }
+
+    async update(where: any, data: any, options: any = {}) {
+
+        return dbHelper.update(
+            this.tables,
             where,
-            include: this.buildIncludes(
-                options.include || []
-            ),
-            limit: options.limit,
-            offset: options.offset,
-            order: options.order || [["created_at", "DESC"]],
-        });
+            data,
+            options
+        );
     }
 
-    async findById(id: number, options: any = {}) {
-        return dbHelper.findOne(this.tables, {
-            where: { id },
-            include: this.buildIncludes(
-                options.include || []
-            ),
-        });
+    async delete(where: any) {
+        return dbHelper.delete(
+            this.tables,
+            where
+        );
     }
 
-    async findByCode(appointmentCode: string, options: any = {}) {
-        return dbHelper.findOne(this.tables, {
-            where: {
-                appointment_code:
-                appointmentCode,
-            },
-            include: this.buildIncludes(
-                options.include || []
-            ),
-        });
-    }
-
-    // async findByAppointment(appointmentCode: string) {
-    //     return dbHelper.findAllByField(this.tables, "appointment_code", appointmentCode);
+    // async findById(id: number, options: any = {}) {
+    //     return dbHelper.findOne(this.tables, {
+    //         where: { id },
+    //         include: this.buildIncludes(
+    //             options.include || []
+    //         ),
+    //     });
     // }
-
-    async findByBusiness(businessCode: string) {
-        return dbHelper.findAllByField(this.tables, "business_code", businessCode);
-    }
-
-    async update(id: number, data: any) {
-        return dbHelper.update(this.tables, {"id": id}, data);
-    }
+    //
+    // async findByCode(appointmentCode: string, options: any = {}) {
+    //     return dbHelper.findOne(this.tables, {
+    //         where: {
+    //             appointment_code:
+    //             appointmentCode,
+    //         },
+    //         include: this.buildIncludes(
+    //             options.include || []
+    //         ),
+    //     });
+    // }
+    //
+    // // async findByAppointment(appointmentCode: string) {
+    // //     return dbHelper.findAllByField(this.tables, "appointment_code", appointmentCode);
+    // // }
+    //
+    // async findByBusiness(businessCode: string) {
+    //     return dbHelper.findAllByField(this.tables, "business_code", businessCode);
+    // }
+    //
+    // async update(id: number, data: any) {
+    //     return dbHelper.update(this.tables, {"id": id}, data);
+    // }
 }
 
 export default new InvoiceRepository();

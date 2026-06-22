@@ -41,4 +41,11 @@ router.patch(
     controller.changeStatus
 );
 
+router.delete(
+    "/delete-invoice/:id",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER),
+    controller.delete
+)
+
 export default router;
