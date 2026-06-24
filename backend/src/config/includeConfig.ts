@@ -65,5 +65,19 @@ export const INCLUDE_CONFIG = {
         location: {
             attributes: ["address", "city", "country", "location_type", "status" ]
         }
+    },
+
+    Appointment: {
+        business: {
+            attributes: ["name"]
+        },
+        services:{
+            attributes: ["service_code"],
+           include: {
+               service: {
+                   attributes: ["name", "price"]
+               }
+           }
+        }
     }
 };

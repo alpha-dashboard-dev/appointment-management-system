@@ -1,5 +1,6 @@
 import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+import {buildIncludes} from "../utils/includeBuilder";
 
 const db = initModels();
 
@@ -8,19 +9,20 @@ class AppointmentRecurrenceRepository {
     private tables: any;
 
     constructor() {
-        this.tables = { sequelize: db.AppointmentRecurrence };
+        // this.tables = { sequelize: db.AppointmentRecurrence };
+        this.tables = db.AppointmentRecurrence;
     }
 
-    buildIncludes(include: string[] = []) {
-        const associations =
-            db.AppointmentRecurrence.associations || {};
-
-        return [...new Set(include)]
-            .filter((alias) => associations[alias])
-            .map((alias) => ({
-                association: alias,
-            }));
-    }
+    // buildIncludes(include: string[] = []) {
+    //     const associations =
+    //         db.AppointmentRecurrence.associations || {};
+    //
+    //     return [...new Set(include)]
+    //         .filter((alias) => associations[alias])
+    //         .map((alias) => ({
+    //             association: alias,
+    //         }));
+    // }
 
     async create(data: any) {
         // console.log(data);
@@ -34,7 +36,7 @@ class AppointmentRecurrenceRepository {
         if (filters.status) where.status = filters.status;
         return dbHelper.findAll(this.tables, {
             where,
-            include: this.buildIncludes(
+            include: buildIncludes(
                 options.include || []
             ),
             limit: options.limit,
@@ -49,7 +51,7 @@ class AppointmentRecurrenceRepository {
     ) {
         return dbHelper.findOne(this.tables, {
             where: { id },
-            include: this.buildIncludes(
+            include: buildIncludes(
                 options.include || []
             ),
         });

@@ -107,7 +107,8 @@ class ScheduleController {
 
     async update(req: Request, res: Response) {
         try {
-            const data = await service.update(Number(req.params.id), req.body, req.user);
+            const scheduleId = Number(req.params.id);
+            const data = await service.update(scheduleId, req.body, req.user);
             return res.status(200).json({ success: true, message: "Schedule updated", data });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });
@@ -116,7 +117,8 @@ class ScheduleController {
 
     async delete(req: Request, res: Response) {
         try {
-            await service.delete(Number(req.params.id), req.user);
+            const scheduleId = Number(req.params.id);
+            await service.delete(scheduleId, req.user);
             return res.status(200).json({ success: true, message: "Schedule deleted" });
         } catch (err: any) {
             return res.status(400).json({ success: false, message: err.message });

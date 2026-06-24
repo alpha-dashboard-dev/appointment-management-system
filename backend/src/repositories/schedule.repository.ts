@@ -21,17 +21,6 @@ class ScheduleRepository {
         this.tables = db.UserShiftSchedule
     }
 
-    // buildIncludes(include: string[] = []) {
-    //     const associations =
-    //         db.UserShiftSchedule.associations || {};
-    //
-    //     return [...new Set(include)]
-    //         .filter((alias) => associations[alias])
-    //         .map((alias) => ({
-    //             association: alias,
-    //         }));
-    // }
-
     async create(data: any) {
         return dbHelper.create(this.tables, data);
     }
@@ -82,10 +71,19 @@ class ScheduleRepository {
     // async findByBusiness(businessCode: string) {
     //     return dbHelper.findAllByField(this.tables, "business_code", businessCode);
     // }
+    async update(where: any, data: any, options: any = {}) {
 
-    async update(id: number, data: any) {
-        return dbHelper.update(this.tables, {"id": id}, data);
+        return dbHelper.update(
+            this.tables,
+            where,
+            data,
+            options
+        );
     }
+
+    // async update(id: number, data: any) {
+    //     return dbHelper.update(this.tables, {"id": id}, data);
+    // }
 
     async findAvailableStaff(businessCode: string, locationCode: string, workingDay: string, startTime: string, endTime: string) {
         const normalizedStartTime = normalizeTime(startTime);

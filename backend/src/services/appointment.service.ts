@@ -28,6 +28,8 @@ const db = initModels();
 class AppointmentService {
 
     async getPricingPreview(data: any, actor?: any) {
+        console.log(data);
+
         const businessCode = resolveBusinessCode(actor, data?.business_code);
         const serviceCodes = Array.isArray(data?.service_codes) ? data.service_codes.filter(Boolean) : [];
 
@@ -145,36 +147,6 @@ class AppointmentService {
         }
     }
 
-    // async getAll(query: any = {}, actor?: any) {
-    //     const options = buildQueryOptions(query);
-    //
-    //     const filters: any = {
-    //         business_code: query.business_code,
-    //         status: query.status,
-    //     };
-    //
-    //     // Non-admin actors restricted to their business
-    //     if (actor && actor.userType !== ROLES.ADMIN) {
-    //         filters.business_code = actor.businessCode;
-    //     }
-    //
-    //     // Service staff can only see their own appointments
-    //     if (actor && actor.userType === ROLES.SERVICE_STAFF) {
-    //         const participantCodes = await participantRepo.findAppointmentCodesByUser(actor.userCode);
-    //         return repo.findByParticipantCodes(participantCodes, filters, options);
-    //     }
-    //
-    //     // console.log('ACTOR:', actor);
-    //     // console.log('USER TYPE:', actor?.userType);
-    //
-    //     // Clients see only their own appointments
-    //     if (actor && actor.userType === ROLES.CLIENT) {
-    //         filters.created_by = actor.userCode;
-    //     }
-    //
-    //     return await repo.findAll(filters, options);
-    // }
-
     async getAll(query: any = {}, actor: any) {
         // console.log(query.where)
         const where = buildWhere(query);
@@ -200,8 +172,15 @@ class AppointmentService {
     }
 
     async getByCode(appointmentCode: string, actor?: any, query: any = {}) {
-        const options = buildQueryOptions(query);
-        const appointment = await repo.findByCode(appointmentCode, options);
+        // const options = buildQueryOptions(query);
+        const appointment = await repo.findOne(
+            {
+                appointment_code: appointmentCode,
+            },
+            {
+                include: Array.isArray(query.include) ? query.include : [],
+            }
+        );
 
         if (!appointment) throw new Error("appointment not found");
 
@@ -230,7 +209,9 @@ class AppointmentService {
     }
 
     async update(appointmentCode: string, data: any, actor: any) {
-        const appointment = await repo.findByCode(appointmentCode);
+        const appointment = await repo.findOne({
+            appointment_code: appointmentCode,
+        });
         if (!appointment) throw new Error("appointment not found");
 
         const appointmentRow = extractRow(appointment);
@@ -338,7 +319,9 @@ class AppointmentService {
     async changeStatus(appointmentCode: string, status: string, actor: any) {
         validateAppointmentStatus({ status });
 
-        const appointment = await repo.findByCode(appointmentCode);
+        const appointment = await repo.findOne({
+            appointment_code: appointmentCode,
+        });
         if (!appointment) throw new Error("appointment not found");
 
         const appointmentRow = extractRow(appointment);
@@ -823,7 +806,9 @@ class AppointmentService {
      * Returns availability insights for an appointment without making changes
      */
     async checkAvailability(appointmentCode: string, actor: any) {
-        const appointment = await repo.findByCode(appointmentCode);
+        const appointment = await repo.findOne({
+            appointment_code: appointmentCode,
+        });
         if (!appointment) throw new Error("appointment not found");
 
         const appointmentRow = extractRow(appointment);

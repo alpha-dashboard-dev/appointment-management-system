@@ -1,5 +1,6 @@
 import initModels from "../config/database/sequelize/models/index";
 import dbHelper from "../helpers/newDBHelper";
+import {buildIncludes} from "../utils/includeBuilder";
 
 const db = initModels();
 
@@ -8,19 +9,20 @@ class AppointmentDiscountRepository {
     private tables: any;
 
     constructor() {
-        this.tables = { sequelize: db.AppointmentDiscount };
+        // this.tables = { sequelize: db.AppointmentDiscount };
+        this.tables = db.AppointmentDiscount;
     }
 
-    buildIncludes(include: string[] = []) {
-        const associations =
-            db.AppointmentDiscount.associations || {};
-
-        return [...new Set(include)]
-            .filter((alias) => associations[alias])
-            .map((alias) => ({
-                association: alias,
-            }));
-    }
+    // buildIncludes(include: string[] = []) {
+    //     const associations =
+    //         db.AppointmentDiscount.associations || {};
+    //
+    //     return [...new Set(include)]
+    //         .filter((alias) => associations[alias])
+    //         .map((alias) => ({
+    //             association: alias,
+    //         }));
+    // }
 
     async create(data: any) {
         return dbHelper.create(this.tables, data);
@@ -35,7 +37,7 @@ class AppointmentDiscountRepository {
                 appointment_code:
                     appointmentCode,
             },
-            include: this.buildIncludes(
+            include: buildIncludes(
                 options.include || []
             ),
             limit: options.limit,
@@ -50,7 +52,7 @@ class AppointmentDiscountRepository {
     ) {
         return dbHelper.findOne(this.tables, {
             where: { id },
-            include: this.buildIncludes(
+            include: buildIncludes(
                 options.include || []
             ),
         });

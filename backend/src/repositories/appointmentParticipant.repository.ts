@@ -9,7 +9,8 @@ class AppointmentParticipantRepository {
     private tables: any;
 
     constructor() {
-        this.tables = { sequelize: db.AppointmentParticipant };
+        // this.tables = { sequelize: db.AppointmentParticipant };
+        this.tables = db.AppointmentParticipant;
     }
 
     buildIncludes(include: string[] = []) {

@@ -9,8 +9,9 @@ class AppointmentHistoryService {
         query: any = {}
     ) {
         const appointment =
-            await appointmentRepo.findByCode(
-                appointmentCode
+            await appointmentRepo.findOne({
+                appointment_code: appointmentCode,
+            }
             );
 
         if (!appointment) {

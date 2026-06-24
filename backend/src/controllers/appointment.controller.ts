@@ -54,10 +54,25 @@ class AppointmentController {
 
     async getByCode(req: Request, res: Response) {
         try {
+            let include = req.query.include ?? "";
+            include = [
+                {
+                    alias: "business",
+                    attributes: [],
+                },
+                {
+                    alias: "services",
+                    attributes: [],
+                }
+            ]
+            const appointmentCode = String(req.params.appointmentCode)
             const data = await service.getByCode(
-                String(req.params.appointmentCode),
+                appointmentCode,
                 req.user,
-                req.query
+                {
+                    ...req.query,
+                    include
+                }
             );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {

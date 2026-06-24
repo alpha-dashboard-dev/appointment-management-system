@@ -7,8 +7,10 @@ class AppointmentChargeService {
 
     async add(appointmentCode: string, data: any) {
         const appointment =
-            await appointmentRepo.findByCode(
-                appointmentCode
+            await appointmentRepo.findOne(
+                {
+                    appointment_code: appointmentCode
+                }
             );
 
         if (!appointment) {
@@ -44,8 +46,8 @@ class AppointmentChargeService {
         query: any = {}
     ) {
         const appointment =
-            await appointmentRepo.findByCode(
-                appointmentCode
+            await appointmentRepo.findOne(
+                {appointment_code: appointmentCode}
             );
 
         if (!appointment) {

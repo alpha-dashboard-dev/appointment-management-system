@@ -1,5 +1,22 @@
 import { INCLUDE_CONFIG } from "../config/includeConfig";
 
+function buildNestedIncludes(config: any): any[] {
+
+    if (!config?.include) {
+        return [];
+    }
+
+    return Object.entries(config.include).map(
+        ([alias, childConfig]: any) => ({
+            association: alias,
+            attributes: childConfig.attributes,
+            where: childConfig.where,
+            required: childConfig.required,
+            include: buildNestedIncludes(childConfig),
+        })
+    );
+}
+
 export function buildIncludes(model: any, includes: any[] = []) {
 
     // console.log(model, includes);
@@ -21,18 +38,23 @@ export function buildIncludes(model: any, includes: any[] = []) {
             }
 
         const config = INCLUDE_CONFIG?.[modelName]?.[alias] || {};
-        const attributes = Array.isArray(item.attributes) && item.attributes.length
-                ? item.attributes
-                : config?.attributes;
+        // const attributes = Array.isArray(item.attributes) && item.attributes.length
+        //         ? item.attributes
+        //         : config?.attributes;
 
 
 
         // console.log(attributes);
 
             return {
+                // association: alias,
+                // ...(attributes ? { attributes } : {}),
+                // include: [],
                 association: alias,
-                ...(attributes ? { attributes } : {}),
-                include: [],
+                attributes: config.attributes,
+                where: config.where,
+                required: config.required,
+                include: buildNestedIncludes(config),
             };
         })
         .filter(Boolean);

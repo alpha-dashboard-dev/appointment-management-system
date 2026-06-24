@@ -36,7 +36,9 @@ export class AppointmentPricingService {
 
         // Sum service prices
         for (const code of serviceCodes) {
-            const service = await serviceRepo.findByCode(code);
+            const service = await serviceRepo.findOne({
+                service_code: code
+            });
             if (!service) continue;
             const s = extractRow(service);
             if (s.business_code !== businessCode) continue;
@@ -223,10 +225,7 @@ export class AppointmentPricingService {
     //         ...pricing,
     //     };
     // }
-    async getPricingPreview(
-        businessCode: string,
-        serviceCodes: string[],
-        selectedChargeCodes: string[] = []
+    async getPricingPreview(businessCode: string, serviceCodes: string[], selectedChargeCodes: string[] = []
     ): Promise<any> {
 
         const autoCharges =

@@ -151,11 +151,15 @@ class ScheduleService {
         if (allowed.start_time && !TIME_RE.test(allowed.start_time)) throw new Error("Invalid startTime format");
         if (allowed.end_time && !TIME_RE.test(allowed.end_time)) throw new Error("Invalid endTime format");
 
-        return await repo.update(id, allowed);
+        return await repo.update({
+            id: id
+        }, allowed);
     }
 
     async delete(id: number, actor?: any) {
-        const schedule = await repo.findById(id);
+        const schedule = await repo.findOne({
+            id: id
+        });
         if (!schedule) throw new Error("Schedule not found");
 
         // Non-admin actors can only delete schedules from their own business

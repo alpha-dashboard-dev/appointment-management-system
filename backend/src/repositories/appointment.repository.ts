@@ -46,58 +46,15 @@ class AppointmentRepository {
         );
     }
 
-    // async findAll(filters: any = {}, options: any = {}) {
-    //     const where: any = {};
-    //     if (filters.business_code) where.business_code = filters.business_code;
-    //     if (filters.status) where.status = filters.status;
-    //     if (filters.user_code) where.created_by = filters.user_code;
-    //     if (filters.rescheduled_from) where.rescheduled_from = filters.rescheduled_from;
-    //     let include =
-    //         this.buildIncludes(options.include || []);
-    //
-    //     // nested include for services -> service
-    //     include = include.map((item: any) => {
-    //
-    //         if (item.association === "services") {
-    //
-    //             return {
-    //                 association: "services",
-    //
-    //                 include: [
-    //                     {
-    //                         association: "service"
-    //                     }
-    //                 ]
-    //             };
-    //         }
-    //
-    //         return item;
-    //     });
-    //     return dbHelper.findAll(this.tables, {
-    //         where,
-    //         include,
-    //         // include: this.buildIncludes(
-    //         //     options.include || []
-    //         // ),
-    //         limit: options.limit,
-    //         offset: options.offset,
-    //         order: options.order || [["created_at", "DESC"]],
-    //     });
-    // }
-
     // For service_staff: returns only appointments where they are a participant
-    async findByParticipantCodes(
-        appointmentCodes: string[],
-        extraFilters: any = {},
-        options: any = {}
-    ) {
+    async findByParticipantCodes(appointmentCodes: string[], extraFilters: any = {}, options: any = {}) {
         if (!appointmentCodes.length) return [];
         const where: any = { appointment_code: { [Op.in]: appointmentCodes } };
         if (extraFilters.business_code) where.business_code = extraFilters.business_code;
         if (extraFilters.status) where.status = extraFilters.status;
         return dbHelper.findAll(this.tables, {
             where,
-            include: this.buildIncludes(
+            include: buildIncludes(
                 options.include || []
             ),
             limit: options.limit,
@@ -106,17 +63,30 @@ class AppointmentRepository {
         });
     }
 
-    async findByCode(appointmentCode: string, options: any = {}) {
-        return dbHelper.findOne(this.tables, {
-            where: {
-                appointment_code:
-                    appointmentCode,
-            },
-            include: this.buildIncludes(
-                options.include || []
-            ),
-        });
+    async findOne(where: any = {}, options: any = {}) {
+        return dbHelper.findOne(
+            this.tables,
+            {
+                where,
+                include: buildIncludes(
+                    this.tables,
+                    options.include || []
+                ),
+            }
+        );
     }
+
+    // async findByCode(appointmentCode: string, options: any = {}) {
+    //     return dbHelper.findOne(this.tables, {
+    //         where: {
+    //             appointment_code:
+    //                 appointmentCode,
+    //         },
+    //         include: buildIncludes(
+    //             options.include || []
+    //         ),
+    //     });
+    // }
 
     async update(appointmentCode: string, data: any) {
         return dbHelper.update(this.tables, {"appointment_code": appointmentCode}, data);
