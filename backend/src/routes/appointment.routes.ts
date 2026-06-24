@@ -150,7 +150,7 @@ router.post(
 );
 
 router.get(
-    "/get-appointment-participants",
+    "/get-appointment-participants/:appointmentCode",
     authenticate,
     authorizeRoles(...ALL_STAFF, ROLES.CLIENT),
     AppointmentParticipantController.getAll

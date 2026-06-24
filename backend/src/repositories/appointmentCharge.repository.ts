@@ -17,10 +17,7 @@ class AppointmentChargeRepository {
         return dbHelper.create(this.tables, data);
     }
 
-    async findByAppointment(
-        appointmentCode: string,
-        options: any = {}
-    ) {
+    async findByAppointment(appointmentCode: string, options: any = {}) {
         return dbHelper.findAll(this.tables, {
             where: {
                 appointment_code:
