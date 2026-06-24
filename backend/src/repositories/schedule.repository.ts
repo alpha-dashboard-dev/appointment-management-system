@@ -56,10 +56,23 @@ class ScheduleRepository {
     async findById(id: number, options: any = {}) {
         return dbHelper.findOne(this.tables, {
             where: { id },
-            include: this.buildIncludes(
+            include: buildIncludes(
                 options.include || []
             ),
         });
+    }
+
+    async findOne(where: any = {}, options: any = {}) {
+        return dbHelper.findOne(
+            this.tables,
+            {
+                where,
+                include: buildIncludes(
+                    this.tables,
+                    options.include || []
+                ),
+            }
+        );
     }
 
     // async findByUser(userCode: string) {

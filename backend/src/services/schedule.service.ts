@@ -1,6 +1,7 @@
 import repo from "../repositories/schedule.repository";
 import { validateSchedule } from "../utils/validator";
 import { ROLES } from "../utils/roles";
+import {buildWhere} from "../utils/buildWhere";
 
 class ScheduleService {
 
@@ -48,54 +49,31 @@ class ScheduleService {
     }
 
     async getAll(query: any = {}, actor?: any) {
-        const filters: any = {
-            business_code:
-                query.business_code,
 
-            user_code: query.user_code,
-        };
-
-        const options = {
-            include:
-                query.include
-                    ? String(query.include)
-                        .split(",")
-                    : [],
-
-            limit:
-                query.limit
-                    ? Number(query.limit)
-                    : undefined,
-
-            offset:
-                query.offset
-                    ? Number(query.offset)
-                    : undefined,
-
-            order: [
-                [
-                    query.sort_by || "created_at",
-
-                    query.sort_order || "DESC",
-                ],
-            ],
-        };
+        const where = buildWhere(query);
 
         // Non-admin actors can only see schedules from their own business
         if (actor && actor.userType !== ROLES.ADMIN) {
-            filters.business_code = actor.businessCode;
+            where.business_code = actor.businessCode;
         }
-        return await repo.findAll(
-            filters,
-            options
-        );
+        return await repo.findAll({
+            where,
+            include: Array.isArray(query.include)
+                ? query.include
+                : [],
+            limit: query.limit ? Number(query.limit) : undefined,
+            offset: query.offset ? Number(query.offset) : undefined,
+            order: [
+                [
+                    query.sort_by || "created_at",
+                    query.sort_order || "DESC"
+                ]
+            ]
+        });
     }
 
-    async getById(
-        id: number,
-        actor?: any,
-        query: any = {}
-    ) {
+    async getById(id: number, actor?: any, query: any = {})
+    {
         const options = {
             include:
                 query.include
@@ -111,6 +89,32 @@ class ScheduleService {
         if (!schedule) throw new Error("Schedule not found");
 
         // Non-admin actors can only view schedules from their own business
+        if (actor && actor.userType !== ROLES.ADMIN) {
+            const schedBiz = schedule.dataValues?.business_code ?? schedule.business_code;
+            if (schedBiz !== actor.businessCode) {
+                throw new Error("Access denied: schedule does not belong to your business");
+            }
+        }
+
+        return schedule;
+    }
+
+    async getOne(query: any = {}, actor: any) {
+
+        const where = buildWhere(query);
+        console.log(where, query)
+        const schedule = await repo.findAll({
+            where,
+            include: Array.isArray(query.include)
+                ? query.include
+                : [],
+    });
+
+
+        if (!schedule) {
+            throw new Error("Schedule not found");
+        }
+
         if (actor && actor.userType !== ROLES.ADMIN) {
             const schedBiz = schedule.dataValues?.business_code ?? schedule.business_code;
             if (schedBiz !== actor.businessCode) {

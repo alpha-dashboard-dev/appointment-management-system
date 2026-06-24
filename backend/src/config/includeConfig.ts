@@ -57,8 +57,13 @@ export const INCLUDE_CONFIG = {
         updatedByUser: {
             attributes: ["name"]
         }
+    },
+    UserShiftSchedule: {
+        business: {
+            attributes: ["name"]
+        },
+        location: {
+            attributes: ["address", "city", "country", "location_type", "status" ]
+        }
     }
-
-
-
 };

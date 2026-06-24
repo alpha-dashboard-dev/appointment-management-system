@@ -21,10 +21,17 @@ router.post(
 );
 
 router.get(
-    "/get-schedule",
+    "/get-all-schedules",
     authenticate,
     authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF),
     controller.getAll
+);
+
+router.get(
+    "/get-schedule-by-field",
+    authenticate,
+    authorizeRoles(ROLES.ADMIN, ROLES.BUSINESS_OWNER, ROLES.OPERATIONAL_STAFF, ROLES.SERVICE_STAFF),
+    controller.getByAnyField
 );
 
 // Check which staff members are available at a location on a given date/time

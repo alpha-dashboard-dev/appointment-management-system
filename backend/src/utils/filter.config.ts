@@ -16,13 +16,26 @@ export const FILTER_CONFIG: any = {
         field: "is_active",
         op: Op.eq
     },
+    userCode: {
+        field: "user_code",
+        op: Op.eq
+    },
+    locationCode: {
+        field: "location_code",
+        op: Op.eq
+    },
+    workingDay:{
+        field: "working_days",
+        op: Op.eq
+    },
     search: {
         type: "or",
         fields: [
             { field: "name", op: Op.like },
             { field: "email", op: Op.like },
             { field: "phone", op: Op.like },
-            { field: "street", op: Op.like }
+            { field: "street", op: Op.like },
+            { field: "working_days", op: Op.like },
         ]
     },
 

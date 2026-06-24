@@ -27,7 +27,24 @@ class ScheduleController {
 
     async getAll(req: Request, res: Response) {
         try {
-            const data = await service.getAll(req.query, req.user);
+            let include = req.query.include ?? "";
+            include = [
+                {
+                    alias: "business",
+                    attributes: [],
+                },
+                {
+                    alias: "location",
+                    attributes: [],
+                }
+            ]
+            const data = await service.getAll(
+                {
+                    ...req.query,
+                    include,
+                },
+                req.user
+            );
             return res.status(200).json({ success: true, data });
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
@@ -46,6 +63,47 @@ class ScheduleController {
             return res.status(404).json({ success: false, message: err.message });
         }
     }
+
+    async getByAnyField(req: Request, res: Response) {
+
+        try {
+
+            let include = req.query.include ?? "";
+
+            include = [
+                {
+                    alias: "business",
+                    attributes: [],
+                },
+                {
+                    alias: "location",
+                    attributes: [],
+                }
+            ]
+
+            const user = req.user;
+            const data = await service.getOne(
+                {
+                    ...req.query,
+                    include
+                },
+                user,
+            )
+
+            return res.status(200).json({
+                success: true,
+                data,
+            });
+
+        } catch (err: any) {
+
+            return res.status(404).json({
+                success: false,
+                message: err.message,
+            });
+        }
+    }
+
 
     async update(req: Request, res: Response) {
         try {
